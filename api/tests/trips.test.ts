@@ -154,7 +154,7 @@ test("retention removes stored location and then pickup photos", async () => {
   await repo.cleanup(now + C.locationRetentionMs + 1); assert.equal((await repo.get(t.id))?.location, null);
   await repo.cleanup(now + C.photoRetentionMs + 1); assert.equal((await repo.get(t.id))?.pickupCheck?.photo, "");
 });
-test("Google routing uses motorized two-wheeler traffic and walking uses no traffic option", async () => {
+test("Google routing asks for car routes with live traffic for every rider (Pro tier, not Enterprise)", async () => {
   process.env.GOOGLE_MAPS_ROUTES_KEY = "test-only-key";
   const t = trip(); accept(t, true, now); t.location = point();
   const bodies: Record<string, unknown>[] = [];
@@ -164,10 +164,10 @@ test("Google routing uses motorized two-wheeler traffic and walking uses no traf
     return Response.json({ routes: [{ distanceMeters: 500, duration: "120s", polyline: { encodedPolyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@" }, legs: [{ steps: [{ distanceMeters: 500, navigationInstruction: { instructions: "Turn left", maneuver: "TURN_LEFT" } }] }] }] });
   }) as typeof fetch;
   const result = await googleRoute(t, now, fetcher);
-  assert.equal(bodies[0].travelMode, "TWO_WHEELER"); assert.equal(bodies[0].routingPreference, "TRAFFIC_AWARE_OPTIMAL");
+  assert.equal(bodies[0].travelMode, "DRIVE"); assert.equal(bodies[0].routingPreference, "TRAFFIC_AWARE_OPTIMAL");
   assert.equal(result.steps[0].instruction, "Turn left"); assert.ok(result.warnings.length);
   t.vehicle = "foot"; await googleRoute(t, now, fetcher);
-  assert.equal(bodies[1].travelMode, "WALK"); assert.equal(bodies[1].routingPreference, undefined);
+  assert.equal(bodies[1].travelMode, "DRIVE"); assert.equal(bodies[1].routingPreference, "TRAFFIC_AWARE_OPTIMAL");
   delete process.env.GOOGLE_MAPS_ROUTES_KEY;
 });
 test("unconfigured routing does not invent a road route or ETA", async () => {

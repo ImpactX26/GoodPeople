@@ -16,12 +16,16 @@ export async function googleRoute(t: DeliveryTrip, now: number, fetcher: typeof 
   return googleDirections(t.location, t[target], t.vehicle, target, now, fetcher);
 }
 
-/** Google Routes from any point to any stop: traffic-aware for two-wheelers and cars, with turn-by-turn steps. */
+/**
+ * Google Routes from any point to any stop: car routes with live traffic and turn-by-turn steps, for every
+ * rider. Google bills two-wheeler routes at its Enterprise tier (7,000 free a month in India) and traffic-aware
+ * car routes at Pro (35,000 free), so Luna asks for car routes; `vehicle` is kept for the caller's records.
+ */
 export async function googleDirections(origin: LatLng, destination: LatLng, vehicle: Vehicle, target: TripRoute["target"], now: number, fetcher: typeof fetch = fetch): Promise<TripRoute> {
   const key = process.env.GOOGLE_MAPS_ROUTES_KEY;
   if (!key) throw new Error("Live directions are not configured yet. Your delivery status will still update.");
-  const travelMode = { foot: "WALK", bicycle: "BICYCLE", two_wheeler: "TWO_WHEELER", car: "DRIVE" }[vehicle];
-  const traffic = travelMode === "DRIVE" || travelMode === "TWO_WHEELER";
+  void vehicle;
+  const travelMode = "DRIVE", traffic = true;
   const response = await fetcher("https://routes.googleapis.com/directions/v2:computeRoutes", {
     method: "POST", signal: AbortSignal.timeout(C.routeTimeoutMs),
     headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key,
@@ -36,7 +40,7 @@ export async function googleDirections(origin: LatLng, destination: LatLng, vehi
   if (!r?.polyline?.encodedPolyline || !Number.isFinite(r.distanceMeters) || !Number.isFinite(parseFloat(r.duration)))
     throw new Error("No route was found for this vehicle. Contact the Luna team.");
   const warnings = [...(r.warnings ?? [])];
-  if (travelMode !== "DRIVE") warnings.push("Walking, bicycle and two-wheeler routes are in beta and may be missing sidewalks, pedestrian or cycling paths.");
+  warnings.push("Car route with live traffic; two-wheeler shortcuts may differ.");
   return { provider: "google", target, computedAt: now, path: decodePolyline(r.polyline.encodedPolyline),
     distanceM: r.distanceMeters, durationS: parseFloat(r.duration), warnings,
     steps: (r.legs ?? []).flatMap(l => (l.steps ?? []).map(step => ({
