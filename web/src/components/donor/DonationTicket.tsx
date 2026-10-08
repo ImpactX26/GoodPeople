@@ -15,6 +15,7 @@ import { GRADE_LABEL, GRADE_MEANING, justWentCold, leadShare, modelName, serving
 import { keepRelist, tagLine } from "./relist";
 import { Updates, WaitClock } from "@/components/agents/live-bits";
 import LiveDelivery from "@/components/trip/LiveDelivery";
+import DonationLabel from "@/components/impact/DonationLabel";
 import s from "./donor.module.css";
 
 /** Live view of one donation: a ticket with a coupon per stage that stamps as it completes. */
@@ -77,6 +78,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
               </li>
             ))}
           </ol>
+          {l.label && l.foodCheck && <DonationLabel label={l.label} />}
           {l.agentCase && <AgentLog c={l.agentCase} />}
           {error && <p className={s.barError} role="alert">{error}</p>}
           </div>

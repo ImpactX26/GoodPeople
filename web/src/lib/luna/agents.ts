@@ -155,6 +155,8 @@ export type Trip = Share & Track & {
   travel?: { toPickupMin: number; toDropMin: number | null } | null;
   servings?: number;
   hasPhoto?: boolean;
+  /** The donation label FSSAI expects on the food, once the trip is mine (shown at pickup). */
+  label?: import("./impact").DonationLabel | null;
 };
 export const myTrips = () => get<Trip[]>("/trips");
 /** Pickups an NGO accepted that no partner has taken and I could take; `missed`: I was asked and didn't answer. */

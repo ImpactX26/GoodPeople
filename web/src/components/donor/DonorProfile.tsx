@@ -33,7 +33,7 @@ function DonorProfile({ session }: { session: Session }) {
   const [draft, setDraft] = useState(fields), [saving, setSaving] = useState(false), [saved, setSaved] = useState(""), [error, setError] = useState("");
   const { list, max, error: listError, save, remove } = useAddresses(session.token);
   const [editing, setEditing] = useState<SavedAddress | null | "new">(null);
-  const dirty = ["name", "org", "kind", "area"].some(k => (draft[k] ?? "") !== (fields[k] ?? ""));
+  const dirty = ["name", "org", "kind", "area", "fssai"].some(k => (draft[k] ?? "") !== (fields[k] ?? ""));
 
   const saveDetails = async () => {
     setError(""); setSaved("");
@@ -92,6 +92,10 @@ function DonorProfile({ session }: { session: Session }) {
               {AREAS.map(a => <option key={a}>{a}</option>)}
             </select>
           </label>
+          <label className={s.field}><span>FSSAI licence or registration number (optional)</span>
+            <input value={draft.fssai ?? ""} maxLength={20} inputMode="numeric" placeholder="14 digits" onChange={e => setDraft({ ...draft, fssai: e.target.value.replace(/[^\dA-Za-z-]/g, "") })} />
+          </label>
+          <p className={s.note}>Printed on your donation labels, so the food carries your licence with it.</p>
           <dl className={s.leaders}>
             <div><dt>Mobile</dt><dd>{formatPhone(session.phone)}</dd></div>
             {fields.verification && <div><dt>Verified</dt><dd>{fields.verification}</dd></div>}

@@ -107,10 +107,11 @@ export function impactRoutes(luna: Luna, store: MatchingStore, clock: () => numb
     if (!Number.isFinite(pickupFrom) || !Number.isFinite(pickupUntil) || pickupUntil <= Math.max(now, pickupFrom) || pickupUntil > now + 24 * 3_600_000) return c.json({ error: "Pick-up must end later today or tomorrow." }, 400);
     const profile = await authStore.getProfile("donor", s.phone);
     const f = profile?.fields ?? {};
-    const lat = Number(f.lat), lng = Number(f.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !f.address) return c.json({ error: "Add your pickup address to your profile first." }, 400);
-    const area = areaIdFromName(f.area) ?? "koramangala";
-    const bag: Bag = { id: `bag_${randomUUID().slice(0, 8)}`, donorPhone: s.phone, donorName: f.org || f.name || "Restaurant", areaId: area, address: f.address, lat, lng, title, contents, diet, count, left: count, price: Math.round(price), worth: Math.round(worth), pickupFrom: Math.max(now, pickupFrom), pickupUntil, status: "open", createdAt: now };
+    // Where buyers collect: the saved address the restaurant picked, else its profile address.
+    const where = typeof b.address === "string" && b.address.trim() ? { address: b.address.trim().slice(0, 200), lat: Number(b.lat), lng: Number(b.lng), area: typeof b.area === "string" ? b.area : f.area } : { address: f.address ?? "", lat: Number(f.lat), lng: Number(f.lng), area: f.area };
+    if (!where.address || !Number.isFinite(where.lat) || !Number.isFinite(where.lng)) return c.json({ error: "Add a pickup address first." }, 400);
+    const area = areaIdFromName(where.area) ?? "koramangala";
+    const bag: Bag = { id: `bag_${randomUUID().slice(0, 8)}`, donorPhone: s.phone, donorName: f.org || f.name || "Restaurant", areaId: area, address: where.address, lat: where.lat, lng: where.lng, title, contents, diet, count, left: count, price: Math.round(price), worth: Math.round(worth), pickupFrom: Math.max(now, pickupFrom), pickupUntil, status: "open", createdAt: now };
     await store.insert("bag", bag);
     return c.json(publicBag(bag), 201);
   });

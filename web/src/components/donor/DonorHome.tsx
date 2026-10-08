@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CircleUser, Map as MapIcon, MapPin, Receipt, Truck } from "lucide-react";
+import { ArrowRight, Award, CircleUser, Map as MapIcon, MapPin, Receipt, ShoppingBag, Truck } from "lucide-react";
 import type { Session } from "@/lib/luna/auth";
 import PhotoCanvas, { keepDraftPhoto } from "./PhotoCanvas";
 import DonorShell from "./DonorShell";
@@ -36,7 +36,9 @@ export default function DonorHome({ session, fields }: { session: Session; field
           </section>
           {recent.length > 0 && <section className={s.group}><h2>Recent</h2>{recent.map(l => <DonationRow key={l.id} l={l} />)}</section>}
           <nav className={s.links} aria-label="More">
-            <Link href="/listings"><Receipt size={18} aria-hidden /><span><b>All donations</b>Receipts and where your food went</span><ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/impact"><Award size={18} aria-hidden /><span><b>Your impact</b>Meals shared, your Luna Partner badge, certificate and CSR report</span><ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/listings"><Receipt size={18} aria-hidden /><span><b>All donations</b>Receipts, labels and where your food went</span><ArrowRight size={16} aria-hidden /></Link>
+            <Link href="/bags/mine"><ShoppingBag size={18} aria-hidden /><span><b>Surprise bags</b>Sell end-of-day food at a discount</span><ArrowRight size={16} aria-hidden /></Link>
             <Link href="/deliveries"><Truck size={18} aria-hidden /><span><b>Track deliveries</b>Live route and arrival time</span><ArrowRight size={16} aria-hidden /></Link>
             <Link href="/profile"><MapPin size={18} aria-hidden /><span><b>Pickup addresses</b>Your saved places and profile</span><ArrowRight size={16} aria-hidden /></Link>
             <Link href="/map"><MapIcon size={18} aria-hidden /><span><b>Where food is short</b>The food map for {fields.area || "your area"}</span><ArrowRight size={16} aria-hidden /></Link>

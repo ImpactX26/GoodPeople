@@ -13,6 +13,7 @@ import DonorShell from "@/components/donor/DonorShell";
 import HomeActivity from "@/components/listing/HomeActivity";
 import { SharePhoto, Updates } from "@/components/agents/live-bits";
 import LiveDelivery from "@/components/trip/LiveDelivery";
+import DonationLabel from "@/components/impact/DonationLabel";
 import d from "@/components/donor/donor.module.css";
 import n from "@/components/ngo/ngo.module.css";
 import s from "./partner.module.css";
@@ -291,6 +292,7 @@ function TripSlip({ trip: t, onDone }: { trip: Trip; onDone: () => void }) {
       </ol>
       {(t.lateMin ?? 0) > 5 && <p className={s.lateBanner} role="status">About {t.lateMin} min behind. The NGO and the restaurant have been told.</p>}
       {t.hasPhoto && atPickup && <SharePhoto shareId={t.id} alt={`Photo of ${t.keepReady}`} />}
+      {atPickup && t.label && <DonationLabel label={t.label} compact />}
       <h2 id={`slip-${t.id}`} className={s.slipTitle}>{atPickup ? `Collect from ${t.pickup.name}` : `Drop at ${t.drop?.name ?? "the NGO"}`}</h2>
       <p className={s.slipFood}>{t.keepReady}</p>
       <dl className={s.places}>

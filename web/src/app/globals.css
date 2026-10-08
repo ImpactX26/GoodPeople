@@ -108,3 +108,24 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Printing one marked thing (a donation label, a certificate, a report): everything else is hidden. */
+@media print {
+  body:has([data-printing]) * {
+    visibility: hidden;
+  }
+  [data-printing],
+  [data-printing] * {
+    visibility: visible;
+  }
+  [data-printing] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0;
+    box-shadow: none !important;
+  }
+  [data-no-print] {
+    display: none !important;
+  }
+}
