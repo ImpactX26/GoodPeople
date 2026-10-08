@@ -1,5 +1,5 @@
 import type { ListingInput, ListingView } from "@/lib/luna/listing";
-import { servingsFor, type BulkUnit, type EntryMode } from "@/lib/luna/portions";
+import { findDish, servingsFor, unitsFor, type BulkUnit, type EntryMode } from "@/lib/luna/portions";
 
 /** One food being listed in this session, as the form holds it. */
 export interface DraftItem {
@@ -24,8 +24,14 @@ export interface DraftItem {
   temp: string;
 }
 
-export const quantityOf = (d: Pick<DraftItem, "mode" | "count" | "feeds" | "amount" | "unit">) =>
-  d.mode === "bulk" ? { mode: d.mode, amount: d.amount, unit: d.unit } : d.mode === "shared_pack" ? { mode: d.mode, count: d.count, feedsEach: d.feeds } : { mode: d.mode, count: d.count };
+/** The unit shown for this food: the donor's pick when it fits the dish (litres for payasam), else the dish's first unit. */
+export function unitOf(d: Pick<DraftItem, "dish" | "category" | "unit">): BulkUnit {
+  const units = unitsFor(findDish(d.dish, d.category));
+  return units.includes(d.unit) ? d.unit : units[0];
+}
+
+export const quantityOf = (d: Pick<DraftItem, "dish" | "category" | "mode" | "count" | "feeds" | "amount" | "unit">) =>
+  d.mode === "bulk" ? { mode: d.mode, amount: d.amount, unit: unitOf(d) } : d.mode === "shared_pack" ? { mode: d.mode, count: d.count, feedsEach: d.feeds } : { mode: d.mode, count: d.count };
 
 /** What the portion table recommends for this food, and the servings it will be listed with. */
 export function servingsOfDraft(d: DraftItem) {

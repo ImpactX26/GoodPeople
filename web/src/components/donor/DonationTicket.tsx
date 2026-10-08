@@ -292,7 +292,7 @@ function TagSlip({ l, session, onChange }: { l: ListingView; session: Session; o
         : "The photo check isn’t sure about these. If your tags are right, keep them. You know your food best."}</p>
       <ul>
         {checks.map(x => { const t = tagLine(x, l); return (
-          <li key={x.tag} data-sure={x.certainty === "sure"}>
+          <li key={`${x.itemId ?? ""}-${x.tag}`} data-sure={x.certainty === "sure"}>
             <b>{t.title}</b>{t.seen && <span>{t.seen}</span>}{t.fix && <em>Fix: {t.fix}</em>}
           </li>
         ); })}

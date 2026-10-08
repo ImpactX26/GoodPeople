@@ -11,7 +11,7 @@ import { farFrom, findDish, unitsFor, type BulkUnit } from "@/lib/luna/portions"
 import { tripTime } from "@/lib/luna/trip";
 import PhotoCanvas, { clearDraftPhoto, peekDraftPhoto } from "./PhotoCanvas";
 import { clearRelist, peekRelist } from "./relist";
-import { itemBody, servingsOfDraft, type DraftItem } from "./draft";
+import { itemBody, servingsOfDraft, unitOf, type DraftItem } from "./draft";
 import { ChoiceChips, Row, Stepper, ToggleChips } from "./Controls";
 import DonorShell from "./DonorShell";
 import AddressSheet from "./AddressSheet";
@@ -237,8 +237,8 @@ export default function SnapListing({ session }: { session: Session }) {
                   options={[{ value: "bulk", label: "Loose", hint: "vessel, tray, kg / litres" }, { value: "per_person_pack", label: "One meal per box" }, { value: "shared_pack", label: "Shared boxes" }]} />
                 {cur.mode === "bulk" ? (
                   <div className={s.steppers}>
-                    <Stepper label="Amount" value={cur.amount} onChange={v => setCur(c => ({ ...c, amount: v, servings: null }))} min={1} max={500} unit={UNIT_WORD[units.includes(cur.unit) ? cur.unit : units[0]]} />
-                    <ChoiceChips label="Unit" name="unit" value={units.includes(cur.unit) ? cur.unit : units[0]} onChange={v => setCur(c => ({ ...c, unit: v, servings: null }))}
+                    <Stepper label="Amount" value={cur.amount} onChange={v => setCur(c => ({ ...c, amount: v, servings: null }))} min={1} max={500} unit={UNIT_WORD[unitOf(cur)]} />
+                    <ChoiceChips label="Unit" name="unit" value={unitOf(cur)} onChange={v => setCur(c => ({ ...c, unit: v, servings: null }))}
                       options={units.map(u => ({ value: u, label: UNIT_WORD[u] }))} />
                   </div>
                 ) : (
