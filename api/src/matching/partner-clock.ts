@@ -18,7 +18,8 @@ export interface PartnerClock {
 
 export async function partnerClockOf(store: MatchingStore, share: Share, l: Listing, now: number): Promise<PartnerClock | null> {
   if (share.status !== "finding_partner" || !share.ngoId) return null;
-  const from = share.waitingForPartnerSince ?? share.askedAt ?? share.createdAt;
+  const accepted = share.acceptedAt ?? share.askedAt ?? share.waitingForPartnerSince ?? share.createdAt;
+  const from = accepted;
   const closes = Math.min(l.collectBy, safeUntilOf(l, share.lines));
   const wait = itemsOf(l, share.lines).some((i) => effectiveGrade(i) === "C") ? config.partnerWaitBeforeNextNgoServeNowMs : config.partnerWaitBeforeNextNgoMs;
   const tried = new Set([...share.triedNgoIds, share.ngoId]);
@@ -28,6 +29,8 @@ export async function partnerClockOf(store: MatchingStore, share: Share, l: List
     const r = await store.get("recipient", c.ngoId);
     if (r?.active && (config.simulateUnclaimed || r.phone)) { another = true; break; }
   }
-  if (another && from + wait > now && from + wait < closes) return { from, to: from + wait, then: "next_ngo" };
+  // It moves on at the first of: the wait limit after asking ran out, or 30 minutes after the NGO accepted.
+  const moveAt = Math.min(share.waitingForPartnerSince !== undefined ? share.waitingForPartnerSince + wait : Infinity, accepted + config.ngoHoldAfterAcceptMaxMs);
+  if (another && moveAt > now && moveAt < closes) return { from, to: moveAt, then: "next_ngo" };
   return { from, to: Math.max(closes, now), then: "window_closes" };
 }

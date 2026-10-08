@@ -50,6 +50,7 @@ export const KIND: Record<string, string> = {
   pledged: "Pledged",
   gap_outreach: "Asked for food",
   biogas: "Sent to biogas",
+  suggested: "Suggested a time",
 };
 
 export type Step =

@@ -43,6 +43,8 @@ export const config = {
    */
   partnerWaitBeforeNextNgoMs: 10 * MIN,
   partnerWaitBeforeNextNgoServeNowMs: 5 * MIN,
+  /** However the asking is going, an NGO holds accepted food at most this long without a partner taking it. */
+  ngoHoldAfterAcceptMaxMs: 30 * MIN,
   /** Checkpoint slack: expected leg time × this. */
   checkpointSlack: 1.5,
   /** Each "Running late" tap adds this much to the partner's projected arrival. */

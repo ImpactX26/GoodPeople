@@ -248,6 +248,26 @@ food.post("/listings/:id/keep-tags", async c => {
  * No NGO can take some of the food and none is left to ask: the restaurant sends it to the nearest biogas plant,
  * which collects it (the Decision Agent books it). Then it marks the pickup collected.
  */
+/** The restaurant answers the Food Agent's collect-by suggestion; yes moves the collect-by time everywhere. */
+food.post("/listings/:id/collect-by", async c => {
+  const s = c.get("session"), luna = agents();
+  const b = await c.req.json().catch(() => ({})) as { accept?: unknown };
+  if (typeof b.accept !== "boolean") throw new TripError("Send accept: true or false.", 400);
+  const first = await listings.get(c.req.param("id"));
+  if (!first || !(s.role === "admin" || s.role === "donor" && first.donorPhone === s.phone)) throw new TripError("Listing not found.", 404);
+  if (!first.matchId || !luna) throw new TripError("Luna's agents haven't opened this donation yet.");
+  const r = await luna.answerCollect(first.matchId, b.accept, s.role === "admin" ? { admin: true } : { phone: s.phone }, Date.now());
+  if (!r.ok) throw new TripError(r.error, r.status === 404 || r.status === 403 ? r.status : 409);
+  for (let attempt = 0; attempt < C.casRetries; attempt++) {
+    const l = await listings.get(first.id);
+    if (!l) break;
+    if (!r.collectBy || l.collectBy === r.collectBy) return c.json(await listingView(l, s));
+    l.collectBy = r.collectBy;
+    const version = l.version; l.version++;
+    if (await listings.save(l, version)) return c.json(await listingView(l, s));
+  }
+  throw new TripError("The listing changed. Try again.");
+});
 food.post("/listings/:id/biogas", async c => {
   const s = c.get("session"), l = await listings.get(c.req.param("id")), luna = agents();
   if (!l || !(s.role === "admin" || s.role === "donor" && l.donorPhone === s.phone)) throw new TripError("Listing not found.", 404);
@@ -395,7 +415,9 @@ async function caseOf(caseId: string, withCode: boolean): Promise<AgentCase | nu
   }
   const leftover: AgentCase["leftover"] = { servings: left.servings, what: linesText(c, left.lines), why: left.why, waitingOnPartner: left.waitingOnPartner,
     plant: plant ? { name: plant.name, km: plant.km, comeBy: comeByFor(plant.km, Date.now()) } : null };
-  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals, leftover, biogas, lapsed: c.lapsed ?? null };
+  const cs = c.collectSuggestion;
+  const collectSuggestion: AgentCase["collectSuggestion"] = cs ? { suggested: cs.suggested, was: cs.was, safeUntil: cs.safeUntil, answer: cs.answer ?? null } : null;
+  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals, leftover, biogas, lapsed: c.lapsed ?? null, collectBy: c.collectBy, collectSuggestion };
 }
 function caseProgress(c: AgentCase, lead: AgentCase["shares"][number] | undefined) {
   if (c.lapsed && !c.biogas.length) return "No one responded in time";

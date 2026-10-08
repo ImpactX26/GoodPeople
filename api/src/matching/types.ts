@@ -91,6 +91,11 @@ export interface Listing extends LatLng {
   lastReplanAt?: number;
   /** Last "still on it" sent to the donor while waiting. */
   lastHeartbeatAt?: number;
+  /**
+   * The Food Agent's collect-by suggestion, once the food was checked (collect-by.ts): the time it suggests, from
+   * the food's safe time, what the restaurant had set, and their answer.
+   */
+  collectSuggestion?: { suggested: number; was: number; safeUntil: number; at: number; answer?: "yes" | "no"; answeredAt?: number };
   /** Why no NGO can take the servings left over, in plain words (the NGO Agent's finding). */
   stuckWhy?: string;
   /**
@@ -266,6 +271,8 @@ export interface Share {
   /** Accepted, but no partner was free: since when it has been waiting, and when it last looked. */
   waitingForPartnerSince?: number;
   lastPartnerTryAt?: number;
+  /** When the current NGO accepted (its 30-minute hold for a partner runs from here). */
+  acceptedAt?: number;
   /** When it went on the open pickups board with a heads-up to partners and the NGO (once per share, old ones too). */
   openNoticeAt?: number;
   createdAt: number;
@@ -310,7 +317,8 @@ export type DecisionKind =
   | "replanned"
   | "rated"
   | "reassigned"
-  | "biogas";
+  | "biogas"
+  | "suggested";
 
 export interface Decision {
   id: string;

@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Info, MapPin, Recycle, RotateCcw, TriangleAlert, X } from "lucide-react";
+import { ArrowRight, Check, Clock, Info, MapPin, Recycle, RotateCcw, TriangleAlert, X } from "lucide-react";
 import { api } from "@/lib/luna/api";
 import { useLive } from "@/lib/luna/live";
 import type { Session } from "@/lib/luna/auth";
@@ -55,6 +55,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
           {l.agentCase && <Updates />}
           {l.agentCase?.shares.filter(x => x.status === "assigned" || x.status === "picked_up").map(x => <LiveDelivery key={x.id} shareId={x.id} viewer="observer" />)}
           {wentCold(l) && l.agentCase?.lapsed && <ColdSlip l={l} session={session} onChange={setL} />}
+          {l.agentCase?.collectSuggestion && !wentCold(l) && <CollectSlip l={l} session={session} onChange={setL} />}
           {l.agentCase && <BiogasSlip l={l} session={session} onChange={setL} />}
           {l.foodCheck && <TagSlip l={l} session={session} onChange={setL} />}
           {l.agentCase && <PackingPlan l={l} />}
@@ -374,6 +375,39 @@ function FoodsVerdict({ l, model }: { l: ListingView; model: string | null }) {
         {c.seen && <p>The photo shows: {c.seen}</p>}
         <p>{model ? <>Photos checked by <b>{model}</b> · each food’s reasoning is below</> : <>Photos not judged by AI · graded from cooking time and storage</>}</p>
       </footer>
+    </section>
+  );
+}
+
+/**
+ * The Food Agent's collect-by suggestion: the form's "within 1 hour" was a guess made before the food was
+ * checked; now Luna knows how long it stays safe. The restaurant says yes or keeps its own time.
+ */
+function CollectSlip({ l, session, onChange }: { l: ListingView; session: Session; onChange: (l: ListingView) => void }) {
+  const [busy, setBusy] = useState<"" | "yes" | "no">(""), [error, setError] = useState("");
+  const c = l.agentCase!, sg = c.collectSuggestion!;
+  const later = sg.suggested > sg.was;
+  const answer = async (accept: boolean) => {
+    setBusy(accept ? "yes" : "no"); setError("");
+    try { onChange(await api<ListingView>(`/listings/${l.id}/collect-by`, { method: "POST", token: session.token, body: JSON.stringify({ accept }) })); }
+    catch (e) { setError((e as Error).message); } finally { setBusy(""); }
+  };
+  if (sg.answer === "no") return null;
+  if (sg.answer === "yes") return (
+    <p className={s.tagSlip} data-tone="done"><Clock size={16} aria-hidden /> Collection runs until {tripTime(sg.suggested)}, as Luna’s Food Agent suggested from the food’s safe time.</p>
+  );
+  return (
+    <section className={s.tagSlip} aria-labelledby="collect-title">
+      <h2 id="collect-title"><Clock size={20} aria-hidden /> Food Agent: {later ? "it can wait longer" : "collect it sooner"}</h2>
+      <p>{later
+        ? <>Your food stays safe until <strong>{tripTime(sg.safeUntil)}</strong>, so it can wait for collection until <strong>{tripTime(sg.suggested)}</strong> instead of {tripTime(sg.was)}. That gives NGOs and partners more time to take it.</>
+        : <>Your food is only safe until <strong>{tripTime(sg.safeUntil)}</strong>, so it should be collected by <strong>{tripTime(sg.suggested)}</strong>, not {tripTime(sg.was)}.</>}</p>
+      <p className={s.note}>Luna leaves 45 minutes after collection for the ride to an NGO and serving it.</p>
+      {error && <p className={s.barError} role="alert">{error}</p>}
+      <div className={s.tagActions}>
+        <button type="button" className={s.primary} disabled={!!busy} onClick={() => void answer(true)}><Check size={18} aria-hidden /> {busy === "yes" ? "Saving…" : `Yes, until ${tripTime(sg.suggested)}`}</button>
+        <button type="button" className={s.ghost} disabled={!!busy} onClick={() => void answer(false)}>{busy === "no" ? "Saving…" : `Keep ${tripTime(sg.was)}`}</button>
+      </div>
     </section>
   );
 }

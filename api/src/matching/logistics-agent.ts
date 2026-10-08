@@ -252,7 +252,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       await offerNext(next, now);
       return ok("Thanks for letting us know.");
     }
-    const next: Share = { ...share, status: "finding_partner" };
+    const next: Share = { ...share, status: "finding_partner", acceptedAt: now };
     if (!(await store.cas("share", next, "offering"))) return fail(GONE);
     await decide(now, "accepted", ngo.id, `${ngo.name} accepted ${servingsOf(share.lines)} servings of ${foodOf(l, share.lines)}.`, l.id, { shareId });
     await deps.emit({ type: "ngo_accepted", share: next, ngo }, now);
@@ -331,6 +331,9 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     );
   }
 
+  /** When this NGO accepted; older shares from before acceptedAt was kept use their first partner ask. */
+  const acceptedAtOf = (share: Share) => share.acceptedAt ?? share.askedAt ?? share.waitingForPartnerSince ?? share.createdAt;
+
   const waitLimit = (l: Listing, share: Share) =>
     itemsOf(l, share.lines).some((i) => effectiveGrade(i) === "C") ? config.partnerWaitBeforeNextNgoServeNowMs : config.partnerWaitBeforeNextNgoMs;
 
@@ -339,9 +342,13 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
    * can get the food there safely, the share moves to it (no need to ask the first NGO), and the first NGO is
    * told why. Otherwise it stays with the first NGO, on the open board. True when it moved.
    */
-  async function handOnToNextNgo(share: Share, l: Listing, ngo: Recipient, since: number, now: number) {
-    const wait = waitLimit(l, share);
-    if (now - since < wait) return false;
+  async function handOnToNextNgo(share: Share, l: Listing, ngo: Recipient, since: number | undefined, now: number) {
+    // Either nobody has taken it for the wait limit since asking ran out, or the NGO has held it 30 minutes since
+    // accepting, however the asking is going (partners being asked one by one can't stretch it past that).
+    const accepted = acceptedAtOf(share);
+    const waited = since !== undefined && now - since >= waitLimit(l, share);
+    const held = now - accepted >= config.ngoHoldAfterAcceptMaxMs;
+    if (!waited && !held) return false;
     const tried = new Set([...share.triedNgoIds, ngo.id]);
     let target: Recipient | null = null;
     for (const c of share.candidates) {
@@ -351,12 +358,19 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       if ((await partnersFor({ ...share, triedPartnerIds: [] }, l, r, now)).length) { target = r; break; }
     }
     if (!target) return false;
+    // A partner being asked right now is told it's covered elsewhere.
+    const asked = share.askedPartnerId ? await store.get("partner", share.askedPartnerId) : null;
+    if (asked) {
+      await store.put("partner", { ...asked, activeShareId: undefined });
+      await toPartner(now, asked, msg.text("Thanks! That pickup has moved to another NGO, so you're no longer needed for it."));
+    }
+    const took = now - (held ? accepted : since!);
     const candidates = [...share.candidates.filter((c) => c.ngoId === target!.id), ...share.candidates.filter((c) => c.ngoId !== target!.id)];
-    const next: Share = { ...share, status: "offering", candidates, ngoId: undefined, askedPartnerId: undefined, askDeadlineAt: undefined, triedPartnerIds: [], triedNgoIds: [...share.triedNgoIds, ngo.id], waitingForPartnerSince: undefined, lastPartnerTryAt: undefined };
+    const next: Share = { ...share, status: "offering", candidates, ngoId: undefined, askedPartnerId: undefined, askDeadlineAt: undefined, triedPartnerIds: [], triedNgoIds: [...share.triedNgoIds, ngo.id], waitingForPartnerSince: undefined, lastPartnerTryAt: undefined, acceptedAt: undefined, openNoticeAt: undefined };
     await store.put("share", next);
     const food = foodOf(l, share.lines);
-    await decide(now, "replanned", ngo.id, `No delivery partner took the pickup for ${ngo.name} in ${fmtMinutes(now - since)}, so the ${food} moves to ${target.name}, which has a partner free. ${ngo.name} was told why.`, l.id, { shareId: share.id, from: ngo.id, to: target.id });
-    await toNgo(now, ngo, msg.text(`No delivery partner took the ${food} pickup from ${l.donorName} within ${fmtMinutes(now - since)}, so Luna has passed it to another NGO that has a partner free, before it stops being safe. Nothing for you to do. Thank you for saying yes.`));
+    await decide(now, "replanned", ngo.id, `No delivery partner took the pickup for ${ngo.name} ${held ? `in the ${fmtMinutes(config.ngoHoldAfterAcceptMaxMs)} an NGO can hold accepted food` : `in ${fmtMinutes(took)}`}, so the ${food} moves to ${target.name}, which has a partner free. ${ngo.name} was told why.`, l.id, { shareId: share.id, from: ngo.id, to: target.id });
+    await toNgo(now, ngo, msg.text(`No delivery partner took the ${food} pickup from ${l.donorName} within ${fmtMinutes(took)} of you accepting it, so Luna has passed it to another NGO that has a partner free, before it stops being safe. Nothing for you to do. Thank you for saying yes.`));
     await deps.emit({ type: "partner_exhausted", share: next, ngo }, now);
     await offerNext(next, now);
     return true;
@@ -712,6 +726,13 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       if (s.ngoId && now > (s.offerDeadlineAt ?? 0)) await rt.safely(`expire ${s.id}`, () => expireOffer(s, now));
     }
     for (const s of await store.list("share", { status: "finding_partner" })) {
+      // The 30-minute hold runs out even mid-ask: the food moves on if another NGO has a partner free.
+      if (s.ngoId && now - acceptedAtOf(s) >= config.ngoHoldAfterAcceptMaxMs) {
+        const l = await store.get("listing", s.listingId), ngo = await store.get("recipient", s.ngoId);
+        let moved = false;
+        if (l && ngo) await rt.safely(`hold ${s.id}`, async () => { moved = await handOnToNextNgo(s, l, ngo, s.waitingForPartnerSince, now); });
+        if (moved) continue;
+      }
       if (s.askedPartnerId && now > (s.askDeadlineAt ?? 0)) {
         const p = await store.get("partner", s.askedPartnerId);
         if (p) await rt.safely(`release ${s.id}`, () => releaseAsk(s, p, now, "expired"));

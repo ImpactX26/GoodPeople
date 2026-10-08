@@ -101,3 +101,22 @@ test("a partner too far to make the collect-by time still sees the pickup, marke
   assert.equal(mine.reach.unsafe, false);
   assert.ok((await luna.claimPickup(s.id, { phone: ME }, at(13, 52))).ok);
 });
+
+test("an NGO holds accepted food at most 30 minutes, even while partners are still being asked one by one", async () => {
+  const many = Array.from({ length: 12 }, (_, i) => partner({ id: `p${i}`, phone: `90000001${String(i).padStart(2, "0")}`, ...east(KORAMANGALA, 0.3 + i * 0.05) }));
+  const { luna, share, texts } = await setup(
+    [recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) }), recipient({ id: "r2", phone: NGO2, ...east(KORAMANGALA, 2) })],
+    many,
+  );
+  const s = await share();
+  await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+  for (let m = 4; m < 31; m += 3) await luna.tick(at(12, m));   // ask after ask runs out
+  const still = await share();
+  assert.equal(still.ngoId, "r1", "within 30 minutes it stays");
+  assert.ok(still.askedPartnerId, "someone is being asked right now");
+  await luna.tick(at(12, 31) + 1);
+  const moved = await share();
+  assert.equal(moved.status, "offering");
+  assert.equal(moved.ngoId, "r2");
+  assert.ok((await texts(NGO1)).some((t) => /passed it to another NGO/.test(t)));
+});

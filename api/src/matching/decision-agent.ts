@@ -16,6 +16,7 @@ import type { NgoAgent } from "./ngo-agent.ts";
 import { code4, fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
 import { areaById } from "./seed.ts";
 import { comeByFor, leftoverOf, linesText, nearestCollector } from "./biogas.ts";
+import { suggestCollectBy } from "./collect-by.ts";
 import { safeUntil } from "./engine/safety.ts";
 import { fmtTime } from "./time.ts";
 import type { DecisionKind, Item, Listing, Partner, Share, TripMark } from "./types.ts";
@@ -64,7 +65,44 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
 
   async function openCase(l: Listing, now: number) {
     await decide(now, "review", l.id, `Opened a case for ${l.donorName}: ${l.items.map((i) => `${i.servings} × ${itemName(i)}`).join(", ")}.`, l.id);
-    await place(l, l.items, now, true);
+    // The Food Agent speaks first (its collect-by suggestion), then the NGOs are asked.
+    await suggestCollect(l.id, now);
+    await place((await store.get("listing", l.id)) ?? l, l.items, now, true);
+  }
+
+  /**
+   * The Food Agent's suggestion for the collect-by time, from how long the food really stays safe (the form's
+   * "within 1 hour" is a guess made before the check). The restaurant answers on its donation page.
+   */
+  async function suggestCollect(listingId: string, now: number) {
+    const l = await store.get("listing", listingId);
+    if (!l || l.collectSuggestion || l.status === "closed") return;
+    const s = suggestCollectBy(l, now);
+    if (!s) return;
+    await store.put("listing", { ...l, collectSuggestion: { suggested: s.suggested, was: l.collectBy, safeUntil: s.safeUntil, at: now } });
+    const later = s.suggested > l.collectBy;
+    await rt.decide("food", now, "suggested", l.id, later
+      ? `The food stays safe until ${fmtTime(s.safeUntil)}, so it can wait for collection until ${fmtTime(s.suggested)}, not just ${fmtTime(l.collectBy)} as set. Suggested the later time to ${l.donorName}: more time for an NGO and a partner.`
+      : `The food is only safe until ${fmtTime(s.safeUntil)}, so collection should finish by ${fmtTime(s.suggested)}, earlier than the ${fmtTime(l.collectBy)} set. Suggested it to ${l.donorName}.`, l.id, s);
+    await rt.toDonor(now, l, later
+      ? `Luna's Food Agent: your food stays safe until ${fmtTime(s.safeUntil)}, so it can wait for collection until ${fmtTime(s.suggested)} instead of ${fmtTime(l.collectBy)}. That gives NGOs and partners more time. Open your donation in Luna to say yes or keep your time.`
+      : `Luna's Food Agent: your food is only safe until ${fmtTime(s.safeUntil)}, so it should be collected by ${fmtTime(s.suggested)}, earlier than ${fmtTime(l.collectBy)}. Open your donation in Luna to confirm.`);
+  }
+
+  /** The restaurant's answer to the suggestion. Yes moves the collect-by time; the agents work to it at once. */
+  async function answerCollect(listingId: string, accept: boolean, by: Actor, now: number): Promise<Result & { collectBy?: number }> {
+    const l = await store.get("listing", listingId);
+    if (!l) return fail("Unknown donation.", 404);
+    if (!owns(by, l.donorPhone)) return fail("This donation isn't yours.", 403);
+    const s = l.collectSuggestion;
+    if (!s || s.answer) return fail("There's no suggestion waiting for an answer.");
+    if (l.status === "closed") return fail("This donation has closed.");
+    if (accept && s.suggested <= now) return fail("That time has already passed.");
+    await store.put("listing", { ...l, collectBy: accept ? s.suggested : l.collectBy, collectSuggestion: { ...s, answer: accept ? "yes" : "no", answeredAt: now } });
+    await decide(now, accept ? "replanned" : "review", l.id, accept
+      ? `${l.donorName} took the Food Agent's suggestion: collection now runs until ${fmtTime(s.suggested)} (was ${fmtTime(l.collectBy)}). The agents work to the new time.`
+      : `${l.donorName} kept their collect-by time of ${fmtTime(l.collectBy)}.`, l.id);
+    return { ...ok(accept ? `Collection now runs until ${fmtTime(s.suggested)}.` : `Keeping ${fmtTime(l.collectBy)}.`), collectBy: accept ? s.suggested : l.collectBy };
   }
 
   /** Ask the NGO Agent to split these servings into shares, and start each with Logistics. */
@@ -469,6 +507,8 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     await logistics.tick(now);
     await heartbeat(now);
     await closeLapsed(now);
+    // Cases opened before the Food Agent made suggestions get one too.
+    for (const l of await store.list("listing")) if (!l.collectSuggestion && l.status !== "closed" && l.status !== "review") await suggestCollect(l.id, now);
     await replanUnplaced(now);
     // Food stranded only for want of a partner goes out again once someone can collect it.
     for (const s of await logistics.retryUnplaced(now)) {
@@ -485,7 +525,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     }
   }
 
-  return { submitListing, approveListing, onLogistics, feedback, runGaps, gapReply, sendToBiogas, biogasCollected, tick };
+  return { submitListing, approveListing, onLogistics, feedback, runGaps, gapReply, sendToBiogas, biogasCollected, answerCollect, tick };
 }
 
 export type DecisionAgent = ReturnType<typeof createDecisionAgent>;
