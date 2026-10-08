@@ -6,6 +6,7 @@
  */
 import postgres from "postgres";
 import type {
+  BiogasPickup,
   ContactLog,
   Decision,
   InboundSeen,
@@ -30,6 +31,8 @@ export interface Kinds {
   contact: ContactLog;
   pledge: Pledge;
   wa_in: InboundSeen;
+  /** Food sent to a biogas plant when no NGO could take it. */
+  biogas: BiogasPickup;
   /** The reasoning layer's looks at what the rules did (reasoning/). */
   thought: Thought;
   /** Every event the agent dashboards draw, kept so any screen opened later sees the whole story. */

@@ -53,6 +53,7 @@ const BY_KIND: Record<RecipientKind, Omit<Recipient, "id" | "name" | "areaId" | 
   community_fridge: { vulnerable: false, servingTimes: [], servesWithinMin: 0, acceptsDiet: ALL_DIETS, halalOnly: false, avoidAllergens: [], acceptRadiusKm: 5, active: true },
   animal_shelter: { vulnerable: false, servingTimes: [], servesWithinMin: 60, acceptsDiet: ALL_DIETS, halalOnly: false, avoidAllergens: [], acceptRadiusKm: 20, active: true },
   compost: { vulnerable: false, servingTimes: [], servesWithinMin: 60, acceptsDiet: ALL_DIETS, halalOnly: false, avoidAllergens: [], acceptRadiusKm: 25, active: true },
+  biogas: { vulnerable: false, servingTimes: [], servesWithinMin: 0, acceptsDiet: ALL_DIETS, halalOnly: false, avoidAllergens: [], acceptRadiusKm: 30, active: true },
 };
 
 /** Per-NGO tweaks so the SRS scenarios show up in the demo. */
@@ -86,10 +87,15 @@ export function seedRecipients(): Recipient[] {
   const extra: [string, string, RecipientKind][] = [
     ["r-hebbal-animals", "Sample Animal Shelter, Hebbal", "animal_shelter"],
     ["r-bellandur-compost", "Sample Compost Unit, Bellandur", "compost"],
+    // Where food goes when no NGO can take it in time: plants that pick it up and turn it into biogas.
+    ["r-hebbal-biogas", "Sample Biogas Plant, Hebbal", "biogas"],
+    ["r-bellandur-biogas", "Sample Biogas Plant, Bellandur", "biogas"],
+    ["r-jpnagar-biogas", "Sample Biogas Plant, JP Nagar", "biogas"],
+    ["r-rajajinagar-biogas", "Sample Biogas Plant, Rajajinagar", "biogas"],
   ];
   for (const [id, name, kind] of extra) {
     const a = areaById(id.split("-")[1])!;
-    out.push({ id, name, areaId: a.id, ...near(a, name), kind, fridge: false, capacityPerDelivery: 500, ...BY_KIND[kind] });
+    out.push({ id, name, areaId: a.id, ...near(a, name), kind, fridge: false, capacityPerDelivery: kind === "biogas" ? 2000 : 500, ...BY_KIND[kind] });
   }
   return out;
 }

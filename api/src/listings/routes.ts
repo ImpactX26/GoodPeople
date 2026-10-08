@@ -18,6 +18,7 @@ import { agents, matchingStore, reasoner } from "../matching/index.ts";
 import { syncDirectory } from "../matching/directory.ts";
 import { ping } from "../matching/live.ts";
 import { passportFrom, passportItems } from "../matching/bridge.ts";
+import { comeByFor, leftoverOf, linesText, nearestCollector } from "../matching/biogas.ts";
 import { trace } from "../matching/reasoning/trace.ts";
 import type { Decision } from "../matching/types.ts";
 import { packingLines, shareContainers } from "../matching/food-agent.ts";
@@ -242,6 +243,27 @@ food.post("/listings/:id/keep-tags", async c => {
   }
   throw new TripError("The listing changed. Try again.");
 });
+/**
+ * No NGO can take some of the food and none is left to ask: the restaurant sends it to the nearest biogas plant,
+ * which collects it (the Decision Agent books it). Then it marks the pickup collected.
+ */
+food.post("/listings/:id/biogas", async c => {
+  const s = c.get("session"), l = await listings.get(c.req.param("id")), luna = agents();
+  if (!l || !(s.role === "admin" || s.role === "donor" && l.donorPhone === s.phone)) throw new TripError("Listing not found.", 404);
+  if (!l.matchId || !luna) throw new TripError("Luna's agents haven't opened this donation yet.");
+  const r = await luna.sendToBiogas(l.matchId, s.role === "admin" ? { admin: true } : { phone: s.phone }, Date.now());
+  if (!r.ok) throw new TripError(r.error, r.status === 404 || r.status === 403 ? r.status : 409);
+  return c.json(await listingView(l, s));
+});
+food.post("/listings/:id/biogas/:pickupId/collected", async c => {
+  const s = c.get("session"), l = await listings.get(c.req.param("id")), luna = agents();
+  if (!l || !(s.role === "admin" || s.role === "donor" && l.donorPhone === s.phone)) throw new TripError("Listing not found.", 404);
+  const p = await matchingStore.get("biogas", c.req.param("pickupId"));
+  if (!p || p.listingId !== l.matchId || !luna) throw new TripError("Pickup not found.", 404);
+  const r = await luna.biogasCollected(p.id, s.role === "admin" ? { admin: true } : { phone: s.phone }, Date.now());
+  if (!r.ok) throw new TripError(r.error, 409);
+  return c.json(await listingView(l, s));
+});
 /** The old listing points at its corrected relisting; only the donor's own held listing can be replaced. */
 async function markReplaced(oldId: string, phone: string, newId: string) {
   for (let attempt = 0; attempt < C.casRetries; attempt++) {
@@ -273,6 +295,8 @@ function mealCount(items: { servings: number; tags?: string[] }[]) {
   const meals = sum(t => !t.includes("extra") && !t.includes("addon")), extras = sum(t => t.includes("extra")), addons = sum(t => t.includes("addon"));
   return [`${meals} meal${meals === 1 ? "" : "s"}`, extras ? `${extras} extras` : "", addons ? `${addons} add-ons` : ""].filter(Boolean).join(" + ");
 }
+/** "1:23 am", with the date when it isn't today (India time). */
+const at = (ms: number, now: number) => new Date(ms).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", ...(new Date(ms).toDateString() === new Date(now).toDateString() ? {} : { day: "numeric", month: "short" }), hour: "numeric", minute: "2-digit" });
 async function handOffOnce(id: string, now: number): Promise<FoodListing | null> {
   const first = await listings.get(id);
   const luna = agents();
@@ -291,7 +315,9 @@ async function handOffOnce(id: string, now: number): Promise<FoodListing | null>
     // The Food Agent's verdict opens the case's log, like every other agent's decision.
     const c = first.foodCheck, model = c.models?.photo ? ` Photo judged by ${c.models.photo.replace(/^[^:]*:/, "")}.` : " Photo not judged by AI.";
     const verdict: Decision = { id: `d-food-${first.id}`, at: now - 1, agent: "food", kind: "graded", subject: matchId, listingId: matchId,
-      reason: `Checked ${first.dish}: Grade ${c.grade}, ${mealCount(passport.items)}, safe until ${new Date(first.assessment.safeUntil).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", ...(new Date(first.assessment.safeUntil).toDateString() === new Date(now).toDateString() ? {} : { day: "numeric", month: "short" }), hour: "numeric", minute: "2-digit" })}${c.unsure ? ", unsure (the partner checks it at pickup)" : ""}.${model}` };
+      reason: `Checked ${first.dish}: ${first.items && first.items.length > 1
+        ? `each food on its own: ${first.items.map(it => `${it.dish} Grade ${it.foodCheck?.grade ?? "?"}${it.foodCheck?.safeUntil ? ` (safe until ${at(it.foodCheck.safeUntil, now)})` : ""}`).join(", ")}; ${mealCount(passport.items)}`
+        : `Grade ${c.grade}, ${mealCount(passport.items)}, safe until ${at(first.assessment.safeUntil, now)}`}${c.unsure ? ", unsure (the partner checks it at pickup)" : ""}.${model}` };
     if (await matchingStore.insert("decision", verdict)) trace.decision(verdict);
   }
   catch (e) { console.error("case handoff failed", (e as Error).message); return first; }
@@ -358,10 +384,23 @@ async function caseOf(caseId: string, withCode: boolean): Promise<AgentCase | nu
   const role = (t: string) => c.items.filter(i => i.tags?.includes(t)).reduce((n, i) => n + i.servings, 0);
   const meals = { meals: c.items.filter(i => !i.tags?.some(t => t === "extra" || t === "addon")).reduce((n, i) => n + i.servings, 0), addons: role("addon"), extras: role("extra"),
     bundles: c.items.filter(i => i.bundle).map(i => ({ name: i.name ?? "Meal", servings: i.servings, diet: i.diet })) };
-  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals };
+  // What no NGO can take, and the biogas way out for it (spec: nothing goes to waste when it can be helped).
+  const left = await leftoverOf(matchingStore, c);
+  const plant = left.servings ? await nearestCollector(matchingStore, c) : null;
+  const biogas: AgentCase["biogas"] = [];
+  for (const b of (await matchingStore.list("biogas", { listingId: c.id })).sort((a, b) => a.createdAt - b.createdAt)) {
+    const r = await matchingStore.get("recipient", b.collectorId);
+    biogas.push({ id: b.id, plantName: r?.name ?? "Biogas plant", what: linesText(c, b.lines), servings: b.lines.reduce((n, x) => n + x.servings, 0), status: b.status, comeBy: b.comeBy, collectedAt: b.collectedAt ?? null });
+  }
+  const leftover: AgentCase["leftover"] = { servings: left.servings, what: linesText(c, left.lines), why: left.why, waitingOnPartner: left.waitingOnPartner,
+    plant: plant ? { name: plant.name, km: plant.km, comeBy: comeByFor(plant.km, Date.now()) } : null };
+  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals, leftover, biogas };
 }
 function caseProgress(c: AgentCase, lead: AgentCase["shares"][number] | undefined) {
-  if (!lead) return c.unplacedServings ? "No NGO can safely take it in time · the Luna team is on it" : "Finding the right NGO";
+  if (c.biogas.some(b => b.status === "booked")) return `${c.biogas.find(b => b.status === "booked")!.plantName} is collecting it for biogas`;
+  if (!lead && c.biogas.length) return "Collected for biogas";
+  if (!lead) return c.leftover.servings ? `No NGO can take it in time${c.leftover.plant ? " · send it to biogas" : " · the Luna team is on it"}`
+    : c.leftover.waitingOnPartner ? "An NGO will take it · waiting for a delivery partner" : "Finding the right NGO";
   switch (lead.status) {
     case "offering": return `Offered to ${lead.ngoName} · waiting for them to accept`;
     case "finding_partner": return `${lead.ngoName} accepted · finding a delivery partner`;

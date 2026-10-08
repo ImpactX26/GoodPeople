@@ -163,6 +163,10 @@ export interface AgentCase {
   timeline: { at: number; agent: "food" | "ngo" | "logistics" | "decision" | null; kind: string; reason: string }[];
   /** Spec §7.5: meals (dishes that are a meal, and staples paired with sides), add-ons and extras, in servings. */
   meals: { meals: number; addons: number; extras: number; bundles: { name: string; servings: number; diet: string }[] };
+  /** Servings no NGO can take with none left to ask, why, and the biogas plant that would collect them. */
+  leftover: { servings: number; what: string; why: string; waitingOnPartner: number; plant: { name: string; km: number; comeBy: number } | null };
+  /** Food the restaurant sent to biogas. */
+  biogas: { id: string; plantName: string; what: string; servings: number; status: "booked" | "collected"; comeBy: number; collectedAt: number | null }[];
 }
 export interface ListingView extends Omit<FoodListing, "donorPhone" | "fingerprint" | "contactPhone" | "pickup" | "approval"> {
   pickup: Stop | null;

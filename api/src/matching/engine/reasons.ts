@@ -14,7 +14,14 @@ const KIND: Record<Recipient["kind"], string> = {
   community_fridge: "community fridge",
   animal_shelter: "animal shelter",
   compost: "compost unit",
+  biogas: "biogas plant",
 };
+
+/** "08:00" → "8 am", "21:30" → "9:30 pm". */
+export function hhmm(clock: string) {
+  const [h, m] = clock.split(":").map(Number);
+  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""} ${h < 12 ? "am" : "pm"}`;
+}
 
 export const itemName = (item: Item) => item.name ?? `${item.diet === "unknown" ? "" : item.diet + " "}food`.trim();
 
@@ -37,6 +44,8 @@ export function skipReason(code: ReasonCode, detail: Record<string, unknown>, r:
     case "DIET":
       return `Skipped ${n}: dietary rules (${detail.why}).`;
     case "EXPIRES_BEFORE_SERVING":
+      if (detail.opens)
+        return `Skipped ${n}: it's closed now (takes food ${hhmm(detail.opens as string)}–${hhmm(detail.closes as string)}), so the earliest it could serve ${food} is ${fmtTime(detail.serveTime as number)}, after it stops being safe at ${fmtTime(detail.safeUntil as number)}.`;
       return `Skipped ${n}: ${food} is safe until ${fmtTime(detail.safeUntil as number)}, but ${n} would serve it at ${fmtTime(detail.serveTime as number)}.`;
     case "CLOSED_AT_ARRIVAL":
       return `Skipped ${n}: the food would arrive at ${fmtTime(detail.arrival as number)}, outside its receiving hours (${detail.start}–${detail.end}).`;

@@ -76,8 +76,9 @@ export function legFor(r: Recipient, listing: Listing, start: Origin, canWait = 
   const dropKm = distanceKm(from, r);
   let arrival = at + etaMs(dropKm, start.travel);
   // Not yet collected and the NGO is closed then: plan the drop for when it opens, not for a locked gate.
-  if (canWait && r.receivingHours && !openAt(r.receivingHours, arrival)) arrival = nextClockTime(arrival, [r.receivingHours.start]);
-  return { arrival, serveTime: serveTimeFor(r, arrival), dropKm };
+  const closed = canWait && !!r.receivingHours && !openAt(r.receivingHours, arrival);
+  if (closed) arrival = nextClockTime(arrival, [r.receivingHours!.start]);
+  return { arrival, serveTime: serveTimeFor(r, arrival), dropKm, ...(closed ? { waitsForOpening: true } : {}) };
 }
 
 export function matchListing(input: MatchInput): MatchResult {

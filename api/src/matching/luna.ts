@@ -82,6 +82,8 @@ export function createLuna(deps: LunaDeps) {
       }),
     approveListing: (id: string, now: number) => serial(() => decision.approveListing(id, now)),
     feedback: (shareId: string, result: "fewer" | "right" | "more", by: Actor, now: number) => serial(() => decision.feedback(shareId, result, by, now)),
+    sendToBiogas: (listingId: string, by: Actor, now: number) => serial(() => decision.sendToBiogas(listingId, by, now)),
+    biogasCollected: (pickupId: string, by: Actor, now: number) => serial(() => decision.biogasCollected(pickupId, by, now)),
     gapReply: (pledgeId: string, yes: boolean, by: Actor, now: number) => serial(() => decision.gapReply(pledgeId, yes, by, now)),
     runGaps: (now: number) => serial(() => decision.runGaps(now)),
     tick: (now: number) => serial(() => decision.tick(now)),

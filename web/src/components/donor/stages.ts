@@ -1,8 +1,8 @@
 import type { ListingView } from "@/lib/luna/listing";
 import type { TripView } from "@/lib/luna/trip";
 
-/** The donation ticket's four coupons, in order. */
-export type StageKey = "check" | "ngo" | "pickup" | "delivered";
+/** The donation ticket's coupons, in order (four; three when the food went to biogas). */
+export type StageKey = "check" | "ngo" | "pickup" | "delivered" | "biogas";
 export type StageState = "waiting" | "active" | "done" | "failed";
 export interface Stage { key: StageKey; title: string; state: StageState }
 
@@ -39,10 +39,18 @@ export function leadShare(l: ListingView): CaseShare | null {
 export function stagesOf(l: ListingView, t: TripView | null): Stage[] {
   if (l.agentCase) {
     const s = leadShare(l)?.status, failed = l.agentCase.shares.some(x => x.status === "failed");
+    // No NGO could take it, and the restaurant sent it to a biogas plant: the plant's pickup is the last step.
+    const gas = l.agentCase.biogas ?? [];
+    if (!s && gas.length) return [
+      { key: "check", title: "Food check", state: "done" },
+      { key: "ngo", title: "NGO", state: "failed" },
+      { key: "biogas", title: "Biogas pickup", state: gas.every(b => b.status === "collected") ? "done" : "active" },
+    ];
+    const stuck = !s && (l.agentCase.leftover?.servings ?? 0) > 0;
     const at = (k: CaseShare["status"]) => !!s && ORDER.indexOf(s) <= ORDER.indexOf(k);
     return [
       { key: "check", title: "Food check", state: "done" },
-      { key: "ngo", title: "NGO", state: at("finding_partner") ? "done" : "active" },
+      { key: "ngo", title: "NGO", state: at("finding_partner") ? "done" : stuck ? "failed" : "active" },
       { key: "pickup", title: "Pickup", state: failed && !at("picked_up") ? "failed" : at("picked_up") ? "done" : at("finding_partner") ? "active" : "waiting" },
       { key: "delivered", title: "Delivered", state: s === "delivered" ? "done" : s === "picked_up" ? "active" : "waiting" },
     ];
@@ -77,5 +85,5 @@ export const GRADE_MEANING: Record<"A" | "B" | "C" | "D", string> = {
   A: "Fresh for 6+ hours. Any NGO, including children and the elderly.",
   B: "Good for 3 to 6 hours. Goes to general NGOs.",
   C: "Under 3 hours left. Only places that serve it within the hour.",
-  D: "Not for people. Animal shelters or compost only.",
+  D: "Not for people. Animal shelters, compost or biogas only.",
 };

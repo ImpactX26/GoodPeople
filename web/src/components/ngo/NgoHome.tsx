@@ -43,6 +43,18 @@ const timeName = (hhmm: string) => {
   return m ? `${Math.floor(h) % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "am" : "pm"}` : hourName(Math.floor(h));
 };
 
+/**
+ * Outside its receiving hours the agents don't send an NGO food (the drop would wait for it to open), so the
+ * page says it's closed for the day and when offers start again, even while it's marked open.
+ */
+function hoursState(hours: { start: string; end: string } | undefined, now: number) {
+  if (!hours) return null;
+  const t = new Date(now), h = t.getHours() + t.getMinutes() / 60, from = hoursOf(hours.start), to = hoursOf(hours.end);
+  const inside = from <= to ? h >= from && h < to : h >= from || h < to;
+  if (inside) return null;
+  return { opens: timeName(hours.start), closed: timeName(hours.end), when: h < from ? "today" : "tomorrow" };
+}
+
 interface Data {
   ngo: Ngo | null | undefined;              // undefined while loading
   shares: NgoShare[] | null;
@@ -121,6 +133,7 @@ export default function NgoHome({ session, fields: f }: { session: Session; fiel
   const received = shares.filter(sh => sh.ngoId === ngoId && sh.status === "delivered" && sameDay(sh.createdAt, now));
   const raw = data.ngo, ngo = raw ? effectiveNgo(raw) : raw, listed = !!ngo, open = ngo?.status === "ACTIVE";
   const loading = data.shares === null && data.luna === null && !data.agentError;
+  const shut = listed && open ? hoursState(ngo?.receiving_hours, now) : null;
 
   // The tab title and a single buzz tell someone across the room that food is waiting.
   const seen = useRef(0);
@@ -175,6 +188,12 @@ export default function NgoHome({ session, fields: f }: { session: Session; fiel
                   <p>Luna isn’t sending you food right now. Reopen when you can take food again.</p>
                   <button type="button" className={d.primary} disabled={statusBusy} onClick={() => void changeStatus("ACTIVE")}>{statusBusy ? "Opening…" : "We can take food again"}</button>
                 </div>
+              ) : shut ? (
+                <div className={s.quiet} data-call>
+                  <p className={s.print}>Closed for today</p>
+                  <p>You take food {shut.opens} to {shut.closed}, so Luna isn’t sending you offers now. They start again at {shut.opens} {shut.when}.</p>
+                  <button type="button" className={d.ghost} onClick={() => setTodayOpen(true)}>We’re still taking food today</button>
+                </div>
               ) : (
                 <div className={s.quiet}>
                   <p className={s.print}>Nothing waiting right now</p>
@@ -202,6 +221,7 @@ export default function NgoHome({ session, fields: f }: { session: Session; fiel
         <aside className={s.day} aria-label="Today">
           <section className={s.card} aria-labelledby="status-title">
             <h2 id="status-title" className={s.heading}>Right now we are</h2>
+            {shut && <p className={s.shut} role="status"><b>Closed for today</b> Past your hours ({shut.opens} to {shut.closed}). Offers start again at {shut.opens} {shut.when}.</p>}
             <div className={s.punches} role="radiogroup" aria-labelledby="status-title" aria-describedby="status-note">
               {STATUSES.map(st => (
                 <label key={st.value} className={s.punch} data-on={ngo?.status === st.value} data-disabled={!listed || statusBusy}>
@@ -484,7 +504,7 @@ function Today({ ngo, todayActive, onEdit, coming, received, now }: {
   return (
     <section className={s.card} aria-labelledby="today-title">
       <h2 id="today-title" className={s.heading}>Today</h2>
-      <p className={s.todayLine}>{parts.join(" · ")}.{hours ? ` You take food ${timeName(hours.start)} to ${timeName(hours.end)}.` : ""}</p>
+      <p className={s.todayLine}>{parts.join(" · ")}.{hours ? ` You take food ${timeName(hours.start)} to ${timeName(hours.end)}.` : ""}{hours && hoursState(hours, now) ? <b> Closed now.</b> : null}</p>
       {ngo && (
         <div className={s.todaySource} data-on={todayActive}>
           <p>Need today: <b>{ngo.current_demand.meals_needed} meals</b> · room for <b>{ngo.capacity.available_capacity_today}</b> more.</p>

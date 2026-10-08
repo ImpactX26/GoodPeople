@@ -18,7 +18,9 @@ export type RecipientKind =
   | "old_age_home"
   | "community_fridge"
   | "animal_shelter"
-  | "compost";
+  | "compost"
+  /** Turns food waste into biogas and collects it from the restaurant itself. Never offered food automatically: the restaurant chooses it. */
+  | "biogas";
 
 export interface LatLng {
   lat: number;
@@ -89,6 +91,24 @@ export interface Listing extends LatLng {
   lastReplanAt?: number;
   /** Last "still on it" sent to the donor while waiting. */
   lastHeartbeatAt?: number;
+  /** Why no NGO can take the servings left over, in plain words (the NGO Agent's finding). */
+  stuckWhy?: string;
+}
+
+/**
+ * Food no NGO could take, which the restaurant chose to send to a biogas plant instead. The plant collects it
+ * itself (no Luna partner), so it's booked, then the restaurant marks it collected.
+ */
+export interface BiogasPickup {
+  id: string;
+  listingId: string;
+  collectorId: string;
+  lines: OfferLine[];
+  status: "booked" | "collected";
+  /** When the collector said it would come by. */
+  comeBy: number;
+  createdAt: number;
+  collectedAt?: number;
 }
 
 export interface Recipient extends LatLng {
@@ -282,7 +302,8 @@ export type DecisionKind =
   | "message_failed"
   | "replanned"
   | "rated"
-  | "reassigned";
+  | "reassigned"
+  | "biogas";
 
 export interface Decision {
   id: string;

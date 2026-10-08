@@ -49,6 +49,7 @@ export const KIND: Record<string, string> = {
   reassigned: "Reassigned",
   pledged: "Pledged",
   gap_outreach: "Asked for food",
+  biogas: "Sent to biogas",
 };
 
 export type Step =

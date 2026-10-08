@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Info, MapPin, RotateCcw, TriangleAlert, X } from "lucide-react";
+import { ArrowRight, Check, Info, MapPin, Recycle, RotateCcw, TriangleAlert, X } from "lucide-react";
 import { api } from "@/lib/luna/api";
 import { useLive } from "@/lib/luna/live";
 import type { Session } from "@/lib/luna/auth";
@@ -54,6 +54,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
           <div className={s.resultCol}>
           {l.agentCase && <Updates />}
           {l.agentCase?.shares.filter(x => x.status === "assigned" || x.status === "picked_up").map(x => <LiveDelivery key={x.id} shareId={x.id} viewer="observer" />)}
+          {l.agentCase && <BiogasSlip l={l} session={session} onChange={setL} />}
           {l.foodCheck && <TagSlip l={l} session={session} onChange={setL} />}
           {l.agentCase && <PackingPlan l={l} />}
           {l.agentCase && <MealsMade l={l} />}
@@ -99,6 +100,7 @@ function StageDetail({ stage, l, t }: { stage: Stage; l: ListingView; t: TripVie
     case "check": {
       if (!c) return <p className={s.working}>Checking the photo, cooking time and storage…</p>;
       if (stage.state === "failed") return <p>Not safe for people. The verdict above says why.</p>;
+      if (l.items && l.items.length > 1) return <p>Each food graded on its own: {l.items.map(it => `${it.dish} ${it.foodCheck?.grade ?? "…"}`).join(", ")}.</p>;
       return <p>Grade {c.grade} · {GRADE_LABEL[c.grade]}. The verdict above has the details.</p>;
     }
     case "ngo": {
@@ -115,7 +117,10 @@ function StageDetail({ stage, l, t }: { stage: Stage; l: ListingView; t: TripVie
             )}
           </>
         );
-        return <p>{l.agentCase.unplacedServings ? "No delivery partner can collect it right now. Luna offers it again as soon as one can, while it’s still safe." : "Luna’s NGO Agent is finding the right NGO."}</p>;
+        const left = l.agentCase.leftover;
+        if (stage.state === "failed") return <p>No NGO can take it before it stops being safe: {left?.why || "every NGO that could take it passed"}.{l.agentCase.biogas?.length ? " It’s going to biogas instead." : ""}</p>;
+        if (left?.waitingOnPartner) return <p>An NGO will take it, but no delivery partner can collect it yet. Luna asks again as soon as one can, while it’s still safe.</p>;
+        return <p>Luna’s NGO Agent is finding the right NGO.</p>;
       }
       if (stage.state === "failed" && l.state === "tags_held") return <p>Held until your tags match the photo.</p>;
       if (stage.state === "failed") return <p>No NGO could safely take it before it expires. Please don’t keep it past its safe time.</p>;
@@ -151,6 +156,11 @@ function StageDetail({ stage, l, t }: { stage: Stage; l: ListingView; t: TripVie
           {l.trackingUrl && <Link className={s.inlineAction} href={l.trackingUrl}><MapPin size={16} aria-hidden /> Track live on the map <ArrowRight size={16} aria-hidden /></Link>}
         </>
       );
+    case "biogas": {
+      const b = l.agentCase?.biogas ?? [], booked = b.find(x => x.status === "booked");
+      if (booked) return <p><strong>{booked.plantName}</strong> collects it by about {tripTime(booked.comeBy)}.</p>;
+      return <p>Collected by <strong>{b[0]?.plantName}</strong>{b[0]?.collectedAt ? ` at ${tripTime(b[0].collectedAt)}` : ""}. Turned into biogas, not waste.</p>;
+    }
     case "delivered":
       if (l.agentCase && stage.state === "active") return <p>On the way to {leadShare(l)?.ngoName ?? "the NGO"}{leadShare(l)?.arriveBy ? `, arriving about ${tripTime(leadShare(l)!.arriveBy!)}` : ""}.</p>;
       if (l.agentCase && stage.state === "done") return <p><strong>Delivered to {leadShare(l)?.ngoName}</strong>{l.deliveredAt ? ` at ${tripTime(l.deliveredAt)}` : ""}. Both handovers were checked with codes.</p>;
@@ -261,6 +271,7 @@ function PackingPlan({ l }: { l: ListingView }) {
 /** The food check's verdict, printed reversed so it's the first thing read: grade, what it means, safety score, why. */
 function Verdict({ l }: { l: ListingView }) {
   const c = l.foodCheck!, model = modelName(c.models?.photo), cells = c.score === null ? 0 : Math.round(c.score / 10);
+  if (l.items && l.items.length > 1) return <FoodsVerdict l={l} model={model} />;
   return (
     <section className={s.verdict} data-grade={c.grade} aria-labelledby="verdict-title">
       <div className={s.verdictMain}>
@@ -271,9 +282,6 @@ function Verdict({ l }: { l: ListingView }) {
         </div>
       </div>
       <p className={s.verdictMeaning}>{GRADE_MEANING[c.grade]}</p>
-      {l.items && l.items.length > 1 && (
-        <p className={s.verdictNote}>This is the strictest of your {l.items.length} foods. Luna checked each food on its own (see below), and each goes to the NGOs that can safely take that food.</p>
-      )}
       {c.score !== null && (
         <div className={s.score}>
           <span>Safety score</span>
@@ -292,6 +300,88 @@ function Verdict({ l }: { l: ListingView }) {
         {c.seen && <p>The photo shows: {c.seen}</p>}
         <p>{model ? <>Photo checked by <b>{model}</b></> : <>Photo not judged by AI · graded from cooking time and storage</>}</p>
       </footer>
+    </section>
+  );
+}
+
+/**
+ * Several foods: each has its own grade, safe-until and score, side by side, because each goes only to the NGOs
+ * that can safely take that food (not the strictest grade for all of them).
+ */
+function FoodsVerdict({ l, model }: { l: ListingView; model: string | null }) {
+  const c = l.foodCheck!, items = l.items!;
+  const grades = [...new Set(items.map(it => it.foodCheck?.grade).filter((g): g is "A" | "B" | "C" | "D" => !!g))].sort();
+  const unsure = items.filter(it => it.foodCheck?.unsure && it.foodCheck.grade !== "D");
+  return (
+    <section className={s.verdict} data-grade={grades.length === 1 ? grades[0] : undefined} aria-labelledby="verdict-title">
+      <h2 id="verdict-title" className={s.verdictTitle}>{items.length} foods, each graded on its own</h2>
+      <ul className={s.verdictFoods}>
+        {items.map(it => {
+          const fc = it.foodCheck;
+          return (
+            <li key={it.id} data-grade={fc?.grade}>
+              <b className={s.verdictGrade} aria-hidden>{fc?.grade ?? "·"}</b>
+              <div>
+                <h3><span className="visually-hidden">Grade {fc?.grade ?? "pending"}: </span>{it.dish}</h3>
+                <p>{!fc ? "Checking…" : fc.safeUntil ? <>{GRADE_LABEL[fc.grade]} · safe until <strong>{tripTime(fc.safeUntil)}</strong></> : "Not for people"}</p>
+                {fc?.score != null && <p className={s.verdictScore}>Safety score <b>{fc.score}</b>/100</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <dl className={s.verdictMeanings}>
+        {grades.map(g => <div key={g}><dt>Grade {g}</dt><dd>{GRADE_MEANING[g]}</dd></div>)}
+      </dl>
+      {unsure.length > 0 && <p className={s.verdictNote}>Marked Unsure: {unsure.map(it => it.dish).join(", ")}. The delivery partner checks it when they collect it. Nothing to do now.</p>}
+      {c.grade === "D" && c.message && <p className={s.verdictNote}>{c.message}</p>}
+      <footer className={s.verdictFoot}>
+        {c.seen && <p>The photo shows: {c.seen}</p>}
+        <p>{model ? <>Photos checked by <b>{model}</b> · each food’s reasoning is below</> : <>Photos not judged by AI · graded from cooking time and storage</>}</p>
+      </footer>
+    </section>
+  );
+}
+
+/**
+ * No NGO can take some of the food in time and none is left to ask: the restaurant can send it to the nearest
+ * biogas plant, which collects it. Once booked, it marks the pickup collected.
+ */
+function BiogasSlip({ l, session, onChange }: { l: ListingView; session: Session; onChange: (l: ListingView) => void }) {
+  const [busy, setBusy] = useState(""), [error, setError] = useState("");
+  const c = l.agentCase!, left = c.leftover, booked = c.biogas ?? [];
+  if (!booked.length && !(left?.servings && left.plant)) return null;
+  const act = async (key: string, path: string) => {
+    setBusy(key); setError("");
+    try { onChange(await api<ListingView>(path, { method: "POST", token: session.token, body: "{}" })); }
+    catch (e) { setError((e as Error).message); } finally { setBusy(""); }
+  };
+  return (
+    <section className={s.biogas} aria-labelledby="biogas-title">
+      {booked.map(b => (
+        <div key={b.id} className={s.biogasPart} data-state={b.status}>
+          <h2 id={b === booked[0] ? "biogas-title" : undefined}><Recycle size={20} aria-hidden /> {b.status === "booked" ? "Biogas pickup booked" : "Collected for biogas"}</h2>
+          {b.status === "booked" ? (
+            <>
+              <p><strong>{b.plantName}</strong> collects {b.what} by about <strong>{tripTime(b.comeBy)}</strong>. Keep it packed and apart from fresh food.</p>
+              <button type="button" className={s.primary} disabled={!!busy} onClick={() => void act(b.id, `/listings/${l.id}/biogas/${b.id}/collected`)}>
+                <Check size={18} aria-hidden /> {busy === b.id ? "Saving…" : "They’ve collected it"}
+              </button>
+            </>
+          ) : <p><strong>{b.plantName}</strong> collected {b.what}{b.collectedAt ? ` at ${tripTime(b.collectedAt)}` : ""}. It becomes cooking gas, not landfill.</p>}
+        </div>
+      ))}
+      {left?.servings > 0 && left.plant && (
+        <div className={s.biogasPart} data-state="offer">
+          <h2 id={booked.length ? undefined : "biogas-title"}><Recycle size={20} aria-hidden /> No NGO can take {booked.length ? "the rest" : "this food"} in time</h2>
+          <p>{left.why.charAt(0).toUpperCase() + left.why.slice(1)}.</p>
+          <p>Send {left.what} to <strong>{left.plant.name}</strong> ({left.plant.km} km) instead. They collect it from you, around {tripTime(left.plant.comeBy)}, and turn it into biogas.</p>
+          <button type="button" className={s.primary} disabled={!!busy} onClick={() => void act("send", `/listings/${l.id}/biogas`)}>
+            <Recycle size={18} aria-hidden /> {busy === "send" ? "Booking…" : "Send to biogas"}
+          </button>
+        </div>
+      )}
+      {error && <p className={s.barError} role="alert">{error}</p>}
     </section>
   );
 }

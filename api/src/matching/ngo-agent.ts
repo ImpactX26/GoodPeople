@@ -6,11 +6,15 @@
  * long as it returns the same SharePlan.
  */
 import { round1 } from "./engine/geo.ts";
-import { matchListing, type Origin } from "./engine/match.ts";
-import { rankReason, skipReason } from "./engine/reasons.ts";
+import { matchListing, type Origin, type Skip } from "./engine/match.ts";
+import { hhmm, itemName, rankReason, skipReason } from "./engine/reasons.ts";
+import { fmtTime } from "./time.ts";
 import { defaultHunger, type HungerProvider } from "./hooks.ts";
 import { servingsOf, usable, type Runtime } from "./runtime.ts";
-import type { Item, Listing, OfferLine, ShareCandidate } from "./types.ts";
+import type { Item, Listing, OfferLine, Recipient, ShareCandidate } from "./types.ts";
+
+/** NGOs the agents match food to: biogas plants only get food the restaurant sends them (see biogas.ts). */
+const forPeople = (all: Recipient[]) => usable(all).filter((r) => r.kind !== "biogas");
 
 /** Most NGOs listed per share: the planned one plus backups. */
 const MAX_CANDIDATES = 6;
@@ -23,6 +27,31 @@ export interface SharePlan {
 export interface PlanResult {
   shares: SharePlan[];
   unallocated: OfferLine[];
+  /** Why the unallocated servings have nowhere to go, in plain words ("" when everything was placed). */
+  why: string;
+}
+
+/**
+ * The real reason nothing could take these foods, from the skips: every NGO closed until morning, or each
+ * food's own blocker. So people (and the reasoning model) see the cause, not just "no NGO".
+ */
+export function whyUnplaced(items: Item[], skipped: Skip[]): string {
+  const real = skipped.filter((s) => s.code !== "EXCLUDED" && s.code !== "INACTIVE" && items.some((i) => i.id === s.item.id));
+  if (!items.length) return "";
+  if (!real.length) return "no NGO near you is taking food right now (closed, full, or already passed on it)";
+  if (real.every((s) => s.code === "EXPIRES_BEFORE_SERVING" && s.detail.opens)) {
+    const names = [...new Set(real.map((s) => s.recipient.name))];
+    const opens = real.map((s) => String(s.detail.opens)).sort()[0];
+    const safe = Math.max(...real.map((s) => s.detail.safeUntil as number));
+    return `${names.length === 1 ? `${names[0]} is` : names.length === 2 ? `${names.join(" and ")} are` : `all ${names.length} NGOs that take this food are`} closed until ${hhmm(opens)}, and the food is only safe until ${fmtTime(safe)}`;
+  }
+  return items
+    .map((i) => {
+      const mine = real.filter((s) => s.item.id === i.id);
+      const first = mine[0] ? skipReason(mine[0].code, mine[0].detail, mine[0].recipient, mine[0].item).replace(/^Skipped /, "") : "the NGOs that can take it are full";
+      return `${itemName(i)}: ${first}${mine.length > 1 ? ` (and ${mine.length - 1} more NGO${mine.length > 2 ? "s" : ""} ruled out)` : ""}`;
+    })
+    .join("; ");
 }
 
 export function createNgoAgent(rt: Runtime, hunger: HungerProvider = defaultHunger) {
@@ -35,7 +64,7 @@ export function createNgoAgent(rt: Runtime, hunger: HungerProvider = defaultHung
   async function planShares(l: Listing, items: Item[], now: number, opts: { exclude: Set<string>; capUsed: Map<string, number>; logSkips: boolean }): Promise<PlanResult> {
     const pledges = (await store.list("pledge", { donorKey: l.donorPhone, status: "yes" })).filter((p) => p.until > now);
     const credits = await store.list("credit", { status: "open" });
-    const recipients = usable(await store.list("recipient"));
+    const recipients = forPeople(await store.list("recipient"));
     const result = matchListing({
       listing: l,
       items,
@@ -51,7 +80,8 @@ export function createNgoAgent(rt: Runtime, hunger: HungerProvider = defaultHung
 
     for (const s of result.skipped) {
       hunger.onSkipped?.(s.recipient.id, s.code, l.id);
-      if (s.code === "EXCLUDED" || (s.code === "INACTIVE" && !opts.logSkips)) continue;
+      // Only the first plan logs who was ruled out; the quiet re-checks every few minutes would just repeat it.
+      if (s.code === "EXCLUDED" || !opts.logSkips) continue;
       await rt.decide("ngo", now, "filtered", s.recipient.id, skipReason(s.code, s.detail, s.recipient, s.item), l.id, { code: s.code, itemId: s.item.id });
     }
     for (const item of items) {
@@ -78,7 +108,8 @@ export function createNgoAgent(rt: Runtime, hunger: HungerProvider = defaultHung
         .map((s) => ({ ngoId: s.recipient.id, arriveBy: s.leg.arrival }));
       return { lines: o.lines, candidates: [{ ngoId: o.recipientId, arriveBy: o.arriveBy }, ...backups].slice(0, MAX_CANDIDATES) };
     });
-    return { shares, unallocated: result.unallocated };
+    const stuck = items.filter((i) => result.unallocated.some((u) => u.itemId === i.id));
+    return { shares, unallocated: result.unallocated, why: whyUnplaced(stuck, result.skipped) };
   }
 
   /** The best NGO reachable from where the partner is now, for a mid-trip redirect. */
@@ -87,7 +118,7 @@ export function createNgoAgent(rt: Runtime, hunger: HungerProvider = defaultHung
     const result = matchListing({
       listing: l,
       items,
-      recipients: usable(await store.list("recipient")),
+      recipients: forPeople(await store.list("recipient")),
       partners: [],
       now,
       hunger,

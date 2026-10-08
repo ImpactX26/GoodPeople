@@ -2124,6 +2124,143 @@
 }
 
 /* tag check: red when the photo clearly contradicts a tag, yellow when it's only unsure (the donor may keep them) */
+/* Several foods: one grade tile per food, side by side on the dark verdict. */
+.verdictTitle {
+  margin: 0;
+  font: 800 20px/1.1 var(--font-print);
+  font-stretch: 112.5%;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.verdictFoods {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.verdictFoods li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding-top: 12px;
+  border-top: 1.5px dashed rgba(251, 250, 246, 0.35);
+}
+
+.verdictFoods li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.verdictFoods .verdictGrade {
+  width: 64px;
+  height: 64px;
+  font-size: 42px;
+}
+
+.verdictFoods li[data-grade="D"] .verdictGrade {
+  background: var(--ink-red);
+  color: var(--paper);
+}
+
+.verdictFoods h3 {
+  margin: 0;
+  font: 800 18px/1.15 var(--font-print);
+  font-stretch: 112.5%;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.verdictFoods p {
+  margin: 4px 0 0;
+  font: 16px/1.35 var(--font-note);
+}
+
+.verdictFoods strong,
+.verdictScore b {
+  font: 800 16px var(--font-print);
+  font-variant-numeric: tabular-nums;
+}
+
+.verdictScore {
+  opacity: 0.8;
+}
+
+.verdictMeanings {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1.5px dashed rgba(251, 250, 246, 0.35);
+  font: 15px/1.4 var(--font-note);
+}
+
+.verdictMeanings div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.verdictMeanings dt {
+  font: 800 13px/1.6 var(--font-print);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.verdictMeanings dd {
+  margin: 0;
+}
+
+/* No NGO can take it in time: the biogas way out, then the booked pickup. */
+.biogas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.biogasPart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  font: 15px/1.45 var(--font-note);
+}
+
+.biogasPart[data-state="offer"] {
+  box-shadow: inset 0 6px 0 var(--ink);
+  padding-top: 24px;
+}
+
+.biogasPart[data-state="collected"] {
+  border-width: 1.5px;
+  border-style: dashed;
+  color: var(--ink-soft);
+}
+
+.biogasPart h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font: 800 17px/1.2 var(--font-print);
+  font-stretch: 112.5%;
+  text-transform: uppercase;
+}
+
+.biogasPart p {
+  margin: 0;
+}
+
+.biogasPart .primary {
+  align-self: flex-start;
+  width: 100%;
+}
+
 .tagSlip {
   --warn: #f2b705;
   --warn-soft: #fff3c2;

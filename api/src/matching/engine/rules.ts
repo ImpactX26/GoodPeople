@@ -13,6 +13,8 @@ export interface Leg {
   /** When the recipient actually serves it. */
   serveTime: number;
   dropKm: number;
+  /** The NGO is closed when the food could get there, so the drop waits for it to open. */
+  waitsForOpening?: boolean;
 }
 
 export type RuleResult = { ok: true } | { ok: false; code: ReasonCode; detail: Record<string, unknown> };
@@ -56,7 +58,8 @@ export function checkRecipient(
   const grade = effectiveGrade(item);
   const fail = (code: ReasonCode, detail: Record<string, unknown> = {}): RuleResult => ({ ok: false, code, detail });
 
-  if (!r.active) return fail("INACTIVE");
+  // Biogas plants are the restaurant's choice once no NGO can take the food, never part of NGO matching.
+  if (!r.active || r.kind === "biogas") return fail("INACTIVE");
   if (exclude.has(r.id)) return fail("EXCLUDED");
   if (grade === "D" && !ANIMAL_OR_COMPOST.has(r.kind)) return fail("GRADE_D_PEOPLE", { kind: r.kind });
   if (grade !== "D" && ANIMAL_OR_COMPOST.has(r.kind)) return fail("PEOPLE_FOOD_ONLY", { grade });
@@ -66,7 +69,11 @@ export function checkRecipient(
   const diet = dietProblem(item, r);
   if (diet) return fail("DIET", { why: diet });
   const until = safeUntil(item, listing.createdAt);
-  if (until < leg.serveTime) return fail("EXPIRES_BEFORE_SERVING", { safeUntil: until, serveTime: leg.serveTime });
+  if (until < leg.serveTime) {
+    // Closed when the food would arrive: say so, it's the real reason (not the serving time it leads to).
+    const closed = r.receivingHours && (leg.waitsForOpening || !openAt(r.receivingHours, leg.arrival)) ? r.receivingHours : undefined;
+    return fail("EXPIRES_BEFORE_SERVING", { safeUntil: until, serveTime: leg.serveTime, ...(closed ? { opens: closed.start, closes: closed.end } : {}) });
+  }
   if (grade === "C" && leg.serveTime - leg.arrival > config.gradeCServeWithinMin * 60_000)
     return fail("GRADE_C_SLOW", { arrival: leg.arrival, serveTime: leg.serveTime });
   return { ok: true };

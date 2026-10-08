@@ -15,6 +15,7 @@ import type { LogisticsAgent, LogisticsEvent } from "./logistics-agent.ts";
 import type { NgoAgent } from "./ngo-agent.ts";
 import { code4, fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
 import { areaById } from "./seed.ts";
+import { comeByFor, leftoverOf, linesText, nearestCollector } from "./biogas.ts";
 import { fmtTime } from "./time.ts";
 import type { DecisionKind, Item, Listing, Partner, Share, TripMark } from "./types.ts";
 import { markFor, reliabilityLine, withMark } from "./reliability.ts";
@@ -77,32 +78,40 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     for (const s of plan.shares) await logistics.startShare(l, s, now);
 
     const unplaced = servingsOf(plan.unallocated);
-    if (unplaced > 0) {
-      const what = plan.unallocated.map((u) => `${u.servings} × ${itemName(l.items.find((i) => i.id === u.itemId)!)}`).join(", ");
-      await decide(now, "escalated", l.id, `No NGO can safely take ${what}. A person needs to decide what to do with it.`, l.id, { unallocated: plan.unallocated });
-    }
     const fresh = (await store.get("listing", l.id))!;
-    await store.put("listing", { ...fresh, unplacedServings: (initial ? 0 : fresh.unplacedServings) + unplaced });
-    if (plan.shares.length === 0 && !(await store.list("share", { listingId: l.id })).some((s) => LIVE.has(s.status) || s.status === "delivered"))
-      await rt.toDonor(now, l, "We couldn't find a place that can safely take this food right now. The Luna team has been alerted and will get back to you.");
+    const placedAny = plan.shares.length > 0 || (await store.list("share", { listingId: l.id })).some((s) => LIVE.has(s.status) || s.status === "delivered");
+    await store.put("listing", { ...fresh, unplacedServings: (initial ? 0 : fresh.unplacedServings) + unplaced, ...(unplaced > 0 ? { stuckWhy: plan.why } : {}) });
+    // Later re-plans (an NGO passed) are explained by whoever asked for them, so the restaurant hears it once.
+    if (unplaced > 0 && initial) {
+      const what = plan.unallocated.map((u) => `${u.servings} × ${itemName(l.items.find((i) => i.id === u.itemId)!)}`).join(", ");
+      const plant = await nearestCollector(store, l);
+      await decide(now, "escalated", l.id, `No NGO can safely take ${what}: ${plan.why}.${plant ? ` Offering ${l.donorName} a biogas pickup instead (${plant.name}, ${plant.km} km).` : " No biogas plant is set up nearby, so a person needs to decide what to do with it."}`, l.id, { unallocated: plan.unallocated });
+      await rt.toDonor(now, l, noNgoText(placedAny ? what : "your food", plan.why, !!plant));
+    }
     await refreshListing(l.id, now);
   }
+
+  /** What the restaurant hears when no NGO can take some food: the real reason, and the biogas way out. */
+  const noNgoText = (what: string, why: string, plant: boolean) =>
+    `No NGO can take ${what} before it stops being safe: ${why}.${plant ? ' You can send it to a biogas plant instead; they collect it from you. Open the donation in Luna and tap "Send to biogas".' : " The Luna team has been alerted and will get back to you."}`;
 
   async function refreshListing(listingId: string, now: number) {
     const l = await store.get("listing", listingId);
     if (!l || l.status === "review") return;
     const shares = await store.list("share", { listingId });
     const live = shares.filter((s) => LIVE.has(s.status));
+    const bio = await store.list("biogas", { listingId });
     const status: Listing["status"] = live.some((s) => s.status === "offering" || s.status === "finding_partner")
       ? "matching"
-      : live.length
+      : live.length || bio.some((b) => b.status === "booked")
         ? l.unplacedServings > 0 ? "partially_matched" : "matched"
-        : shares.some((s) => s.status === "delivered") ? "closed" : "unmatched";
+        : shares.some((s) => s.status === "delivered") || bio.length ? "closed" : "unmatched";
     if (status === l.status) return;
     await store.put("listing", { ...l, status });
     if (status === "closed") {
       const fed = shares.filter((s) => s.status === "delivered").reduce((n, s) => n + servingsOf(s.lines), 0);
-      await decide(now, "closed", l.id, `Closed the case for ${l.donorName}: ${fed} servings delivered${l.unplacedServings ? `, ${l.unplacedServings} couldn't be placed` : ""}.`, l.id);
+      const gas = bio.reduce((n, b) => n + servingsOf(b.lines), 0);
+      await decide(now, "closed", l.id, `Closed the case for ${l.donorName}: ${fed} servings delivered${gas ? `, ${gas} sent to biogas` : ""}${l.unplacedServings ? `, ${l.unplacedServings} couldn't be placed` : ""}.`, l.id);
     }
   }
 
@@ -219,8 +228,20 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
       case "unplaced": {
         const before = (await store.list("share", { listingId: l.id })).length;
         await place(l, itemsOf(l, e.share.lines), now, false);
-        if ((await store.list("share", { listingId: l.id })).length === before)
-          await decide(now, "escalated", l.id, `Every NGO that could safely take ${servingsOf(e.share.lines)} servings of ${foodOf(l, e.share.lines)} has passed or had no partner to collect it.`, l.id, { shareId: e.share.id });
+        if ((await store.list("share", { listingId: l.id })).length > before) break;
+        // Say which it is: every NGO said no (biogas is the way out), or an NGO would take it but nobody can collect yet.
+        const fresh = (await store.get("listing", l.id))!;
+        const left = await leftoverOf(store, fresh);
+        const food = `${servingsOf(e.share.lines)} servings of ${foodOf(l, e.share.lines)}`;
+        if (left.servings > 0) {
+          const plant = await nearestCollector(store, fresh);
+          await decide(now, "escalated", l.id, `Every NGO that could safely take ${food} has passed.${plant ? ` Offering ${l.donorName} a biogas pickup instead (${plant.name}, ${plant.km} km).` : " No biogas plant is set up nearby, so a person needs to decide."}`, l.id, { shareId: e.share.id });
+          await store.put("listing", { ...fresh, stuckWhy: "every NGO that could safely take it said no or didn't reply in time" });
+          await rt.toDonor(now, l, noNgoText(food, "every NGO that could safely take it said no or didn't reply in time", !!plant));
+        } else {
+          await decide(now, "escalated", l.id, `${food}: an NGO would take it, but no delivery partner can collect it yet. Luna asks again as soon as one can, while it's safe.`, l.id, { shareId: e.share.id });
+          await rt.toDonor(now, l, `An NGO would take your ${foodOf(l, e.share.lines)}, but no delivery partner can collect it yet. Luna asks again the moment one can, while it's still safe.`);
+        }
         break;
       }
       case "behind_schedule":
@@ -371,6 +392,53 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     return ok("Thank you! List the food in Luna when it's ready and we'll send a partner.");
   }
 
+  /* ---------- biogas: when no NGO can take it ---------- */
+
+  /**
+   * The restaurant sends the food no NGO can take to the nearest biogas plant, which collects it itself. Only
+   * what's truly left over (no NGO left to ask, not just waiting for a partner); NGO deliveries carry on.
+   */
+  async function sendToBiogas(listingId: string, by: Actor, now: number): Promise<Result & { pickupId?: string }> {
+    const l = await store.get("listing", listingId);
+    if (!l) return fail("Unknown donation.", 404);
+    if (!owns(by, l.donorPhone)) return fail("This donation isn't yours.", 403);
+    const left = await leftoverOf(store, l);
+    if (!left.servings) return fail(left.waitingOnPartner ? "An NGO will take this food; Luna is still finding someone to collect it." : "Nothing is waiting for a home: it's all going to NGOs.");
+    const plant = await nearestCollector(store, l);
+    if (!plant) {
+      await decide(now, "escalated", l.id, `${l.donorName} wants to send ${left.servings} servings to biogas, but no biogas plant is set up within reach.`, l.id);
+      return fail("No biogas plant is set up near you yet. The Luna team has been told and will call you.");
+    }
+    const pickup = { id: rt.id("bg"), listingId: l.id, collectorId: plant.id, lines: left.lines, status: "booked" as const, comeBy: comeByFor(plant.km, now), createdAt: now };
+    await store.insert("biogas", pickup);
+    // Servings stuck only for want of a partner stay with the NGOs; the ones that went unplaced for good stop being retried.
+    for (const s of await store.list("share", { listingId: l.id, status: "unplaced" })) {
+      const covered = s.lines.every((ln) => left.lines.some((x) => x.itemId === ln.itemId && x.servings >= ln.servings));
+      if (covered) await store.put("share", { ...s, held: true });
+    }
+    const fresh = (await store.get("listing", l.id))!;
+    await store.put("listing", { ...fresh, unplacedServings: Math.max(0, fresh.unplacedServings - left.servings) });
+    const what = linesText(l, left.lines);
+    await decide(now, "biogas", plant.id, `${l.donorName} sent ${what} to ${plant.name} (${plant.km} km) for biogas, because ${left.why}. It collects by about ${fmtTime(pickup.comeBy)}${plant.phone ? "" : " (sample plant, no message sent)"}.`, l.id, { pickupId: pickup.id, km: plant.km });
+    if (plant.phone)
+      await rt.send(now, plant.phone, `recipient:${plant.id}`, msg.text(`Biogas pickup from ${l.donorName}: ${what} (${left.servings} servings), at ${l.pickupAddress}${l.pickupNotes ? ` (${l.pickupNotes})` : ""}. Please collect by about ${fmtTime(pickup.comeBy)}.${l.pickupContactPhone ? ` Call ${l.pickupContactPhone} on arrival.` : ""}`), l.id);
+    await rt.toDonor(now, l, `Booked: ${plant.name} will collect ${what} for biogas by about ${fmtTime(pickup.comeBy)}. Keep it packed and apart from fresh food, and tap "Collected" in Luna once they've taken it.`);
+    await refreshListing(l.id, now);
+    return { ...ok(`${plant.name} will collect it by about ${fmtTime(pickup.comeBy)}.`), pickupId: pickup.id };
+  }
+
+  async function biogasCollected(pickupId: string, by: Actor, now: number): Promise<Result> {
+    const p = await store.get("biogas", pickupId);
+    if (!p) return fail("Unknown pickup.", 404);
+    const l = await rt.mustGet("listing", p.listingId);
+    if (!owns(by, l.donorPhone)) return fail("This pickup isn't yours.", 403);
+    if (!(await store.cas("biogas", { ...p, status: "collected", collectedAt: now }, "booked"))) return fail("Already marked collected.");
+    const plant = await store.get("recipient", p.collectorId);
+    await decide(now, "biogas", p.collectorId, `${plant?.name ?? "The biogas plant"} collected ${linesText(l, p.lines)} from ${l.donorName}. Nothing wasted.`, l.id, { pickupId, collected: true });
+    await refreshListing(l.id, now);
+    return ok("Thanks! Marked as collected.");
+  }
+
   async function tick(now: number) {
     await logistics.tick(now);
     await heartbeat(now);
@@ -390,7 +458,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     }
   }
 
-  return { submitListing, approveListing, onLogistics, feedback, runGaps, gapReply, tick };
+  return { submitListing, approveListing, onLogistics, feedback, runGaps, gapReply, sendToBiogas, biogasCollected, tick };
 }
 
 export type DecisionAgent = ReturnType<typeof createDecisionAgent>;
