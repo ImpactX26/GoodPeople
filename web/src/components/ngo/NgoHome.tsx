@@ -85,6 +85,15 @@ function useNgoData(session: Session) {
 
 const servingsIn = (sh: NgoShare) => sh.lines.reduce((n, l) => n + l.servings, 0);
 const foodIn = (sh: NgoShare) => [...new Set(sh.food.map(f => f.name ?? "food"))].join(" + ");
+/** Each food in the share and how many it serves (sweets and extras counted separately from meals). */
+function FoodLines({ sh }: { sh: NgoShare }) {
+  if (sh.food.length < 2) return null;
+  return (
+    <ul className={s.foodLines}>
+      {sh.food.map((f, i) => <li key={i}><b>{f.name ?? "Food"}</b><span>{f.servings} {f.tags?.includes("extra") ? "portions (sweet or extra)" : "servings"}</span></li>)}
+    </ul>
+  );
+}
 
 export default function NgoHome({ session, fields: f }: { session: Session; fields: Record<string, string> }) {
   const router = useRouter();
@@ -325,6 +334,7 @@ function ShareOffer({ sh, redirect = false, now, onDone }: { sh: NgoShare; redir
     <OfferTicket title={`${servingsIn(sh)} × ${foodIn(sh)}`} from={redirect ? `Already on the way, from ${sh.donorName ?? "a restaurant"}` : `from ${sh.donorName ?? "a restaurant"}`}
       deadline={deadline} now={now} stampText={done || undefined}>
       <SharePhoto shareId={sh.id} alt={`Photo of ${foodIn(sh)}`} />
+      <FoodLines sh={sh} />
       <dl className={d.leaders}>
         {arrive && <Pair k="Reaches you" v={`about ${fmtTime(arrive)}`} />}
         {worst && <Pair k="Grade" v={`${worst} · ${GRADE_LABEL[worst]}`} />}
@@ -378,6 +388,7 @@ function Coming({ sh, onDone }: { sh: NgoShare; onDone: () => Promise<void> }) {
       <p className={s.nowLine}><b>{nowLine}</b> {nextLine}</p>
       {p && t?.partner?.rating && <p className={d.note}>{p} · reliability {t.partner.rating}</p>}
       <SharePhoto shareId={sh.id} alt={`Photo of ${foodIn(sh)}`} />
+      <FoodLines sh={sh} />
       {sh.status === "finding_partner" && <SelfCollect id={sh.id} onDone={onDone} />}
       {t?.partner?.manual && <ManualCodes id={sh.id} status={sh.status} onDone={onDone} />}
       {sh.dropCode && (

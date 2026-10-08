@@ -1,23 +1,11 @@
 import type { ListingInput, ListingView } from "@/lib/luna/listing";
 import type { TagCheck } from "../../../../api/src/listings/types";
-import { keepDraftPhoto } from "./PhotoCanvas";
+import { draftsFromListing, type DraftItem } from "./draft";
 
-/** A held listing's details, carried into the List food form so the donor only fixes the label. */
+/** A held listing's session, carried into the List food form with the photo check's fixes applied. */
 export interface Relist {
   from: string;
-  dish: string;
-  category: NonNullable<ListingInput["category"]>;
-  diet: ListingInput["diet"];
-  jain: boolean;
-  halal: ListingInput["halal"];
-  spice: ListingInput["spice"];
-  contains: string[];
-  entryMode: ListingInput["entryMode"];
-  count: number;
-  feedsEach: number;
-  cookedAt: number;
-  storage: ListingInput["storage"];
-  temperatureC: number | null;
+  items: DraftItem[];
   containers: ListingInput["containers"];
 }
 
@@ -31,35 +19,26 @@ const allergenWord = (a: string) => a === "onion_garlic" ? "onion or garlic" : a
 export function tagLine(c: TagCheck, l: Pick<ListingView, "diet" | "spice" | "jain">) {
   const sure = c.certainty === "sure";
   const seen = c.seen.trim().replace(/\.$/, "");
+  const on = c.itemName ? `${c.itemName}: ` : "";
   if (c.tag.startsWith("contains:")) {
     const a = allergenWord(c.tag.slice(9));
-    return { title: `${sure ? "Contains" : "Might contain"} ${a}`, seen, fix: `Add ${a} to “Contains”${l.jain && ["onion or garlic", "egg", "seafood"].includes(a) ? " and untick Jain" : ""}` };
+    return { title: `${on}${sure ? "Contains" : "Might contain"} ${a}`, seen, fix: `Add ${a} to “Contains”${l.jain && ["onion or garlic", "egg", "seafood"].includes(a) ? " and untick Jain" : ""}` };
   }
   switch (c.tag) {
-    case "diet": return { title: `${sure ? "Not" : "Might not be"} ${DIET_WORD[l.diet].toLowerCase()}`, seen, fix: `Change diet to ${DIET_WORD[c.suggest as ListingInput["diet"]] ?? c.suggest}` };
-    case "jain": return { title: `${sure ? "Not" : "Might not be"} Jain friendly`, seen, fix: "Untick Jain friendly" };
-    case "spice": return { title: `Might be ${c.suggest}, not ${l.spice}`, seen, fix: `Set spice to ${c.suggest}` };
-    case "category": return { title: `Might be ${CATEGORY_WORD[c.suggest]?.toLowerCase() ?? c.suggest}`, seen, fix: `Change kind to ${CATEGORY_WORD[c.suggest] ?? c.suggest}` };
-    default: return { title: c.tag, seen, fix: "" };
+    case "diet": return { title: `${on}${sure ? "Not" : "Might not be"} ${c.itemName ? "the diet you tagged" : DIET_WORD[l.diet].toLowerCase()}`, seen, fix: `Change diet to ${DIET_WORD[c.suggest as ListingInput["diet"]] ?? c.suggest}` };
+    case "jain": return { title: `${on}${sure ? "Not" : "Might not be"} Jain friendly`, seen, fix: "Untick Jain friendly" };
+    case "spice": return { title: `${on}Might be ${c.suggest}`, seen, fix: `Set spice to ${c.suggest}` };
+    case "category": return { title: `${on}Might be ${CATEGORY_WORD[c.suggest]?.toLowerCase() ?? c.suggest}`, seen, fix: `Change kind to ${CATEGORY_WORD[c.suggest] ?? c.suggest}` };
+    default: return { title: `${on}${c.tag}`, seen, fix: "" };
   }
 }
 
-/** Saves the listing with every fix the photo check suggested, so the donor only reviews and sends. */
 export function keepRelist(l: ListingView) {
-  const checks = l.foodCheck?.tagChecks ?? [];
-  const pick = (tag: string) => checks.find(c => c.tag === tag)?.suggest;
-  const diet = (pick("diet") as ListingInput["diet"] | undefined) ?? l.diet;
-  const contains = [...new Set([...l.contains, ...checks.filter(c => c.tag.startsWith("contains:") && c.suggest === "add").map(c => c.tag.slice(9))])];
-  const jain = l.jain && !pick("jain") && diet === "veg" && !contains.some(a => ["egg", "seafood", "onion_garlic"].includes(a));
-  const dish = diet !== "veg" ? l.dish.replace(/^\s*(pure\s+)?veg(etable|etarian)?\s+/i, "").replace(/^./, c => c.toUpperCase()) : l.dish;
-  const r: Relist = { from: l.id, dish: dish || l.dish, category: (pick("category") as Relist["category"] | undefined) ?? l.category ?? "cooked_meal", diet, jain,
-    halal: l.halal, spice: (pick("spice") as ListingInput["spice"] | undefined) ?? l.spice, contains, entryMode: l.entryMode, count: l.count, feedsEach: l.feedsEach,
-    cookedAt: l.cookedAt, storage: l.storage, temperatureC: l.temperatureC ?? null, containers: l.containers };
+  const r: Relist = { from: l.id, items: draftsFromListing(l), containers: l.containers };
   try { sessionStorage.setItem(KEY, JSON.stringify(r)); } catch { /* private mode: the form starts empty */ }
-  keepDraftPhoto(l.photo);
 }
 export function peekRelist(): Relist | null {
-  try { const raw = sessionStorage.getItem(KEY); return raw ? JSON.parse(raw) as Relist : null; } catch { return null; }
+  try { const raw = sessionStorage.getItem(KEY); const r = raw ? JSON.parse(raw) as Relist : null; return r && Array.isArray(r.items) ? r : null; } catch { return null; }
 }
 export function clearRelist() {
   try { sessionStorage.removeItem(KEY); } catch { /* nothing to clear */ }

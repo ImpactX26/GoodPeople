@@ -46,6 +46,8 @@ export interface Item extends Omit<NewItem, "name"> {
   halal?: boolean;
   allergens?: string[];
   category?: string;
+  /** Includes the role: "meal", "staple", "side" or "extra". */
+  tags?: string[];
 }
 
 export interface Listing {

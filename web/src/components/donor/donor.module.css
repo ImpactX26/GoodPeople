@@ -2340,3 +2340,304 @@
   color: var(--ink);
   font-weight: 700;
 }
+
+/* ---------- listing session: servings recommendation and the session tray ---------- */
+
+/* Luna's recommendation prints in yellow (the "suggestion" colour, DESIGN.md Unsure Tag exception) */
+.reco {
+  --warn: #f2b705;
+  --warn-soft: #fff3c2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 2px solid var(--warn);
+  background: var(--warn-soft);
+  box-shadow: inset 0 5px 0 var(--warn);
+}
+
+.reco[data-custom="true"] {
+  border-color: var(--ink);
+  background: #fff;
+  box-shadow: none;
+}
+
+.recoLine {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.recoLine b {
+  font: 800 20px/1.2 var(--font-print);
+  font-stretch: 112.5%;
+}
+
+.recoLine span {
+  font: 14px/1.45 var(--font-note);
+  color: var(--ink-soft);
+}
+
+.recoWarn {
+  margin: 0;
+  font: 600 14px/1.4 var(--font-note);
+  color: #8d1712;
+}
+
+.recoActions,
+.recoEdit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.recoActions .ghost {
+  min-height: 44px;
+  font-size: 12px;
+}
+
+.recoOk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 12px var(--font-print);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.addFood {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 18px 0 8px;
+  border: 2px dashed var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  font: 800 13px/1 var(--font-print);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.addFood:hover {
+  background: var(--paper-shade);
+}
+
+.tray {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--paper);
+}
+
+.tray[data-compact="true"] {
+  margin-bottom: 16px;
+  border: 1.5px solid var(--ink);
+}
+
+.tray h2 {
+  margin: 0;
+  font: 700 12px/1.3 var(--font-print);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.tray ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tray li {
+  display: grid;
+  grid-template-columns: 48px 1fr 44px 44px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.35);
+}
+
+.tray li img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+}
+
+.tray li span {
+  display: flex;
+  flex-direction: column;
+  font: 14px/1.35 var(--font-note);
+  color: var(--ink-soft);
+}
+
+.tray li b {
+  font: 800 14px/1.25 var(--font-print);
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.reviewItems {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.reviewItems li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.35);
+  font: 14px/1.4 var(--font-note);
+  color: var(--ink-soft);
+}
+
+.reviewItems b {
+  font: 800 15px var(--font-print);
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+/* ---------- donation: foods in a session, and the packing plan ---------- */
+
+.foods {
+  padding: 16px;
+  background: var(--paper);
+  box-shadow: 0 6px 12px -8px rgba(20, 22, 20, 0.3);
+}
+
+.foods h2,
+.packing h2 {
+  margin: 0 0 8px;
+  font: 700 12px/1.3 var(--font-print);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.foods ul,
+.packing ol,
+.packing ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.foods > ul > li {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.35);
+}
+
+.foods img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+
+.foods li div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: 14px/1.4 var(--font-note);
+  color: var(--ink-soft);
+}
+
+.foods li b {
+  font: 800 14px/1.25 var(--font-print);
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.foodGrade {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  font: 800 18px/1 var(--font-print);
+  font-style: normal;
+}
+
+.foodGrade[data-grade="D"] {
+  border-color: var(--ink-red);
+  color: var(--ink-red);
+}
+
+.packing {
+  padding: 16px;
+  background: #fff;
+  border: 2px solid var(--ink);
+}
+
+.packing header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.packCode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+}
+
+.packCode span {
+  font: 11px/1.3 var(--font-print);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.packCode b {
+  font: 800 32px/1 var(--font-print);
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.packing > ol > li {
+  padding: 12px 0;
+  border-top: 1.5px dashed rgba(27, 27, 27, 0.4);
+}
+
+.packWho {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 6px;
+  font: 14px/1.4 var(--font-note);
+  color: var(--ink-soft);
+}
+
+.packWho b {
+  font: 800 15px/1.3 var(--font-print);
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.packing ul li {
+  padding: 2px 0 2px 14px;
+  font: 600 16px/1.4 var(--font-note);
+  position: relative;
+}
+
+.packing ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 6px;
+  height: 6px;
+  background: var(--ink);
+}

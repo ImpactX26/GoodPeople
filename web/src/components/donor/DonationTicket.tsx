@@ -53,11 +53,13 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
           <div className={s.resultCol}>
           {l.agentCase && <Updates />}
           {l.foodCheck && <TagSlip l={l} session={session} onChange={setL} />}
+          {l.agentCase && <PackingPlan l={l} />}
           {l.foodCheck ? <Verdict l={l} /> : (
             <section className={s.verdict} data-pending aria-live="polite">
               <p className={s.working}>Luna’s food check is looking at your photo, cooking time and storage. This takes about 15 seconds.</p>
             </section>
           )}
+          {l.items && l.items.length > 1 && <SessionFoods l={l} />}
           <ol className={s.coupons} aria-label="Donation progress">
             {stages.map((st, i) => (
               <li key={st.key} className={s.coupon} data-state={st.state} aria-current={st.state === "active" ? "step" : undefined}>
@@ -172,6 +174,62 @@ function AgentLog({ c }: { c: NonNullable<ListingView["agentCase"]> }) {
         ))}
       </ol>
     </details>
+  );
+}
+
+/** Every food in a session with its own servings, grade, safe-until and reasoning. */
+function SessionFoods({ l }: { l: ListingView }) {
+  return (
+    <section className={s.foods} aria-labelledby="foods-title">
+      <h2 id="foods-title">{l.items!.length} foods in this donation</h2>
+      <ul>
+        {l.items!.map(it => {
+          const c = it.foodCheck;
+          return (
+            <li key={it.id} data-grade={c?.grade}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- the listing's own photo data URL */}
+              <img src={it.photo} alt={`Photo of ${it.dish}`} />
+              <div>
+                <b>{it.dish}</b>
+                <span>{it.servings} {it.role === "extra" ? "portions (sweet or extra)" : "servings"}{it.estimate ? " · about" : ""}</span>
+                <span>{!c ? "Checking…" : c.grade === "D" ? "Not for people: kept off the delivery" : `Grade ${c.grade} · ${GRADE_LABEL[c.grade]}${c.safeUntil ? ` · safe until ${tripTime(c.safeUntil)}` : ""}`}</span>
+                {c?.reasoning && <Reasoning reasoning={c.reasoning} grade={c.grade} model={modelName(c.models?.photo)} />}
+              </div>
+              {c && <em className={s.foodGrade} data-grade={c.grade}>{c.grade}</em>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/**
+ * What to pack for each delivery partner, from the Decision Agent's split: which NGO, which foods and how much
+ * in the restaurant's units, the containers they bring, and the one pickup code for the whole donation.
+ */
+function PackingPlan({ l }: { l: ListingView }) {
+  const shares = l.agentCase!.shares.filter(x => x.status !== "unplaced" && x.status !== "failed" && x.status !== "delivered");
+  if (!shares.length) return null;
+  const code = shares.find(x => x.pickupCode)?.pickupCode;
+  return (
+    <section className={s.packing} aria-labelledby="packing-title">
+      <header>
+        <h2 id="packing-title">What to pack</h2>
+        {code && <p className={s.packCode}><span>Pickup code for every partner</span><b>{code}</b></p>}
+      </header>
+      <ol>
+        {shares.map((x, i) => (
+          <li key={x.id}>
+            <p className={s.packWho}><b>{shares.length > 1 ? `Bag ${i + 1}: ` : ""}{x.partnerName ?? (x.status === "offering" ? "Waiting for the NGO" : "Partner not booked yet")}</b>
+              <span>for {x.ngoName ?? "an NGO"}{x.status === "offering" ? " (asked, not yet accepted)" : ""}</span></p>
+            <ul>{x.lines.map(ln => <li key={ln.name}>{ln.name}: {ln.amount ? `${ln.amount} (${ln.servings} servings)` : `${ln.servings} servings`}</li>)}</ul>
+            <p className={s.note}>{x.partnerName ?? "The partner"} brings {x.containers.join(" + ")}.</p>
+          </li>
+        ))}
+      </ol>
+      {shares.length > 1 && <p className={s.note}>Keep each bag separate: every partner takes only their NGO’s food.</p>}
+    </section>
   );
 }
 

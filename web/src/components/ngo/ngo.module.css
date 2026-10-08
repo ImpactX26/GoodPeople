@@ -960,3 +960,23 @@
   color: #8d1712;
   font: 600 15px/1.4 var(--font-note);
 }
+
+.foodLines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.foodLines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.35);
+  font: 15px/1.4 var(--font-note);
+}
+
+.foodLines b {
+  font: 800 14px var(--font-print);
+  text-transform: uppercase;
+}
