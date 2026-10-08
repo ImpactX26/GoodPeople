@@ -21,6 +21,24 @@ colors:
   led-busy: "#ffb020"
   bar-print: "#d9d8d1"
   bar-print-dim: "#b9b8b1"
+  # Sticker palette: scoped to the four mascot stickers on Agents at work (the Colour Stickers rule).
+  # Never for paper print, text, rules, states, chits or controls.
+  sticker-cheese: "#ffd15a"
+  sticker-crust: "#e59a3f"
+  sticker-pepperoni: "#e4573d"
+  sticker-basil: "#4caf50"
+  sticker-scarf: "#f2668b"
+  sticker-hat-fold: "#dde2ee"
+  sticker-tin: "#29b0a1"
+  sticker-tin-lid: "#1f9486"
+  sticker-copper: "#e58a4e"
+  sticker-steel: "#c8d0d4"
+  sticker-scooter: "#3d7ff0"
+  sticker-box: "#ff8a5b"
+  sticker-lamp: "#ffe27a"
+  sticker-cheek: "#ff8fa3"
+  sticker-mouth: "#8c2f1e"
+  sticker-edge: "#ffffff"
 typography:
   display:
     fontFamily: "Martian Mono, ui-monospace, SFMono-Regular, Menlo, monospace"
@@ -190,6 +208,8 @@ spacing:
   bar-height: "56px"
   corner-mark: "22px"
   donor-max: "1280px"
+  board-max: "1720px"
+  board-gap: "16px"
 components:
   button-primary:
     backgroundColor: "{colors.ink}"
@@ -552,6 +572,69 @@ components:
     backgroundColor: "transparent"
     textColor: "{colors.ink-soft}"
     padding: "10px 0"
+  cast-sheet:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "18px 0 30px"
+  mascot-sticker:
+    backgroundColor: "{colors.sticker-edge}"
+    size: "80px"
+  mascot-line:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    size: "24px"
+  order-slip:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "16px 20px 24px"
+  stage-mark:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-faded}"
+    rounded: "{rounded.none}"
+    size: "32px"
+  stage-mark-now:
+    backgroundColor: "{colors.print-box}"
+    textColor: "{colors.ink}"
+  stage-mark-done:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.paper}"
+  stage-mark-stopped:
+    backgroundColor: "{colors.ink-red}"
+    textColor: "{colors.print-box}"
+  delivered-stamp:
+    backgroundColor: "rgba(251, 250, 246, 0.92)"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "4px 14px"
+  agent-housing:
+    backgroundColor: "{colors.slot}"
+    textColor: "{colors.paper}"
+    rounded: "{rounded.slot}"
+    padding: "10px 14px 16px 100px"
+    height: "66px"
+  agent-paper:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "20px 14px 22px"
+  agent-paper-on:
+    backgroundColor: "{colors.print-box}"
+    textColor: "{colors.ink}"
+  agent-paper-waiting:
+    backgroundColor: "rgba(251, 250, 246, 0.6)"
+    textColor: "{colors.ink-faded}"
+  handoff-chit:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    padding: "6px 10px 7px"
+  handoff-end:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.none}"
+    size: "36px"
 ---
 
 # Design System: Luna
@@ -574,6 +657,8 @@ The NGO home reuses the donor shell as **Today's shift card**: the card a kitche
 
 The delivery partner (volunteer) home is the same shift card turned for a rider. A pickup request prints as the NGO's offer ticket, and once accepted the screen becomes **the trip slip**: one white torn ticket that shows one step at a time (Collect, then Drop), with directions, a call link, a giant 4-digit code field and the step's action bar. Availability is a two-punch Online / Offline row on the day card, echoed as a state chip on the printer bar.
 
+The admin agent board uses a fifth arrangement, built to be read off a projector: **Agents at work**. Under the printer bar a torn cast sheet introduces the four agents as die-cut stickers (a pizza slice for the Food Agent, a chef's hat for the Decision Agent, a tiffin for the NGO Agent, a delivery scooter for the Logistics Agent). Below it each listing gets one row on the counter: its order slip with five stage marks and, at the end, a DELIVERED rubber stamp; the hand-offs as ink arrows and paper chits lying on the counter; and four little ticket printers side by side, one per agent, each with its agent's sticker stuck on the housing, an LED and a state word, and a strip of paper printing what that agent did. A second listing prints a second row below. This is the one place colour appears beyond the inks and LEDs, and it lives only on the four stickers (the Colour Stickers rule).
+
 **Key Characteristics:**
 - Steel counter, printer slot, one hanging ticket with a zigzag tear edge at the bottom.
 - Two inks on paper: black for everything, red only for errors, urgency and dev.
@@ -584,11 +669,12 @@ The delivery partner (volunteer) home is the same shift card turned for a rider.
 - Donor surfaces use Snap first: photo frame first, printed chips, one sticky ink action, a coupon ticket per donation.
 - The NGO home is Today's shift card: offer tickets with a countdown and an ink Accept bar first, then the day card.
 - The partner home is the rider's shift card: a pickup request or the one-step-at-a-time trip slip first, Online / Offline punches on the day card.
-- One approved exception to two inks: a yellow warning slip for a food tag the photo check is unsure about.
+- The admin agent board is Agents at work: a cast sheet, then per listing an order slip, the hand-off chits on the counter, and four little printers, one per agent.
+- Two approved exceptions to two inks: a yellow warning slip for a food tag the photo check is unsure about, and the four colour mascot stickers on Agents at work.
 
 ## Colors
 
-A two-ink thermal palette on warm paper, set against cool brushed steel; colour beyond the inks exists only on the printer hardware.
+A two-ink thermal palette on warm paper, set against cool brushed steel; colour beyond the inks exists only on the printer hardware and on the four mascot stickers stuck to it.
 
 ### Primary
 - **Thermal Ink** (ink): All printed text, rules, box strokes, the ink bar, and the inverted hover of printed rows. It is the only colour for the primary action.
@@ -618,12 +704,24 @@ The map is printed, not coloured. Hexes are Thermal Ink at an opacity that stand
 ### Tertiary
 - **Ready LED** (led-ready) and **Busy LED** (led-busy): The printer's status light, green when idle and blinking amber while working. Hardware only.
 
+### Sticker colours (the four mascots only)
+A bright, flat, cartoon palette that exists only inside the die-cut edge of the four mascot stickers on Agents at work. Every shape is outlined in Thermal Ink (2–3px on a 120-unit drawing), so the stickers share the page's ink even where they are in colour.
+- **Pizza slice (Food Agent):** Cheese (sticker-cheese) with a crust band (sticker-crust), pepperoni (sticker-pepperoni) and a basil leaf (sticker-basil). Highlights are lighter tints of the same hues (#ffe28f, #f7c27a, #f39a82).
+- **Chef's hat (Decision Agent):** a white puffed hat (Print Box white) with cool fold lines (sticker-hat-fold, and #e7ebf4 on the band) and a pink neckerchief (sticker-scarf).
+- **Tiffin (NGO Agent):** three teal tins (sticker-tin) under a deeper lid (sticker-tin-lid), copper bands and knob (sticker-copper), steel handle and clips (sticker-steel).
+- **Delivery scooter (Logistics Agent):** a blue body (sticker-scooter, highlight #8fb6ff), an orange delivery box (sticker-box), a yellow lamp (sticker-lamp), dark seat (#2b2f36) and grey hubs (#c9cdd2).
+- **Faces (all four):** ink eyes with white glints, pink cheeks (sticker-cheek at 0.8) and a dark red open mouth (sticker-mouth).
+- **Die-cut edge** (sticker-edge): the white border around each sticker, grown from the drawing's own silhouette (5.5px; 7px below 40px) so it hugs any shape.
+
 ### Named Rules
-**The Two Inks Rule.** Paper carries black ink and red ink, nothing else. Red means something is wrong, urgent or dev-only; if it is not one of those, it is black. The single exception is the Unsure Tag rule below.
+**The Two Inks Rule.** Paper carries black ink and red ink, nothing else. Red means something is wrong, urgent or dev-only; if it is not one of those, it is black. Two exceptions are named below: the Unsure Tag rule and the Colour Stickers rule.
+
 
 **The LED Stays On The Printer Rule.** Green and amber belong to the printer's status light. They never appear on the paper as success or warning colours. Warning Yellow is a separate, paler token and is not the LED amber.
 
 **The Unsure Tag Rule.** Yellow on paper means exactly one thing: the photo check is not sure a food tag is right, and the donor may keep it. It marks a slip (border, top band, wash), never text, buttons, grades or progress. If the check is sure the tag is wrong, the slip is red; if nothing needs a decision, the slip is black. Do not reach for yellow for any other warning.
+
+**The Colour Stickers Rule.** Approved by the user for Agents at work: colour lives only on the four mascot stickers, the way stickers are stuck on a kitchen printer; the paper and type stay Luna. A sticker is in full colour only where it is stuck on printer hardware (a station's housing) or introduced on the cast sheet. Anywhere a mascot is printed on paper (inside a printed line) or lies on the counter (the ends of a hand-off arrow) it is the one-ink line version: every fill turns paper, the ink outlines stay ink. Sticker colours never carry meaning: no state, agent label, chit, arrow, LED or text is coloured to match its mascot. There are four mascots and only four.
 
 **The Ink Density Rule.** Quantity on a map or chart is shown as more or less black ink, never as a hue ramp. Red is reserved for the gap threshold (and for urgency marks tied to it, such as a rail rank or a trend bar under 60%); a value is either a gap or it is black.
 
@@ -662,11 +760,15 @@ The map is printed, not coloured. Hexes are Thermal Ink at an opacity that stand
 - **Verdict Grade** (800, 56px, wdth 112.5; 46px at ≤420px) and **Verdict Name** (800, 28px, 1.05, wdth 112.5, uppercase; 23px at ≤420px): The letter and grade name on the verdict slip. The safe-until line beside them is Hanken 17px with the time in 800 18px tabular mono; the score reads 800 36px tabular.
 - **Donor details**: The donor bar lockup is LUNA at 800 15px wdth 112.5 beside a 22px mark, and the bar title is 700 12px at 0.1em in Bar Print. Form row headings and coupon titles are 12px 700 and 15px 800 respectively, both wdth 112.5, uppercase. The review title is the Area Title cut (26px); the donation head is 800 24px.
 - **Pass details**: The printer-bar title is 800 15px wdth 112.5 at 0.06em (13px on phones); bar segments and buttons are 700 12px at 0.08em (11px on phones). Rail tickets print the rank at 800 12px, the area at 800 14px wdth 112.5, and the unmet-meals figure at 700 18px tabular. Slip headings reuse the Heading cut at 12px.
+- **Agents at work details**: The bar title is the Pass title ("Agents at work"). The cast title is the Title cut (17px); cast names are 800 15px wdth 112.5 at 0.04em, cast jobs Hanken 14px soft ink. The order slip's number is 800 34px wdth 112.5 tabular at -0.01em (26px at ≤640px) behind a 2px ink rule; the donor is the Offer Title cut at 22px / 1.1 (19px at ≤640px); the meta line is Data at 13px soft ink; the time line is Hanken 14px with the elapsed time in 800 13px tabular mono. Stage labels are 700 10px at 0.1em, faded until the stage is now or done (9px at 0.04em at ≤640px). On a station the agent name is 800 13px wdth 112.5 at 0.06em in paper, the state word 700 10px at 0.14em in Bar Print. A printed line is a head (700 10.5px at 0.1em, soft ink, with the time in 400 tabular faded ink) over a Hanken 14px soft-ink sentence; the newest line on each printer is Hanken 600 15px in full ink. A chit's who-line matches a line head; its task is Hanken 600 15px ink.
+- **Projector scale (≥1280px)**: Agents at work steps up for a room: line heads, chit who-lines and times 12px; line sentences and chit tasks 16px, the newest line 17px; station names 14px; state words and stage labels 11px; small links, model lines and tool lines 12px; folded lists and waiting notes 15px; cast jobs 15.5px.
 
 ### Named Rules
 **The Printer And The Note Rule.** Data, labels and actions are printed in Martian Mono, and sentences a person reads are written in Hanken Grotesk. If it would appear on a real KOT, it is mono.
 
 **The Double-Width Rule.** Emphasis is made with weight and the wide cut (800, wdth 112.5), the way a thermal printer does double-width bold, not with colour or size jumps between neighbouring lines.
+
+**The Newest Line Is Darkest Rule.** On a printer that keeps printing, only its latest line is set in full ink and 600 weight; earlier lines drop to soft ink, so the room finds what just happened at a glance.
 
 **The Read In Motion Rule.** Anything a person reads on the move (an address, a place name, a note from the kitchen, what to bring) is a places line: a small mono label above, a left-aligned Hanken sentence below. Never set it as a right-aligned, all-caps dotted-leader value; leaders are for short printed facts read standing still.
 
@@ -710,6 +812,17 @@ The NGO home's grid again (7/5 at ≥900px, one column with work first on phones
 - **Day column:** a card with "Right now I am" (the two punches, a locked-offline note during a trip, and the "I ride for" select), the Delivered card, the link list, two folds (walkthrough pickups and alerts; your details), the sample-account note and Sign out.
 - **Trip slip rhythm:** one flex column, 14px gaps; Directions and Call share a wrapping row (10px gap, each at least 140px) so they sit side by side on a phone and stack only when too narrow.
 
+### Agents at work (admin agent board)
+A full-height screen: the Pass's sticky printer bar (brand, controls, account) over a content column capped at 1720px (22px 20px 72px padding; the 16px gutter at ≤860px). One four-column grid governs the page: four equal columns 16px apart, Food, Decision, NGO, Logistics from left to right, so the cast, each listing's printers and the hand-off arrows line up column by column.
+- **Cast sheet:** torn paper with an 8px tooth. A head row (title left, a Hanken note on the right capped at 64ch) over a 2px ink rule inset 20px; then the four cast items, each a sticker (84px box, tilted -6, 5, -3 and 7deg) beside its name and job, divided by 1.5px dotted rules at 40% ink.
+- **Listing rows:** an ordered list, oldest first, each row 36px below the last. Inside a row: the order slip; the hand-off rail 18px under it; the four stations 46px under the slip. Only the four newest listings show; older ones fold behind a full-width 52px dashed "Show N earlier listings" bar. A listing that arrives while the board is open scrolls into view, clearing the sticky bar (84px; 120px on phones).
+- **Order slip:** a three-column grid (number, donor text, stage marks), 16px 20px padding plus the tooth.
+- **Hand-off rail:** each hand-off is a 50px row on the counter: an ink arrow from the sender's column centre to the receiver's, and its chit on whichever side has more counter; all chits on one side share a width (at most 420px), so a column of them lines up. While a listing is live the latest four show; a finished listing folds to the last hand-off of each hop; a text link unfolds the rest.
+- **Station:** the housing, then the paper inset 12px each side and tucked 8px under it. Each printer shows its latest four lines; earlier ones fold behind an "N earlier lines" link.
+- **≤1180px:** the cast, the stations and the empty lanes go two by two. The slip's stage marks drop to a full-width row under a dashed rule and share the width. Hand-offs become a list: a short 64px arrow (always pointing right) above its chit at full width. The DELIVERED stamp moves to the slip's top-right corner.
+- **≤860px:** the bar wraps to two rows as on the Pass; the pace segments spread across at 44px; only Clear stays in the account area.
+- **≤640px:** one column throughout. Cast stickers shrink to 68px; the slip pads 14px 16px; the stamp joins the flow under the slip text, right-aligned; the live chip, AI stamp and Luna mark leave the bar, and Clear the board shortens to Clear / Show all.
+
 ## Elevation & Depth
 
 Depth belongs to the physical objects on the counter, not to the UI. The printer housing casts a soft shadow onto the paper; the ticket casts a two-layer drop shadow onto the steel, which follows its zigzag edge because it is a `filter: drop-shadow`. The paper also carries a faint 22px shade at the top where it leaves the slot. Everything printed on the ticket is flat.
@@ -733,8 +846,12 @@ Depth belongs to the physical objects on the counter, not to the UI. The printer
 - **Offer ticket** (`drop-shadow(0 12px 14px rgba(20,22,20,0.2))`): A waiting offer on the NGO home, following its tear edge. Coming-to-you tickets, the day card and quiet blocks reuse the donation-row shadow.
 - **Trip slip**: reuses the offer-ticket drop shadow, because it is the same torn white ticket in the rider's hand. Pickup requests are offer tickets and carry it too.
 - **Verdict slip** (`0 12px 20px -12px rgba(20,22,20,0.5)`): The reversed verdict slip on the counter.
+- **Cast sheet** (`drop-shadow(0 12px 14px rgba(20,22,20,0.16))`): The cast on the counter, following its tear edge. The order slip reuses the coupon-ticket drop shadow.
+- **Station housing and paper**: each little printer reuses the printer-housing shadow; its paper reuses the detail-slip drop shadow. A waiting printer's paper drops its shadow and fades to 0.6 paper, because nothing has printed yet.
+- **Sticker die-cut** (`feDropShadow dx 0 dy 2.2 stdDeviation 1.8`, #141614 at 0.3, on the white edge): a full-colour sticker sits a hair proud of what it is stuck on.
+- **Hand-off chit** (`0 6px 10px -6px rgba(20,22,20,0.35)`) and **arrow ends** (`0 4px 8px -4px rgba(20,22,20,0.4)`): small pieces of paper lying on the counter. The chit in flight carries `0 2px 3px rgba(20,22,20,0.25)`.
 
-Rail tickets, the slip, the map sheet and the tape are pieces of paper on the counter, so they may cast shadows; what is printed on them stays flat. A pulled ticket shows its state by moving (dropping 10px and tilting -1.4deg), not by a bigger shadow. On donor surfaces the photo frame, compose sheet, coupon strip, donation rows, action dock and account sheet are likewise objects on the counter; the chips, steppers, coupons and marks printed on them stay flat.
+Rail tickets, the slip, the map sheet and the tape are pieces of paper on the counter, so they may cast shadows; what is printed on them stays flat. A pulled ticket shows its state by moving (dropping 10px and tilting -1.4deg), not by a bigger shadow. On donor surfaces the photo frame, compose sheet, coupon strip, donation rows, action dock and account sheet are likewise objects on the counter; the chips, steppers, coupons and marks printed on them stay flat. On Agents at work the cast sheet, slips, printer paper, chits and arrow-end squares are paper on the counter, and a full-colour sticker is an object stuck on; the lines, stamps and stage marks printed on them stay flat.
 
 ### Named Rules
 **The Flat Print Rule.** Nothing printed on the paper has a shadow. Printed elements show state by inverting (ink fill, paper text) or by changing stroke, never by lifting.
@@ -752,6 +869,8 @@ On donor surfaces the photo frame is square-cornered black hardware marked with 
 On the NGO home an offer ticket has an 8px tear edge at the bottom. The punch row is the one place paper shows a circle: a selected punch has a 12px round hole near its top-left corner, filled with Brushed Steel and an inner shadow, because it is a hole punched through the card to the counter, not a rounded shape. Stamps on these tickets are boxed and rotated like every stamp: the ACCEPTED stamp is a 4px ink box rotated -6deg across the middle of the ticket; the state stamp on a coming ticket (Accepted, Partner sent, On the way) is a 2.5px box rotated -4deg.
 
 On the partner home the trip slip has the same 8px tear edge. Its code field is a 2px dashed ink box (the "fill this in at the counter" language) that turns solid when focused. A step action that cannot fire yet is a 2px dashed outline at 40% ink, so a locked action reads as "something goes here first", never as a dimmed slab. The bar state chip is square with a 1.5px paper stroke.
+
+On Agents at work the cast sheet, order slips and printer paper all tear with an 8px tooth. Each station's housing is hardware, so it is rounded (10px) with a 3px slot line (2px corners) 6px from its foot. Stage marks are 32px squares: dashed faded ink while next, solid ink with a blinking 9px square while now, filled ink with a Lucide check when done, red with a cross when stopped; dotted 2px links between marks turn solid ink once a stage is done. Stamps keep the boxed, rotated language: verdict stamps on printed lines are 1.5px boxes at -2deg (dashed for a concern, inverted for would-change, red for flagged or no answer, faded for skipped); the DELIVERED stamp is a 4px ink box at -6deg (3px at ≤1180px). The stickers are the only free shapes: die-cut silhouettes with a white edge, never boxes, each tilted on its housing (-8, 5, -4 and 7deg).
 
 ## Components
 
@@ -952,6 +1071,34 @@ The trip in progress, one step at a time, as a white torn ticket (print-box whit
 ### Delivered row
 Finished trips in the day column, up to five, in the NGO's received list (dotted rules between rows): a 16px column for a 3-stroke Lucide check, then one Hanken 15px soft-ink line with the food in 800 13px uppercase ink mono, "**20 × VEG BIRYANI** to Akshaya Trust", top-aligned with 10px vertical padding so a long name wraps under itself on one reading line. The card heading carries the count chip; empty, it says "Each delivery you finish shows here."
 
+### Mascot sticker (Agents at work)
+The four agents as die-cut stickers: a pizza slice (Food Agent), a chef's hat (Decision Agent), a tiffin (NGO Agent) and a delivery scooter (Logistics Agent), each drawn on a 120-unit sheet with ink outlines and a face. See the Colour Stickers rule.
+- **Full colour:** stuck on a station's housing (80px, 8px from the left edge and 30px above the top, so it overlaps the housing like a sticker slapped on a printer) and on the cast sheet (92px). A white die-cut edge follows the silhouette.
+- **One-ink line version:** every fill prints paper and the ink outlines stay; no die-cut edge and no marks. Used at 24px inside a printed line ("From the Decision Agent") and at 30px on the paper squares at each end of a hand-off arrow.
+- **Moods follow the agent's state:** asleep while waiting (closed eyes, a slow breath, z's drifting up); busy while on it (open eyes, open mouth, a quick bob and flickering speed lines); thinking (eyes up, a slow sway, three bubbles lighting in turn); awake while watching or wrapping up (open eyes that blink every 4.6s); happy when done (closed smiling eyes, one hop); worried when it needs a person (worried brows and a short tremble). Mood marks are drawn in ink. On the cast sheet each sticker shows its agent's busiest state across the listings on the board.
+- **Hand-off landing:** when a hand-off arrives while the board is open, the receiving printer's sticker hops once (see Motion).
+
+### Printer station
+One little ticket printer per agent per listing. The **housing** is dark hardware (66px, a #2f3030→slot gradient, 10px radius, the printer-housing shadow) holding the sticker, the agent name and the state line: an LED and the state word (Not yet, On it, Thinking, Watching, Wrapping up, Done, Needs a person). The LED is off (Slot Lip) while waiting, blinks amber while on it or thinking, holds steady amber when it needs a person, and is green otherwise. The **paper** feeds out of its slot: Thermal Paper with the slot shade, print-box white while the agent is working or thinking, faded to 0.6 with a dashed "Waits for…" note before it is called.
+- **Printed lines:** split by 1.5px dashed rules at 28% ink, each a head over a Hanken sentence: *From the X* (with the sender's line mascot), *Sent to the X* (Lucide arrow), *Rules · Graded* (with a ×N count for folded repeats and a 1.5px boxed speed tag such as "<1 ms"), *WhatsApp to the Rider* (Lucide message, the message in quotes), and *AI check · Plan check* (a verdict stamp, a headline, dotted-leader tool lines ending Done or red Blocked, a "Why" fold and "Checked by Gemini 2.5 Flash", following the Name The Judge rule). A check still running prints "Looking at: …" with a blinking 8×14px ink caret; one that got no answer prints a red No answer or faded Skipped stamp and says the rules carried on alone. Red is used only for escalations, failed messages, blocked tools, a flag and a failed check.
+- **Working line:** while on it, an 8px ink square blinks beside "Working on it" in 700 11px uppercase.
+
+### Order slip and stage marks
+The listing's ticket at the head of each row: a torn paper slip with the listing number (#2, or New), the donor in the Offer Title cut, "60 servings · Paneer butter masala, Jeera rice", and "Listed 19:09:36 · **0:04 so far**" (took 4:12 once finished). On the right, five stage marks (Listed, Checked, Matched, Picked up, Delivered) as an ordered list with `aria-current="step"`; each mark stamps in with the coupon stamp when its stage completes live. A listing that arrives live feeds in over 620ms in six steps.
+
+### DELIVERED stamp
+The listing's last beat: a big boxed rubber stamp across the slip (4px ink box, 800 26px wdth 112.5 at 0.08em, on 0.92 paper, rotated -6deg), landing with the ACCEPTED stamp's overshoot when delivery happens live. 18px with a 3px box at ≤1180px; 16px and in the flow at ≤640px.
+
+### Hand-off rail and chit
+What the agents say to each other, lying on the counter between the slip and the printers. Each hand-off is a 2px ink arrow with a 10×12px head, running between the two agents' columns, with a one-ink mascot on a 36px paper square at each end. Its words are a paper chit beside it: a who-line ("Food Agent → Decision Agent 19:09:36") over the task in Hanken 600 15px ink ("Food Passport: 60 servings from Taj Vivanta"). A hand-off that happens while the board is open sends a small white chit (18×14px, 1.5px ink box, two printed lines) along the arrow, then a boxed HEARD stamp (9px 800) lands on the receiver's end and stays about four seconds. The list is `aria-live="polite"`.
+
+### Board controls on the printer bar
+- **Live chip:** a 1.5px Faded Ink box with an LED and the connection word (Live, Working, Connecting, Reconnecting, Admins only) in 700 10px at 0.14em Bar Print.
+- **AI check off stamp:** when the server has no AI check, a stamp on the hardware like SAMPLE DATA (1.5px Dim Bar Print box, 10px 700 at 0.14em, rotated -2deg), and the cast note says the rules decide alone.
+- **Pace:** the bar's segmented control, Step by step and Real time. Step by step prints one event every 850ms so the room can follow a hand-off across the board (160ms when more than 14 are queued); Real time prints one every 90ms.
+- **Clear the board:** a bar button that hides every listing on the board now and remembers it on this browser; it then reads Show earlier listings. Call sheet and Food map are bar buttons beside it. The board is reached from a **Show agents** bar button on the admin food map and on the call sheet.
+- **Empty board:** a 2px dashed faded box on 0.55 paper with an 800 17px heading ("Waiting for food"), a Hanken sentence and four dashed lanes carrying each agent's waiting line. Non-admins get the sign-in ticket with a Sign in link instead of the board.
+
 ### Motion
 - **Print-in:** New content reveals top-down with a stepped clip (`steps(n)` where n is its line count; duration 140ms + 48ms per line, capped at 620ms) and a 6px drop, like paper feeding.
 - **Tear-off:** On finishing sign-in or signing out the whole ticket dips 6px, then flies up and away rotating -5deg over 640ms (ease-in), and the next route loads.
@@ -960,6 +1107,7 @@ Finished trips in the day column, up to five, in the NGO's received list (dotted
 - **Donor motion:** the scan band sweeps the photo every 1.8s (alternate) while the food check runs; a completed coupon's mark stamps in over 420ms; working squares and active stage ticks blink in two steps (1s and 1.2s); chips change fill over 140ms; coupons fade between states over 300ms.
 - **NGO motion:** a new offer ticket feeds in over 420ms in six steps (clip top-down with a 6px drop); the ACCEPTED stamp lands over 420ms; punches change fill over 140ms. Both animations are off under reduced motion.
 - **Partner motion:** pickup requests feed in like offers; ACCEPTED, PASSED ON, COLLECTED and DELIVERED all land with the same 420ms stamp, held about 0.65–0.9s before the ticket reprints.
+- **Agents at work motion:** a live listing's slip feeds in over 620ms in six steps; each new printed line prints in over 460ms in five steps, and a chit's words over 420ms in four steps after a 260ms wait; the chit in flight travels the arrow over 760ms (`cubic-bezier(0.45,0,0.2,1)`), the HEARD stamp lands at 720ms with the 420ms stamp, and the receiving sticker hops at 700ms (560ms, up 12px, settling 2px low). Stage marks stamp over 420ms; the DELIVERED stamp lands over 420ms from 1.6× and -14deg to -6deg. Mood loops: breath 3.2s, z's 2.6s, blink every 4.6s, busy bob 0.56s alternate, thinking sway 2.4s with bubbles every 1.2s, happy hop 0.6s once, worried tremble 0.5s twice. Step by step paces events at 850ms each. Only events that arrive while the board is open animate; the snapshot prints still.
 - **Reduced motion:** All animations and transitions collapse to near zero; completion callbacks still fire.
 
 ## Do's and Don'ts
@@ -985,6 +1133,9 @@ Finished trips in the day column, up to five, in the NGO's received list (dotted
 - **Do** put a rider's live trip first as the trip slip, one step at a time, with the code field and a step action that stays a dashed outline until four digits are in.
 - **Do** set anything read in motion (addresses, place names, notes, what to bring) as a places line: mono label above, left-aligned Hanken sentence below.
 - **Do** keep the Offline punch visible but disabled during a trip, with a note saying why.
+- **Do** show the agents as Agents at work: one row per listing, an order slip with stage marks, the hand-offs as arrows and chits on the counter, and four little printers in a fixed Food, Decision, NGO, Logistics column order.
+- **Do** use the full-colour mascot sticker only stuck on a printer housing or on the cast sheet, and the one-ink line version anywhere a mascot is printed on paper or lies on the counter.
+- **Do** let each sticker's mood say what its agent is doing, and keep the newest line on each printer the darkest.
 
 ### Don't:
 - **Don't** put a white card with a logo, a segmented role control or a green Continue button on the screen; that is the category default this world replaces. (Segmented controls belong only on the printer bar, for switching a view.)
@@ -993,11 +1144,13 @@ Finished trips in the day column, up to five, in the NGO's received list (dotted
 - **Don't** show donation progress as a coloured progress bar or green checkmarks; stages are coupons stamped in ink.
 - **Don't** colour a map with a hue ramp, or show a street base in colour under the ink.
 - **Don't** round printed boxes, bars or cells; only printer hardware has radius.
-- **Don't** use green or amber on paper; those colours belong to the printer LED. The one exception is Warning Yellow on the unsure tag slip, approved for that purpose only; never use it for success, progress, grades, buttons or text.
+- **Don't** use green or amber on paper; those colours belong to the printer LED. The exceptions are Warning Yellow on the unsure tag slip, approved for that purpose only (never for success, progress, grades, buttons or text), and the colours inside the four mascot stickers' die-cut edges on Agents at work.
 - **Don't** use red for anything but failure and urgency (errors, a sure tag mismatch, Grade D, the last minute of a countdown, gaps, dev).
-- **Don't** lift printed elements with shadows; only the printer and the paper itself cast them.
-- **Don't** add a third ink or decorative colour to the ticket beyond the unsure-tag yellow.
+- **Don't** lift printed elements with shadows; only the printer, the paper itself and a stuck-on sticker cast them.
+- **Don't** add a third ink or decorative colour to the ticket beyond the unsure-tag yellow and the four colour mascot stickers (full colour only stuck on printer hardware or on the cast sheet; one-ink line versions everywhere else).
 - **Don't** bury a waiting offer among equal-weight menu links on the NGO home; that is the category default Today's shift card replaces.
 - **Don't** set addresses or place names as right-aligned, all-caps dotted-leader values on a rider's screen.
 - **Don't** show a locked step action as a solid or dimmed ink slab; until it can fire it is a dashed outline that says what is missing.
 - **Don't** treat the placeholder splash animation's visuals as the system; only its slot contract is fixed.
+- **Don't** show the agents as a glowing node graph or a chat transcript; agents are printers on the counter and a hand-off is a chit.
+- **Don't** use the sticker palette outside the four mascot stickers: no coloured agent names, arrows, chits, states or lines, and no fifth mascot.

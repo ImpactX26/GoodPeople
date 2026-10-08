@@ -6,6 +6,7 @@ import { ArrowDown, ArrowRight, Bike, ChevronLeft, HandHeart, Pause, Play, Store
 import LunaMark from "@/components/brand/LunaMark";
 import {
   caseListings,
+  modelName,
   useTraceStream,
   type AgentName,
   type CaseListing,
@@ -104,20 +105,6 @@ const clock = (ms: number) => {
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 const seconds = (ms?: number) => (ms === undefined ? "" : ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`);
-
-/** "gemini:gemini-3.5-flash-lite" → "Gemini 3.5 Flash-Lite"; "groq:openai/gpt-oss-120b" → "GPT-OSS 120B on Groq". */
-function modelName(m?: string) {
-  if (!m) return "";
-  const [provider, rest = ""] = m.split(":");
-  const id = rest.split("/").pop() ?? rest;
-  if (provider === "gemini")
-    return id
-      .replace(/^gemini-/, "Gemini ")
-      .replace(/-flash-lite$/, " Flash-Lite")
-      .replace(/-flash$/, " Flash");
-  if (provider === "groq") return `${id.replace(/^gpt-oss-(\d+)b$/, "GPT-OSS $1B")} on Groq`;
-  return m;
-}
 
 /* ---------- the screen ---------- */
 
@@ -237,6 +224,9 @@ export default function AgentConsole() {
           </div>
         </div>
         <nav className={s.account} aria-label="Admin">
+          <Link href="/admin/agents" className={s.barButton}>
+            Show agents
+          </Link>
           <Link href="/admin" className={s.barButton}>
             Food map
           </Link>

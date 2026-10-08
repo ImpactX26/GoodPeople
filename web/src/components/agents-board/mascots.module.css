@@ -1,0 +1,193 @@
+/* The stickers' own motion: each mood has one, small and looping, pivoting from the sticker's foot. */
+
+.mascot {
+  display: block;
+  overflow: visible;
+}
+
+/* One ink: every coloured fill and stroke prints as paper, the ink stays ink. */
+.line [fill]:not([fill="none"]) {
+  fill: var(--paper);
+}
+
+.line [fill="#1b1b1b"] {
+  fill: var(--ink);
+}
+
+.line [stroke]:not([stroke="#1b1b1b"]):not([stroke="none"]) {
+  stroke: var(--paper);
+}
+
+.body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* Asleep: a slow breath, and the z's drifting up. */
+.mascot[data-mood="sleep"] .body {
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+.zzz path {
+  transform-box: fill-box;
+  animation: drift 2.6s ease-out infinite;
+}
+
+.zzz path + path {
+  animation-delay: 1.3s;
+}
+
+/* Awake: a blink every few seconds. */
+.eyes {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: blink 4.6s infinite;
+}
+
+/* On it: a busy bob. */
+.mascot[data-mood="busy"] .body {
+  animation: bob 0.56s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+.lines {
+  animation: flicker 0.56s steps(2, jump-none) infinite;
+}
+
+/* Thinking: a slow sway, and the bubbles light one after another. */
+.mascot[data-mood="think"] .body {
+  animation: sway 2.4s ease-in-out infinite;
+}
+
+.dots circle {
+  animation: bubble 1.2s steps(1, end) infinite;
+}
+
+.dots circle:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dots circle:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Done: one hop, then still. */
+.mascot[data-mood="happy"] .body {
+  animation: hop 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1;
+}
+
+.sparkle path {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: twinkle 1.8s ease-in-out infinite;
+}
+
+.sparkle path + path {
+  animation-delay: 0.9s;
+}
+
+/* Needs a person: a short tremble, then the sweat drop stays. */
+.mascot[data-mood="worried"] .body {
+  animation: tremble 0.5s linear 2;
+}
+
+@keyframes breathe {
+  50% {
+    transform: scale(1.025, 0.975);
+  }
+}
+
+@keyframes drift {
+  0% {
+    opacity: 0;
+    transform: translate(0, 4px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(4px, -8px);
+  }
+}
+
+@keyframes blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  96.5% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes bob {
+  from {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  to {
+    transform: translateY(-4px) rotate(1.5deg);
+  }
+}
+
+@keyframes flicker {
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes bubble {
+  0%,
+  100% {
+    fill: #fff;
+  }
+  33% {
+    fill: #1b1b1b;
+  }
+}
+
+@keyframes hop {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    transform: translateY(-10px) scale(1.04, 0.97);
+  }
+  70% {
+    transform: translateY(0) scale(1.06, 0.92);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes tremble {
+  25% {
+    transform: translateX(-2px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(2deg);
+  }
+}

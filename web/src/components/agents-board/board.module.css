@@ -1,0 +1,1449 @@
+/* Agents at work: four little ticket printers per listing on the steel counter. The cast sheet on top, then one
+   row per listing: its order slip, four printers with the agent stuck on as a sticker, and the hand-offs tape
+   where chits slide from printer to printer. Columns line up from the cast down to the tape. */
+
+.screen {
+  --gap: 16px;
+  --col: calc((100% - 3 * var(--gap)) / 4);
+  --tooth: 8px;
+  min-height: 100dvh;
+}
+
+/* ---------- Printer bar ---------- */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "brand controls account";
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: linear-gradient(180deg, #2b2c2c 0%, var(--slot) 80%);
+  color: var(--paper);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.45);
+}
+
+.bar :focus-visible {
+  outline-color: var(--paper);
+}
+
+.brand {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -8px;
+  color: var(--paper);
+}
+
+.barMark {
+  color: var(--paper);
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.city {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: #b9b8b1;
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 9px;
+  border: 1.5px solid var(--ink-faded);
+  color: #d9d8d1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* The status light: hardware, so green and amber live only here. */
+.led {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3fd46b;
+  box-shadow: 0 0 6px 1px rgba(63, 212, 107, 0.55);
+}
+
+.led[data-state="busy"],
+.led[data-state="hold"] {
+  background: #ffb020;
+  box-shadow: 0 0 6px 1px rgba(255, 176, 32, 0.6);
+}
+
+.led[data-state="busy"] {
+  animation: blink 0.5s steps(2, jump-none) infinite;
+}
+
+.led[data-state="off"],
+.chip[data-state="denied"] .led {
+  background: var(--slot-lip);
+  box-shadow: none;
+  animation: none;
+}
+
+.controls {
+  grid-area: controls;
+  display: flex;
+  align-items: center;
+}
+
+.segmented {
+  display: flex;
+  border: 1.5px solid var(--ink-faded);
+}
+
+.segment {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #d9d8d1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.segment + .segment {
+  border-left: 1.5px solid var(--ink-faded);
+}
+
+.segment[aria-checked="true"] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.segment:hover:not([aria-checked="true"]) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.account {
+  grid-area: account;
+  justify-self: end;
+  display: flex;
+  gap: 8px;
+}
+
+.barButton {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1.5px solid var(--ink-faded);
+  background: transparent;
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.barButton:hover {
+  border-color: var(--paper);
+}
+
+.short {
+  display: none;
+}
+
+/* The AI check being off, stamped on the hardware like SAMPLE DATA. */
+.barStamp {
+  flex: none;
+  padding: 2px 7px;
+  border: 1.5px solid #b9b8b1;
+  color: #d9d8d1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  rotate: -2deg;
+}
+
+/* ---------- Page ---------- */
+
+.main {
+  width: 100%;
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 22px 20px 72px;
+}
+
+/* Paper on the counter: a tear along the foot, a drop shadow that follows it. */
+.cast,
+.slip,
+.paper {
+  background: var(--paper);
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+}
+
+/* ---------- The cast ---------- */
+
+.castWrap {
+  filter: drop-shadow(0 12px 14px rgba(20, 22, 20, 0.16));
+}
+
+.cast {
+  padding: 18px 0 calc(22px + var(--tooth));
+}
+
+.castHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 28px;
+  margin: 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.castTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.castNote {
+  margin: 0;
+  text-wrap: pretty;
+  max-width: 64ch;
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.castList {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.castItem {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px 0 18px;
+}
+
+.castItem + .castItem::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--gap) / -2);
+  top: 4px;
+  bottom: 4px;
+  border-left: 1.5px dotted rgba(27, 27, 27, 0.4);
+}
+
+.castSticker {
+  width: 84px;
+  height: 84px;
+  rotate: -6deg;
+}
+
+.castItem:nth-child(2) .castSticker {
+  rotate: 5deg;
+}
+
+.castItem:nth-child(3) .castSticker {
+  rotate: -3deg;
+}
+
+.castItem:nth-child(4) .castSticker {
+  rotate: 7deg;
+}
+
+.castName {
+  margin: 0 0 5px;
+  font-size: 15px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.castJob {
+  margin: 0;
+  text-wrap: pretty;
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+/* ---------- Earlier listings ---------- */
+
+.earlier {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 28px;
+  border: 2px dashed var(--ink);
+  background: var(--paper);
+  font-size: 13px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.earlier:hover {
+  background: var(--paper-shade);
+}
+
+/* ---------- One listing ---------- */
+
+.orders {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.order {
+  margin-top: 36px;
+  scroll-margin-top: 84px;
+}
+
+.slipWrap {
+  filter: drop-shadow(0 12px 14px rgba(20, 22, 20, 0.18));
+}
+
+.slip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 20px;
+  padding: 16px 20px calc(16px + var(--tooth));
+}
+
+.order[data-live="true"] .slip {
+  animation: feed 620ms steps(6, end) both;
+}
+
+/* The listing's last beat: a rubber stamp across the slip. */
+.slip {
+  position: relative;
+}
+
+.bigStamp {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 52%;
+  translate: -50% -60%;
+  padding: 4px 14px;
+  border: 4px solid var(--ink);
+  background: rgba(251, 250, 246, 0.92);
+  font-size: 26px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  rotate: -6deg;
+  pointer-events: none;
+}
+
+.bigStamp[data-live="true"] {
+  animation: bigStamp 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.no {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-right: 20px;
+  border-right: 2px solid var(--ink);
+  font-size: 34px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.slipText {
+  min-width: 0;
+}
+
+.donor {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.slipMeta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.slipTime {
+  margin: 2px 0 0;
+  font-family: var(--font-note);
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.slipTime strong {
+  font-family: var(--font-print);
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+/* Where the food is: five marks that stamp themselves as the listing travels. */
+.stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  min-width: 86px;
+}
+
+/* A dotted line from mark to mark, inked once the earlier stage is done. */
+.stage + .stage::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  right: calc(50% + 21px);
+  width: calc(100% - 38px);
+  border-top: 2px dotted var(--ink-faded);
+}
+
+.stage[data-state="done"] + .stage::before,
+.stage + .stage[data-state="done"]::before {
+  border-top-style: solid;
+  border-top-color: var(--ink);
+}
+
+.stageMark {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--ink-faded);
+}
+
+.stage[data-state="now"] .stageMark {
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+
+.stage[data-state="now"] .stageMark::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: var(--ink);
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+
+.stage[data-state="done"] .stageMark {
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.stage[data-state="stopped"] .stageMark {
+  border: 2px solid var(--ink-red);
+  background: var(--ink-red);
+  color: #fff;
+}
+
+.stageMark[data-stamp="true"] {
+  animation: stamp 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stageLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+  white-space: nowrap;
+}
+
+.stage[data-state="done"] .stageLabel,
+.stage[data-state="now"] .stageLabel {
+  color: var(--ink);
+}
+
+.stage[data-state="stopped"] .stageLabel {
+  color: var(--ink-red);
+}
+
+/* ---------- The four printers ---------- */
+
+.stations {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 48px var(--gap);
+  margin-top: 46px;
+  align-items: start;
+}
+
+.station {
+  --tilt: -8deg;
+  position: relative;
+  min-width: 0;
+}
+
+.station[data-agent="decision"] {
+  --tilt: 5deg;
+}
+
+.station[data-agent="ngo"] {
+  --tilt: -4deg;
+}
+
+.station[data-agent="logistics"] {
+  --tilt: 7deg;
+}
+
+.housing {
+  position: relative;
+  z-index: 2;
+  min-height: 66px;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+  padding: 10px 14px 16px 100px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2f3030 0%, var(--slot) 85%);
+  color: var(--paper);
+  box-shadow:
+    0 10px 18px -8px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 var(--slot-lip);
+}
+
+/* The slot the paper feeds out of. */
+.housing::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 6px;
+  height: 3px;
+  border-radius: 2px;
+  background: #0a0a0a;
+  box-shadow: 0 1px 0 var(--slot-lip);
+}
+
+.sticker {
+  position: absolute;
+  left: 8px;
+  top: -30px;
+  rotate: var(--tilt);
+  transform-origin: 50% 85%;
+}
+
+/* A chit landing: the sticker hops as the hand-off arrives. */
+.sticker[data-heard="true"] {
+  animation: hopIn 560ms 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stationName {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d9d8d1;
+}
+
+.paperWrap {
+  position: relative;
+  z-index: 1;
+  margin: -8px 12px 0;
+  filter: drop-shadow(0 10px 14px rgba(20, 22, 20, 0.18));
+}
+
+.paper {
+  padding: 20px 14px calc(14px + var(--tooth));
+  background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.07) 0, transparent 22px);
+}
+
+.station[data-status="on"] .paper,
+.station[data-status="thinking"] .paper {
+  background-color: #fff;
+}
+
+.station[data-status="waiting"] .paperWrap {
+  filter: none;
+}
+
+.station[data-status="waiting"] .paper {
+  background-color: rgba(251, 250, 246, 0.6);
+}
+
+.waits {
+  margin: 0;
+  padding: 14px;
+  border: 1.5px dashed var(--ink-faded);
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-faded);
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.step {
+  padding: 11px 0;
+  border-top: 1.5px dashed rgba(27, 27, 27, 0.28);
+}
+
+.steps > li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.step[data-live="true"] {
+  animation: printIn 460ms steps(5, end) both;
+}
+
+.stepHead {
+  margin: 0 0 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 22px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.miniSticker {
+  flex: none;
+}
+
+.stepTime {
+  margin-left: auto;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faded);
+}
+
+.speed {
+  margin-left: auto;
+  flex: none;
+  padding: 1px 6px;
+  border: 1.5px solid rgba(27, 27, 27, 0.3);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+}
+
+.count {
+  margin-left: 6px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.stepText {
+  margin: 0;
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+/* The newest line on each printer is the darkest. */
+.step[data-latest="true"] .stepText {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.stamps {
+  margin: 2px 0 7px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stamp {
+  display: inline-block;
+  padding: 2px 7px;
+  border: 1.5px solid var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  rotate: -2deg;
+}
+
+.stamp[data-tone="concern"] {
+  border-style: dashed;
+}
+
+.stamp[data-tone="would_change"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.stamp[data-tone="red"] {
+  border-color: var(--ink-red);
+  color: var(--ink-red);
+}
+
+.stamp[data-tone="faded"] {
+  border-color: var(--ink-faded);
+  color: var(--ink-faded);
+}
+
+.action {
+  margin: 6px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dots {
+  flex: 1;
+  min-width: 12px;
+  border-bottom: 1.5px dotted var(--ink-faded);
+  translate: 0 -3px;
+}
+
+.model {
+  margin: 7px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+.more {
+  margin-top: 4px;
+}
+
+.more summary {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.more ul {
+  margin: 2px 0 0;
+  padding-left: 18px;
+  font-family: var(--font-note);
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.more li + li {
+  margin-top: 4px;
+}
+
+.earlierSteps {
+  min-height: 32px;
+  margin: -8px 0 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.working {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-top: 11px;
+  border-top: 1.5px dashed rgba(27, 27, 27, 0.28);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.workingSquare {
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+
+.caret {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  margin-left: 4px;
+  vertical-align: -2px;
+  background: var(--ink);
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+
+.red {
+  color: var(--ink-red);
+}
+
+/* ---------- Hand-offs: chits on the counter, between the order slip and the printers ---------- */
+
+/* Each hand-off is an ink arrow across the real printer columns; its words are a paper chit beside it. */
+.pass {
+  margin-top: 18px;
+}
+
+.linkButton {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.calls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.call {
+  --x: calc(var(--col) + var(--gap));
+  --from: calc(var(--a) * var(--x) + var(--col) / 2);
+  --to: calc(var(--b) * var(--x) + var(--col) / 2);
+  position: relative;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+}
+
+.track {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--from) - 18px);
+  width: calc(var(--to) - var(--from) + 36px);
+  height: 36px;
+  translate: 0 -50%;
+  display: flex;
+  align-items: center;
+}
+
+.track[data-dir="left"] {
+  flex-direction: row-reverse;
+}
+
+.end {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+
+/* On the steel the one-ink mascots sit on a square of paper, so their white fills still read. */
+.track .end {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  box-shadow: 0 4px 8px -4px rgba(20, 22, 20, 0.4);
+}
+
+.line {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  margin: 0 8px;
+  background: var(--ink);
+}
+
+.line::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  width: 10px;
+  height: 12px;
+  background: var(--ink);
+}
+
+.track[data-dir="right"] .line::after {
+  right: -2px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.track[data-dir="left"] .line::after {
+  left: -2px;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+/* The chit in flight, only for hand-offs that happen while the board is open. Hidden at rest. */
+.packet {
+  position: absolute;
+  top: -7px;
+  width: 18px;
+  height: 14px;
+  border: 1.5px solid var(--ink);
+  background: #fff;
+  box-shadow: 0 2px 3px rgba(20, 22, 20, 0.25);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.packet::before {
+  content: "";
+  position: absolute;
+  inset: 3px 3px auto;
+  border-top: 1.5px solid var(--ink);
+  box-shadow: 0 3px 0 -0.5px var(--ink);
+}
+
+.call[data-live="true"] .track[data-dir="right"] .packet {
+  animation: travelRight 760ms cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.call[data-live="true"] .track[data-dir="left"] .packet {
+  animation: travelLeft 760ms cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.heard {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 1px 5px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  animation: stamp 420ms 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The words: a small paper chit on the counter, on the roomier side of the arrow. */
+.chit {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 6px 10px 7px;
+  background: var(--paper);
+  box-shadow: 0 6px 10px -6px rgba(20, 22, 20, 0.35);
+}
+
+/* One width for every chit on a side, so a column of them lines up like slips on the pass. */
+.call[data-side="right"] .chit {
+  width: min(420px, calc(100% - var(--to) - 40px));
+  margin-left: calc(var(--to) + 30px);
+}
+
+.call[data-side="left"] .chit {
+  width: min(420px, calc(var(--from) - 40px));
+  margin-left: auto;
+  margin-right: calc(100% - var(--from) + 30px);
+}
+
+.call[data-live="true"] .chit {
+  animation: printIn 420ms 260ms steps(4, end) both;
+}
+
+.callWho {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.callTime {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faded);
+}
+
+.callTask {
+  font-family: var(--font-note);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+/* ---------- Nothing on the board ---------- */
+
+.empty {
+  margin-top: 36px;
+  padding: 26px 24px 24px;
+  border: 2px dashed var(--ink-faded);
+  background: rgba(251, 250, 246, 0.55);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.emptyNote {
+  margin: 8px 0 0;
+  max-width: 62ch;
+  font-family: var(--font-note);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.emptyLanes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap);
+  margin-top: 22px;
+}
+
+.emptyLanes span {
+  min-height: 92px;
+  padding: 14px;
+  border: 1.5px dashed var(--ink-faded);
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-faded);
+}
+
+/* ---------- Motion ---------- */
+
+@keyframes blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes feed {
+  from {
+    clip-path: inset(0 0 100% 0);
+    translate: 0 -6px;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+}
+
+@keyframes printIn {
+  from {
+    clip-path: inset(0 0 100% 0);
+    translate: 0 -6px;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+}
+
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+    rotate: -12deg;
+  }
+  70% {
+    opacity: 1;
+    scale: 0.94;
+    rotate: 2deg;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+
+@keyframes bigStamp {
+  0% {
+    opacity: 0;
+    scale: 1.6;
+    rotate: -14deg;
+  }
+  70% {
+    opacity: 1;
+    scale: 0.94;
+    rotate: -4deg;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    rotate: -6deg;
+  }
+}
+
+@keyframes hopIn {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  40% {
+    translate: 0 -12px;
+  }
+  70% {
+    translate: 0 2px;
+  }
+}
+
+@keyframes travelRight {
+  0% {
+    left: -8px;
+    opacity: 0;
+    visibility: visible;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 10px);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes travelLeft {
+  0% {
+    left: calc(100% - 10px);
+    opacity: 0;
+    visibility: visible;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    left: -8px;
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* ---------- Projector and wide desks: read from across the room ---------- */
+
+@media (min-width: 1280px) {
+  .castJob {
+    font-size: 15.5px;
+  }
+  .stepHead,
+  .callWho,
+  .stepTime,
+  .callTime {
+    font-size: 12px;
+  }
+  .speed {
+    font-size: 11.5px;
+  }
+  .stepText,
+  .callTask {
+    font-size: 16px;
+  }
+  .step[data-latest="true"] .stepText {
+    font-size: 17px;
+  }
+  .stationName {
+    font-size: 14px;
+  }
+  .state,
+  .stageLabel {
+    font-size: 11px;
+  }
+  .model,
+  .action,
+  .more summary,
+  .earlierSteps,
+  .linkButton,
+  .working {
+    font-size: 12px;
+  }
+  .more ul,
+  .waits {
+    font-size: 15px;
+  }
+}
+
+/* ---------- Narrower desks: printers two by two, the tape as a list ---------- */
+
+@media (max-width: 1180px) {
+  .castList,
+  .stations,
+  .emptyLanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .castList {
+    row-gap: 22px;
+  }
+  .castItem:nth-child(3)::before {
+    display: none;
+  }
+  .slip {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .stages {
+    grid-column: 1 / -1;
+    padding-top: 12px;
+    border-top: 1.5px dashed rgba(27, 27, 27, 0.35);
+  }
+  .stage {
+    flex: 1;
+    min-width: 0;
+  }
+  .calls {
+    gap: 8px;
+  }
+  .call {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .track {
+    position: static;
+    width: auto;
+    translate: none;
+    justify-content: flex-start;
+  }
+  .track[data-dir="left"] {
+    flex-direction: row;
+  }
+  .track[data-dir="left"] .line::after {
+    left: auto;
+    right: -2px;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  .call[data-live="true"] .track[data-dir="left"] .packet {
+    animation-name: travelRight;
+  }
+  .line {
+    flex: none;
+    width: 64px;
+  }
+  .call[data-side] .chit {
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+  }
+  .bigStamp {
+    top: 14px;
+    left: auto;
+    right: 16px;
+    translate: none;
+    font-size: 18px;
+    border-width: 3px;
+  }
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 860px) {
+  .bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand account"
+      "controls controls";
+    gap: 8px 10px;
+    padding: 8px var(--gutter) 10px;
+  }
+  .title {
+    font-size: 13px;
+  }
+  .city,
+  .barButton + .barButton {
+    display: none;
+  }
+  .segmented {
+    flex: 1;
+  }
+  .segment {
+    flex: 1;
+    min-height: 44px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .barButton {
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+  .main {
+    padding: 16px var(--gutter) 56px;
+  }
+  .order {
+    scroll-margin-top: 120px;
+  }
+}
+
+@media (max-width: 640px) {
+  .castList,
+  .stations,
+  .emptyLanes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .castItem + .castItem::before {
+    display: none;
+  }
+  .castItem {
+    padding: 0 16px;
+  }
+  .castSticker {
+    width: 68px;
+    height: 68px;
+  }
+  .slip {
+    padding: 14px 16px calc(14px + var(--tooth));
+    gap: 10px 14px;
+  }
+  .no {
+    padding-right: 14px;
+    font-size: 26px;
+  }
+  .bigStamp {
+    position: static;
+    order: 10;
+    grid-column: 1 / -1;
+    justify-self: end;
+    margin: 2px 6px 0 0;
+    font-size: 16px;
+  }
+  .donor {
+    font-size: 19px;
+  }
+  .stages {
+    gap: 0;
+  }
+  .stage + .stage::before {
+    right: calc(50% + 19px);
+    width: calc(100% - 38px);
+  }
+  .stageLabel {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+  .chip,
+  .barStamp,
+  .barMark,
+  .long {
+    display: none;
+  }
+  .short {
+    display: inline;
+  }
+}

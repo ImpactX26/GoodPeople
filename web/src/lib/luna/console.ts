@@ -150,5 +150,19 @@ export function useTraceStream(handlers: TraceHandlers): Connection {
   return conn;
 }
 
+/** "gemini:gemini-3.5-flash-lite" → "Gemini 3.5 Flash-Lite"; "groq:openai/gpt-oss-120b" → "GPT-OSS 120B on Groq". */
+export function modelName(m?: string) {
+  if (!m) return "";
+  const [provider, rest = ""] = m.split(":");
+  const id = rest.split("/").pop() ?? rest;
+  if (provider === "gemini")
+    return id
+      .replace(/^gemini-/, "Gemini ")
+      .replace(/-flash-lite$/, " Flash-Lite")
+      .replace(/-flash$/, " Flash");
+  if (provider === "groq") return `${id.replace(/^gpt-oss-(\d+)b$/, "GPT-OSS $1B")} on Groq`;
+  return m;
+}
+
 /** The cases the agents are working on, newest first. */
 export const caseListings = () => api<CaseListing[]>("/agents/admin/listings", { token: getSession()?.token ?? null });

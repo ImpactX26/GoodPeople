@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-08T12:00:00+00:00",
+  "generatedAt": "2026-10-08T18:00:00+00:00",
   "title": "Design System: Luna",
   "extensions": {
     "colorMeta": {
@@ -289,6 +289,262 @@
           "oklch(83.6% 0.010 100.0)",
           "oklch(95.0% 0.010 100.0)"
         ]
+      },
+      "sticker-cheese": {
+        "role": "tertiary",
+        "displayName": "Pizza Cheese",
+        "canonical": "oklch(87.9% 0.144 87.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.144 87.8)",
+          "oklch(26.4% 0.144 87.8)",
+          "oklch(37.9% 0.144 87.8)",
+          "oklch(49.3% 0.144 87.8)",
+          "oklch(60.7% 0.144 87.8)",
+          "oklch(72.1% 0.144 87.8)",
+          "oklch(83.6% 0.144 87.8)",
+          "oklch(95.0% 0.144 87.8)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-crust": {
+        "role": "tertiary",
+        "displayName": "Pizza Crust",
+        "canonical": "oklch(74.5% 0.137 67.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.137 67.7)",
+          "oklch(26.4% 0.137 67.7)",
+          "oklch(37.9% 0.137 67.7)",
+          "oklch(49.3% 0.137 67.7)",
+          "oklch(60.7% 0.137 67.7)",
+          "oklch(72.1% 0.137 67.7)",
+          "oklch(83.6% 0.137 67.7)",
+          "oklch(95.0% 0.137 67.7)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-pepperoni": {
+        "role": "tertiary",
+        "displayName": "Pepperoni",
+        "canonical": "oklch(63.9% 0.181 32.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.181 32.5)",
+          "oklch(26.4% 0.181 32.5)",
+          "oklch(37.9% 0.181 32.5)",
+          "oklch(49.3% 0.181 32.5)",
+          "oklch(60.7% 0.181 32.5)",
+          "oklch(72.1% 0.181 32.5)",
+          "oklch(83.6% 0.181 32.5)",
+          "oklch(95.0% 0.181 32.5)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-basil": {
+        "role": "tertiary",
+        "displayName": "Basil Leaf",
+        "canonical": "oklch(67.3% 0.162 144.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.162 144.2)",
+          "oklch(26.4% 0.162 144.2)",
+          "oklch(37.9% 0.162 144.2)",
+          "oklch(49.3% 0.162 144.2)",
+          "oklch(60.7% 0.162 144.2)",
+          "oklch(72.1% 0.162 144.2)",
+          "oklch(83.6% 0.162 144.2)",
+          "oklch(95.0% 0.162 144.2)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-scarf": {
+        "role": "tertiary",
+        "displayName": "Chef's Neckerchief",
+        "canonical": "oklch(69.4% 0.175 6.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.175 6.4)",
+          "oklch(26.4% 0.175 6.4)",
+          "oklch(37.9% 0.175 6.4)",
+          "oklch(49.3% 0.175 6.4)",
+          "oklch(60.7% 0.175 6.4)",
+          "oklch(72.1% 0.175 6.4)",
+          "oklch(83.6% 0.175 6.4)",
+          "oklch(95.0% 0.175 6.4)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-hat-fold": {
+        "role": "tertiary",
+        "displayName": "Hat Fold",
+        "canonical": "oklch(91.3% 0.017 267.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.017 267.8)",
+          "oklch(26.4% 0.017 267.8)",
+          "oklch(37.9% 0.017 267.8)",
+          "oklch(49.3% 0.017 267.8)",
+          "oklch(60.7% 0.017 267.8)",
+          "oklch(72.1% 0.017 267.8)",
+          "oklch(83.6% 0.017 267.8)",
+          "oklch(95.0% 0.017 267.8)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-tin": {
+        "role": "tertiary",
+        "displayName": "Tiffin Teal",
+        "canonical": "oklch(68.5% 0.113 183.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.113 183.6)",
+          "oklch(26.4% 0.113 183.6)",
+          "oklch(37.9% 0.113 183.6)",
+          "oklch(49.3% 0.113 183.6)",
+          "oklch(60.7% 0.113 183.6)",
+          "oklch(72.1% 0.113 183.6)",
+          "oklch(83.6% 0.113 183.6)",
+          "oklch(95.0% 0.113 183.6)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-tin-lid": {
+        "role": "tertiary",
+        "displayName": "Tiffin Lid",
+        "canonical": "oklch(60.2% 0.100 182.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.100 182.7)",
+          "oklch(26.4% 0.100 182.7)",
+          "oklch(37.9% 0.100 182.7)",
+          "oklch(49.3% 0.100 182.7)",
+          "oklch(60.7% 0.100 182.7)",
+          "oklch(72.1% 0.100 182.7)",
+          "oklch(83.6% 0.100 182.7)",
+          "oklch(95.0% 0.100 182.7)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-copper": {
+        "role": "tertiary",
+        "displayName": "Tiffin Copper",
+        "canonical": "oklch(71.8% 0.134 52.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.134 52.4)",
+          "oklch(26.4% 0.134 52.4)",
+          "oklch(37.9% 0.134 52.4)",
+          "oklch(49.3% 0.134 52.4)",
+          "oklch(60.7% 0.134 52.4)",
+          "oklch(72.1% 0.134 52.4)",
+          "oklch(83.6% 0.134 52.4)",
+          "oklch(95.0% 0.134 52.4)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-steel": {
+        "role": "tertiary",
+        "displayName": "Tiffin Steel",
+        "canonical": "oklch(85.3% 0.010 228.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 228.9)",
+          "oklch(26.4% 0.010 228.9)",
+          "oklch(37.9% 0.010 228.9)",
+          "oklch(49.3% 0.010 228.9)",
+          "oklch(60.7% 0.010 228.9)",
+          "oklch(72.1% 0.010 228.9)",
+          "oklch(83.6% 0.010 228.9)",
+          "oklch(95.0% 0.010 228.9)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-scooter": {
+        "role": "tertiary",
+        "displayName": "Scooter Blue",
+        "canonical": "oklch(61.3% 0.183 260.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.183 260.4)",
+          "oklch(26.4% 0.183 260.4)",
+          "oklch(37.9% 0.183 260.4)",
+          "oklch(49.3% 0.183 260.4)",
+          "oklch(60.7% 0.183 260.4)",
+          "oklch(72.1% 0.183 260.4)",
+          "oklch(83.6% 0.183 260.4)",
+          "oklch(95.0% 0.183 260.4)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-box": {
+        "role": "tertiary",
+        "displayName": "Delivery Box Orange",
+        "canonical": "oklch(75.3% 0.155 42.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.155 42.0)",
+          "oklch(26.4% 0.155 42.0)",
+          "oklch(37.9% 0.155 42.0)",
+          "oklch(49.3% 0.155 42.0)",
+          "oklch(60.7% 0.155 42.0)",
+          "oklch(72.1% 0.155 42.0)",
+          "oklch(83.6% 0.155 42.0)",
+          "oklch(95.0% 0.155 42.0)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-lamp": {
+        "role": "tertiary",
+        "displayName": "Scooter Lamp",
+        "canonical": "oklch(91.6% 0.128 94.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.128 94.1)",
+          "oklch(26.4% 0.128 94.1)",
+          "oklch(37.9% 0.128 94.1)",
+          "oklch(49.3% 0.128 94.1)",
+          "oklch(60.7% 0.128 94.1)",
+          "oklch(72.1% 0.128 94.1)",
+          "oklch(83.6% 0.128 94.1)",
+          "oklch(95.0% 0.128 94.1)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-cheek": {
+        "role": "tertiary",
+        "displayName": "Sticker Cheek",
+        "canonical": "oklch(77.5% 0.136 9.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.136 9.3)",
+          "oklch(26.4% 0.136 9.3)",
+          "oklch(37.9% 0.136 9.3)",
+          "oklch(49.3% 0.136 9.3)",
+          "oklch(60.7% 0.136 9.3)",
+          "oklch(72.1% 0.136 9.3)",
+          "oklch(83.6% 0.136 9.3)",
+          "oklch(95.0% 0.136 9.3)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-mouth": {
+        "role": "tertiary",
+        "displayName": "Sticker Mouth",
+        "canonical": "oklch(44.0% 0.130 32.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.130 32.5)",
+          "oklch(26.4% 0.130 32.5)",
+          "oklch(37.9% 0.130 32.5)",
+          "oklch(49.3% 0.130 32.5)",
+          "oklch(60.7% 0.130 32.5)",
+          "oklch(72.1% 0.130 32.5)",
+          "oklch(83.6% 0.130 32.5)",
+          "oklch(95.0% 0.130 32.5)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
+      },
+      "sticker-edge": {
+        "role": "tertiary",
+        "displayName": "Die-cut Edge",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.4% 0.000 89.9)",
+          "oklch(37.9% 0.000 89.9)",
+          "oklch(49.3% 0.000 89.9)",
+          "oklch(60.7% 0.000 89.9)",
+          "oklch(72.1% 0.000 89.9)",
+          "oklch(83.6% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ],
+        "purpose": "Mascot sticker only (Colour Stickers rule): inside the die-cut edge of the four stickers on Agents at work, full colour only when stuck on printer hardware or on the cast sheet. Never paper print, text, states or controls."
       }
     },
     "typographyMeta": {
@@ -500,6 +756,36 @@
         "name": "trip-slip",
         "value": "drop-shadow(0 12px 14px rgba(20,22,20,0.2))",
         "purpose": "The trip slip and pickup request tickets; same as the offer ticket."
+      },
+      {
+        "name": "cast-sheet",
+        "value": "drop-shadow(0 12px 14px rgba(20,22,20,0.16))",
+        "purpose": "Agents at work cast sheet on the counter, following its tear edge. The order slip reuses coupon-ticket."
+      },
+      {
+        "name": "station",
+        "value": "housing: printer-housing; paper: drop-shadow(0 10px 14px rgba(20,22,20,0.18))",
+        "purpose": "Each little printer and its paper; a waiting printer's paper has none."
+      },
+      {
+        "name": "sticker-die-cut",
+        "value": "feDropShadow dx 0 dy 2.2 stdDeviation 1.8 #141614 at 0.3 on a 5.5px white dilated edge (7px below 40px)",
+        "purpose": "Full-colour mascot sticker stuck on a housing or the cast sheet."
+      },
+      {
+        "name": "handoff-chit",
+        "value": "0 6px 10px -6px rgba(20,22,20,0.35)",
+        "purpose": "A hand-off's words, a paper chit on the counter."
+      },
+      {
+        "name": "handoff-end",
+        "value": "0 4px 8px -4px rgba(20,22,20,0.4)",
+        "purpose": "Paper square under a one-ink mascot at each end of a hand-off arrow."
+      },
+      {
+        "name": "chit-in-flight",
+        "value": "0 2px 3px rgba(20,22,20,0.25)",
+        "purpose": "The small chit travelling along a live hand-off arrow."
       }
     ],
     "motion": [
@@ -592,6 +878,46 @@
         "name": "trip-stamp",
         "value": "420ms ease-out stampIn (as accept-stamp); held 650-900ms before reprint",
         "purpose": "ACCEPTED / PASSED ON on a pickup request; COLLECTED / DELIVERED on the trip slip."
+      },
+      {
+        "name": "board-feed",
+        "value": "620ms steps(6, end); clip-path top-down + 6px drop",
+        "purpose": "A listing's order slip arriving live on Agents at work."
+      },
+      {
+        "name": "board-line-print",
+        "value": "460ms steps(5, end) (chit words 420ms steps(4) after 260ms)",
+        "purpose": "A new printed line on a station; a chit's words."
+      },
+      {
+        "name": "chit-travel",
+        "value": "760ms cubic-bezier(0.45,0,0.2,1)",
+        "purpose": "Chit sliding along a live hand-off arrow; hidden at rest."
+      },
+      {
+        "name": "heard-stamp",
+        "value": "420ms stamp after 720ms, held about 4s",
+        "purpose": "HEARD lands on the receiving end of a live hand-off."
+      },
+      {
+        "name": "sticker-hop",
+        "value": "560ms cubic-bezier(0.16,1,0.3,1) after 700ms; up 12px, settle 2px low",
+        "purpose": "Receiving station's sticker hops as a hand-off lands."
+      },
+      {
+        "name": "mascot-moods",
+        "value": "sleep breath 3.2s + z drift 2.6s; awake blink 4.6s; busy bob 0.56s alternate; think sway 2.4s + bubbles 1.2s; happy hop 0.6s once; worried tremble 0.5s x2",
+        "purpose": "Each sticker's face follows its agent's state."
+      },
+      {
+        "name": "delivered-stamp",
+        "value": "420ms cubic-bezier(0.16,1,0.3,1); from 1.6x -14deg to -6deg",
+        "purpose": "DELIVERED across the order slip; stage marks use coupon-stamp."
+      },
+      {
+        "name": "board-pace",
+        "value": "Step by step 850ms per event (160ms when >14 queued); Real time 90ms",
+        "purpose": "Pacing of printed events on Agents at work."
       }
     ],
     "breakpoints": [
@@ -614,6 +940,18 @@
       {
         "name": "donor-wide",
         "value": "900px"
+      },
+      {
+        "name": "board-projector",
+        "value": "1280px"
+      },
+      {
+        "name": "board-two-up",
+        "value": "1180px"
+      },
+      {
+        "name": "board-one-up",
+        "value": "640px"
       }
     ]
   },
@@ -896,11 +1234,43 @@
       "description": "A finished trip in the day column: check, then one Hanken line with the food in bold mono.",
       "html": "<ul class=\"ds-done\"><li><i>&#10003;</i><span><b>20 × Veg biryani</b> to Akshaya Trust</span></li><li><i>&#10003;</i><span><b>8 × Chapati and dal</b> to Hope Shelter, Ejipura</span></li></ul>",
       "css": ".ds-done { max-width: 420px; margin: 0; padding: 0; list-style: none; } .ds-done li { display: grid; grid-template-columns: 16px 1fr; gap: 10px; align-items: start; padding: 10px 0; } .ds-done li + li { border-top: 1.5px dotted #1b1b1b; } .ds-done i { font-style: normal; font: 800 14px/1.4 var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-done span { font: 15px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; } .ds-done b { font: 800 13px/1.4 var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: #1b1b1b; text-transform: uppercase; }"
+    },
+    {
+      "name": "Mascot Sticker",
+      "kind": "custom",
+      "refersTo": "mascot-sticker",
+      "description": "An agent as a die-cut colour sticker stuck on its printer housing (here the pizza slice, Food Agent), beside the one-ink line version used on paper and the counter.",
+      "html": "<div class=\"ds-mascots\"><svg class=\"ds-sticker\" viewBox=\"0 0 120 120\" width=\"80\" height=\"80\"><path d=\"M22 38C44 30 76 30 98 38L64 107.5C62 111.5 58 111.5 56 107.5Z\" fill=\"#ffd15a\" stroke=\"#1b1b1b\" stroke-width=\"3\" stroke-linejoin=\"round\"/><circle cx=\"34\" cy=\"50\" r=\"6.5\" fill=\"#e4573d\" stroke=\"#1b1b1b\" stroke-width=\"2\"/><circle cx=\"87\" cy=\"50\" r=\"6\" fill=\"#e4573d\" stroke=\"#1b1b1b\" stroke-width=\"2\"/><circle cx=\"60\" cy=\"91\" r=\"5.5\" fill=\"#e4573d\" stroke=\"#1b1b1b\" stroke-width=\"2\"/><path d=\"M66 80q5-8 13-4.5q-4 8-13 4.5z\" fill=\"#4caf50\" stroke=\"#1b1b1b\" stroke-width=\"1.6\"/><path d=\"M14 30C36 14 84 14 106 30C108 38 102 42 96 40C76 30 44 30 24 40C18 42 12 38 14 30Z\" fill=\"#e59a3f\" stroke=\"#1b1b1b\" stroke-width=\"3\" stroke-linejoin=\"round\"/><ellipse cx=\"45\" cy=\"69.5\" rx=\"4.6\" ry=\"2.8\" fill=\"#ff8fa3\"/><ellipse cx=\"75\" cy=\"69.5\" rx=\"4.6\" ry=\"2.8\" fill=\"#ff8fa3\"/><ellipse cx=\"51\" cy=\"62\" rx=\"3.4\" ry=\"4.4\" fill=\"#1b1b1b\"/><ellipse cx=\"69\" cy=\"62\" rx=\"3.4\" ry=\"4.4\" fill=\"#1b1b1b\"/><path d=\"M56.5 68q3.5 3.6 7 0\" fill=\"none\" stroke=\"#1b1b1b\" stroke-width=\"2.2\" stroke-linecap=\"round\"/></svg><span class=\"ds-line-end\"><svg viewBox=\"0 0 120 120\" width=\"30\" height=\"30\"><path d=\"M22 38C44 30 76 30 98 38L64 107.5C62 111.5 58 111.5 56 107.5Z\" fill=\"#fbfaf6\" stroke=\"#1b1b1b\" stroke-width=\"3\"/><path d=\"M14 30C36 14 84 14 106 30C108 38 102 42 96 40C76 30 44 30 24 40C18 42 12 38 14 30Z\" fill=\"#fbfaf6\" stroke=\"#1b1b1b\" stroke-width=\"3\"/><ellipse cx=\"51\" cy=\"62\" rx=\"3.4\" ry=\"4.4\" fill=\"#1b1b1b\"/><ellipse cx=\"69\" cy=\"62\" rx=\"3.4\" ry=\"4.4\" fill=\"#1b1b1b\"/></svg></span></div>",
+      "css": ".ds-mascots { display: flex; align-items: center; gap: 28px; padding: 24px; background: #d5d7d3; } .ds-sticker { rotate: -8deg; overflow: visible; filter: drop-shadow(0 0 0 #fff) drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 2px 2px rgba(20,22,20,0.3)); transition: translate 0.2s; } .ds-sticker:hover { translate: 0 -6px; } .ds-line-end { display: grid; place-items: center; width: 36px; height: 36px; background: #fbfaf6; box-shadow: 0 4px 8px -4px rgba(20,22,20,0.4); }"
+    },
+    {
+      "name": "Printer Station",
+      "kind": "card",
+      "refersTo": "agent-housing",
+      "description": "One agent's little printer for one listing: housing with sticker slot, name, LED and state word; paper with printed lines, the newest darkest.",
+      "html": "<section class=\"ds-station\"><div class=\"ds-housing\"><span class=\"ds-st-sticker\"></span><h3>Decision Agent</h3><span class=\"ds-state\"><i></i>Watching</span></div><div class=\"ds-st-paper\"><p class=\"ds-head\">From the Food Agent <time>19:09:36</time></p><p class=\"ds-text\">Food Passport: 60 servings from Taj Vivanta</p><p class=\"ds-head\">Sent to the NGO Agent <time>19:09:37</time></p><p class=\"ds-text ds-latest\">Find NGOs for 60 servings</p></div></section>",
+      "css": ".ds-station { width: 320px; padding: 34px 16px 20px; background: #d5d7d3; } .ds-housing { position: relative; z-index: 2; min-height: 66px; display: grid; align-content: center; gap: 5px; padding: 10px 14px 16px 100px; border-radius: 10px; background: linear-gradient(180deg, #2f3030 0%, #1d1e1e 85%); color: #fbfaf6; box-shadow: 0 10px 18px -8px rgba(0,0,0,0.45), inset 0 -1px 0 #3a3c3b; } .ds-housing::after { content: \"\"; position: absolute; left: 16px; right: 16px; bottom: 6px; height: 3px; border-radius: 2px; background: #0a0a0a; } .ds-st-sticker { position: absolute; left: 12px; top: -22px; width: 70px; height: 70px; border-radius: 50%; background: #fff; rotate: 5deg; box-shadow: 0 2px 3px rgba(20,22,20,0.3); } .ds-housing h3 { margin: 0; font: 800 13px/1.2 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-stretch: 112.5%; letter-spacing: 0.06em; text-transform: uppercase; } .ds-state { display: inline-flex; align-items: center; gap: 8px; font: 700 10px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.14em; text-transform: uppercase; color: #d9d8d1; } .ds-state i { width: 7px; height: 7px; border-radius: 50%; background: #3fd46b; box-shadow: 0 0 6px 1px rgba(63,212,107,0.55); } .ds-st-paper { position: relative; margin: -8px 12px 0; padding: 20px 14px 14px; background: #fbfaf6 linear-gradient(180deg, rgba(0,0,0,0.07) 0, transparent 22px); filter: drop-shadow(0 10px 14px rgba(20,22,20,0.18)); } .ds-head { display: flex; gap: 7px; margin: 0 0 5px; font: 700 10.5px/1.3 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; color: #4a4944; } .ds-head time { margin-left: auto; font-weight: 400; color: #6f6e68; } .ds-text { margin: 0 0 11px; padding-bottom: 11px; border-bottom: 1.5px dashed rgba(27,27,27,0.28); font: 14px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; } .ds-text.ds-latest { border: 0; padding: 0; margin: 0; font-size: 15px; font-weight: 600; color: #1b1b1b; }"
+    },
+    {
+      "name": "Order Slip with Stage Marks",
+      "kind": "custom",
+      "refersTo": "order-slip",
+      "description": "A listing's torn slip on Agents at work: number, donor, meta, time, and five stage marks that stamp as the food travels.",
+      "html": "<header class=\"ds-oslip\"><span class=\"ds-no\">#2</span><div><h2>Taj Vivanta</h2><p class=\"ds-ometa\">60 servings · Paneer butter masala</p></div><ol class=\"ds-stages\"><li data-s=\"done\"><b>&#10003;</b>Listed</li><li data-s=\"done\"><b>&#10003;</b>Checked</li><li data-s=\"now\"><b></b>Matched</li><li><b></b>Picked up</li><li><b></b>Delivered</li></ol></header>",
+      "css": ".ds-oslip { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 10px 20px; padding: 16px 20px 24px; background: #fbfaf6; color: #1b1b1b; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 16px 8px repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat; } .ds-no { align-self: stretch; display: flex; align-items: center; padding-right: 20px; border-right: 2px solid #1b1b1b; font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; } .ds-oslip h2 { margin: 0; font-size: 22px; font-weight: 800; text-transform: uppercase; } .ds-ometa { margin: 6px 0 0; font-size: 13px; letter-spacing: 0.03em; text-transform: uppercase; color: #4a4944; } .ds-stages { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; } .ds-stages li { display: grid; justify-items: center; gap: 7px; min-width: 74px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6f6e68; } .ds-stages b { display: grid; place-items: center; width: 32px; height: 32px; border: 2px dashed #6f6e68; box-sizing: border-box; } .ds-stages [data-s=done], .ds-stages [data-s=now] { color: #1b1b1b; } .ds-stages [data-s=done] b { border: 2px solid #1b1b1b; background: #1b1b1b; color: #fbfaf6; } .ds-stages [data-s=now] b { border: 2px solid #1b1b1b; background: #fff; } .ds-stages [data-s=now] b::after { content: \"\"; width: 9px; height: 9px; background: #1b1b1b; }"
+    },
+    {
+      "name": "Hand-off Chit",
+      "kind": "custom",
+      "refersTo": "handoff-chit",
+      "description": "A hand-off on the counter: an ink arrow between two agents' columns, one-ink mascot ends, a HEARD stamp, and the words on a paper chit.",
+      "html": "<div class=\"ds-call\"><span class=\"ds-cend\"></span><span class=\"ds-cline\"></span><span class=\"ds-cend\"><em>Heard</em></span><p class=\"ds-chit\"><span>Food Agent &rarr; Decision Agent <time>19:09:36</time></span><b>Food Passport: 60 servings from Taj Vivanta</b></p></div>",
+      "css": ".ds-call { display: flex; align-items: center; padding: 26px 20px; background: #d5d7d3; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-cend { position: relative; width: 36px; height: 36px; background: #fbfaf6; box-shadow: 0 4px 8px -4px rgba(20,22,20,0.4); } .ds-cend em { position: absolute; bottom: calc(100% + 2px); left: 50%; translate: -50% 0; padding: 1px 5px; border: 1.5px solid #1b1b1b; background: #fbfaf6; font: normal 800 9px/1.2 inherit; letter-spacing: 0.14em; text-transform: uppercase; } .ds-cline { position: relative; width: 120px; height: 2px; margin: 0 8px; background: #1b1b1b; } .ds-cline::after { content: \"\"; position: absolute; right: -2px; top: -5px; width: 10px; height: 12px; background: #1b1b1b; clip-path: polygon(0 0, 100% 50%, 0 100%); } .ds-chit { display: grid; gap: 2px; margin: 0 0 0 30px; padding: 6px 10px 7px; background: #fbfaf6; box-shadow: 0 6px 10px -6px rgba(20,22,20,0.35); transition: translate 0.2s; } .ds-chit:hover { translate: 0 -2px; } .ds-chit span { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #4a4944; } .ds-chit time { font-weight: 400; color: #6f6e68; } .ds-chit b { font: 600 15px/1.3 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #1b1b1b; }"
     }
   ],
   "narrative": {
     "northStar": "The Kitchen Ticket",
-    "overview": "Every Luna screen is a kitchen order ticket (KOT) coming out of a thermal printer on a brushed-steel counter. The page background is the counter; a dark printer slot runs across the top; one ticket of thermal paper hangs from it, centred, at most 440px wide and full-width on phones. Everything the person reads or touches is printed on that paper: a masthead, a KOT number with a live timestamp, dashed and solid rules, dotted-leader data lines, printed boxes for input, and one solid ink bar for the primary action. Choices a person has made collapse into printed lines on the same ticket, and the next section prints in with a stepped line-feed reveal.\n\nThe ink is near-black, with a second red ink held back for errors, urgency and the DEV stamp, the way a real kitchen printer uses its red ribbon. Printed data is set in Martian Mono, and the wide (112.5%) heavy cut stands in for the thermal printer's double-width bold header. Short plain-language help, the warm human voice from PRODUCT.md, is set in Hanken Grotesk so it reads as a note written beside the print rather than printed data.\n\nDensity is one ticket, one job: a single column that grows downward as the flow progresses. Depth comes from physical objects only (the printer's shadow and the paper's drop shadow on the counter). Nothing inside the paper is raised.\n\nOperate surfaces (the Food Heat Map is the first) use a second, approved composition on the same counter: the Pass. The printer becomes a full-width dark printer bar; below it a steel order rail carries ranked tickets; the working area is a printed sheet (the map) beside a torn detail slip; a receipt tape of time runs along the foot. Same paper, same two inks, same type; only the arrangement changes, because an operator is watching many orders, not filling in one.\n\nDonor operate surfaces (home, List food, a donation's status, the donation list) use a third approved arrangement: Snap first. The photo is the listing. A black photo frame with registration corners is the first thing on the screen and doubles as the camera button; the details are printed chips and steppers on a paper sheet beside it (below it on phones); one sticky ink action sits in the thumb zone; and a donation's progress is one ticket torn into coupons, one per stage, that stamp themselves as they complete. The single centred 440px hanging ticket remains the composition for sign-in and sign-up.\n\nThe NGO home reuses the donor shell as Today's shift card: the card a kitchen pins to the wall for the day. Waiting food comes first, as white offer tickets torn off the printer with a large countdown and a full-width ink Accept bar; accepted food reprints below as \"coming to you\" tickets carrying the drop code; the day card (an Open / Full / Closed punch row and an hour strip of the day) sits beside them on desktop and below them on phones.\n\nThe delivery partner home is the same shift card turned for a rider: a pickup request prints as an offer ticket, and once accepted the screen becomes the trip slip, one white torn ticket that shows one step at a time (Collect, then Drop) with directions, a call link, a giant 4-digit code field and the step's action bar. Availability is a two-punch Online / Offline row, echoed as a state chip on the printer bar.",
+    "overview": "Every Luna screen is a kitchen order ticket (KOT) coming out of a thermal printer on a brushed-steel counter. The page background is the counter; a dark printer slot runs across the top; one ticket of thermal paper hangs from it, centred, at most 440px wide and full-width on phones. Everything the person reads or touches is printed on that paper: a masthead, a KOT number with a live timestamp, dashed and solid rules, dotted-leader data lines, printed boxes for input, and one solid ink bar for the primary action. Choices a person has made collapse into printed lines on the same ticket, and the next section prints in with a stepped line-feed reveal.\n\nThe ink is near-black, with a second red ink held back for errors, urgency and the DEV stamp, the way a real kitchen printer uses its red ribbon. Printed data is set in Martian Mono, and the wide (112.5%) heavy cut stands in for the thermal printer's double-width bold header. Short plain-language help, the warm human voice from PRODUCT.md, is set in Hanken Grotesk so it reads as a note written beside the print rather than printed data.\n\nDensity is one ticket, one job: a single column that grows downward as the flow progresses. Depth comes from physical objects only (the printer's shadow and the paper's drop shadow on the counter). Nothing inside the paper is raised.\n\nOperate surfaces (the Food Heat Map is the first) use a second, approved composition on the same counter: the Pass. The printer becomes a full-width dark printer bar; below it a steel order rail carries ranked tickets; the working area is a printed sheet (the map) beside a torn detail slip; a receipt tape of time runs along the foot. Same paper, same two inks, same type; only the arrangement changes, because an operator is watching many orders, not filling in one.\n\nDonor operate surfaces (home, List food, a donation's status, the donation list) use a third approved arrangement: Snap first. The photo is the listing. A black photo frame with registration corners is the first thing on the screen and doubles as the camera button; the details are printed chips and steppers on a paper sheet beside it (below it on phones); one sticky ink action sits in the thumb zone; and a donation's progress is one ticket torn into coupons, one per stage, that stamp themselves as they complete. The single centred 440px hanging ticket remains the composition for sign-in and sign-up.\n\nThe NGO home reuses the donor shell as Today's shift card: the card a kitchen pins to the wall for the day. Waiting food comes first, as white offer tickets torn off the printer with a large countdown and a full-width ink Accept bar; accepted food reprints below as \"coming to you\" tickets carrying the drop code; the day card (an Open / Full / Closed punch row and an hour strip of the day) sits beside them on desktop and below them on phones.\n\nThe delivery partner home is the same shift card turned for a rider: a pickup request prints as an offer ticket, and once accepted the screen becomes the trip slip, one white torn ticket that shows one step at a time (Collect, then Drop) with directions, a call link, a giant 4-digit code field and the step's action bar. Availability is a two-punch Online / Offline row, echoed as a state chip on the printer bar.\n\nThe admin agent board uses a fifth arrangement, built to be read off a projector: **Agents at work**. Under the printer bar a torn cast sheet introduces the four agents as die-cut stickers (a pizza slice for the Food Agent, a chef's hat for the Decision Agent, a tiffin for the NGO Agent, a delivery scooter for the Logistics Agent). Below it each listing gets one row on the counter: its order slip with five stage marks and, at the end, a DELIVERED rubber stamp; the hand-offs as ink arrows and paper chits lying on the counter; and four little ticket printers side by side, one per agent, each with its agent's sticker stuck on the housing, an LED and a state word, and a strip of paper printing what that agent did. A second listing prints a second row below. This is the one place colour appears beyond the inks and LEDs, and it lives only on the four stickers (the Colour Stickers rule).",
     "keyCharacteristics": [
       "Steel counter, printer slot, one hanging ticket with a zigzag tear edge at the bottom.",
       "Two inks on paper: black for everything, red only for errors, urgency and dev.",
@@ -911,12 +1281,13 @@
       "Donor surfaces use Snap first: photo frame first, printed chips, one sticky ink action, a coupon ticket per donation.",
       "The NGO home is Today's shift card: offer tickets with a countdown and an ink Accept bar first, then the day card.",
       "The partner home is the rider's shift card: a pickup request or the one-step-at-a-time trip slip first, Online / Offline punches on the day card.",
-      "One approved exception to two inks: a yellow warning slip for a food tag the photo check is unsure about."
+      "The admin agent board is Agents at work: a cast sheet, then per listing an order slip, the hand-off chits on the counter, and four little printers, one per agent.",
+      "Two approved exceptions to two inks: a yellow warning slip for a food tag the photo check is unsure about, and the four colour mascot stickers on Agents at work."
     ],
     "rules": [
       {
         "name": "The Two Inks Rule",
-        "body": "Paper carries black ink and red ink, nothing else. Red means something is wrong, urgent or dev-only; if it is not one of those, it is black. The single exception is the Unsure Tag rule below.",
+        "body": "Paper carries black ink and red ink, nothing else. Red means something is wrong, urgent or dev-only; if it is not one of those, it is black. Two exceptions are named below: the Unsure Tag rule and the Colour Stickers rule.",
         "section": "colors"
       },
       {
@@ -973,6 +1344,16 @@
         "name": "The One Step Rule",
         "body": "The trip slip shows only the current stop's place, buttons and code; the other step is a faded tab, not a second set of fields.",
         "section": "components"
+      },
+      {
+        "name": "The Colour Stickers Rule",
+        "body": "Approved by the user for Agents at work: colour lives only on the four mascot stickers, the way stickers are stuck on a kitchen printer; the paper and type stay Luna. A sticker is in full colour only where it is stuck on printer hardware (a station's housing) or introduced on the cast sheet. Anywhere a mascot is printed on paper (inside a printed line) or lies on the counter (the ends of a hand-off arrow) it is the one-ink line version: every fill turns paper, the ink outlines stay ink. Sticker colours never carry meaning: no state, agent label, chit, arrow, LED or text is coloured to match its mascot. There are four mascots and only four.",
+        "section": "colors"
+      },
+      {
+        "name": "The Newest Line Is Darkest Rule",
+        "body": "On a printer that keeps printing, only its latest line is set in full ink and 600 weight; earlier lines drop to soft ink, so the room finds what just happened at a glance.",
+        "section": "typography"
       }
     ],
     "dos": [
@@ -995,7 +1376,10 @@
       "**Do** use the yellow tag slip only when the photo check is unsure about a tag, and always offer \"My tags are right\" with it; use the red slip when it is sure.",
       "**Do** put a rider's live trip first as the trip slip, one step at a time, with the code field and a step action that stays a dashed outline until four digits are in.",
       "**Do** set anything read in motion (addresses, place names, notes, what to bring) as a places line: mono label above, left-aligned Hanken sentence below.",
-      "**Do** keep the Offline punch visible but disabled during a trip, with a note saying why."
+      "**Do** keep the Offline punch visible but disabled during a trip, with a note saying why.",
+      "**Do** show the agents as Agents at work: one row per listing, an order slip with stage marks, the hand-offs as arrows and chits on the counter, and four little printers in a fixed Food, Decision, NGO, Logistics column order.",
+      "**Do** use the full-colour mascot sticker only stuck on a printer housing or on the cast sheet, and the one-ink line version anywhere a mascot is printed on paper or lies on the counter.",
+      "**Do** let each sticker's mood say what its agent is doing, and keep the newest line on each printer the darkest."
     ],
     "donts": [
       "**Don't** put a white card with a logo, a segmented role control or a green Continue button on the screen; that is the category default this world replaces. (Segmented controls belong only on the printer bar, for switching a view.)",
@@ -1004,14 +1388,16 @@
       "**Don't** show donation progress as a coloured progress bar or green checkmarks; stages are coupons stamped in ink.",
       "**Don't** colour a map with a hue ramp, or show a street base in colour under the ink.",
       "**Don't** round printed boxes, bars or cells; only printer hardware has radius.",
-      "**Don't** use green or amber on paper; those colours belong to the printer LED. The one exception is Warning Yellow on the unsure tag slip, approved for that purpose only; never use it for success, progress, grades, buttons or text.",
+      "**Don't** use green or amber on paper; those colours belong to the printer LED. The exceptions are Warning Yellow on the unsure tag slip, approved for that purpose only (never for success, progress, grades, buttons or text), and the colours inside the four mascot stickers' die-cut edges on Agents at work.",
       "**Don't** use red for anything but failure and urgency (errors, a sure tag mismatch, Grade D, the last minute of a countdown, gaps, dev).",
-      "**Don't** lift printed elements with shadows; only the printer and the paper itself cast them.",
-      "**Don't** add a third ink or decorative colour to the ticket beyond the unsure-tag yellow.",
+      "**Don't** lift printed elements with shadows; only the printer, the paper itself and a stuck-on sticker cast them.",
+      "**Don't** add a third ink or decorative colour to the ticket beyond the unsure-tag yellow and the four colour mascot stickers (full colour only stuck on printer hardware or on the cast sheet; one-ink line versions everywhere else).",
       "**Don't** bury a waiting offer among equal-weight menu links on the NGO home; that is the category default Today's shift card replaces.",
       "**Don't** set addresses or place names as right-aligned, all-caps dotted-leader values on a rider's screen.",
       "**Don't** show a locked step action as a solid or dimmed ink slab; until it can fire it is a dashed outline that says what is missing.",
-      "**Don't** treat the placeholder splash animation's visuals as the system; only its slot contract is fixed."
+      "**Don't** treat the placeholder splash animation's visuals as the system; only its slot contract is fixed.",
+      "**Don't** show the agents as a glowing node graph or a chat transcript; agents are printers on the counter and a hand-off is a chit.",
+      "**Don't** use the sticker palette outside the four mascot stickers: no coloured agent names, arrows, chits, states or lines, and no fifth mascot."
     ]
   }
 }
