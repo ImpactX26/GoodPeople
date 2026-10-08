@@ -37,6 +37,8 @@ interface Job {
   /** The last few of those, when a burst of them merged into one look. */
   notes?: string[];
   queuedAt?: number;
+  /** Re-running a look a restart cut off: keep its id so its slip on the board finishes instead of a new one. */
+  resumeId?: string;
 }
 
 interface Context {
@@ -123,6 +125,9 @@ export function createReasoner({ rt, llm, now = Date.now, debounceMs = 1500, wat
     // only what Logistics reports; a burst of these merges into one look. Never its own flags.
     if (e.type === "decision" && e.listingId && !e.byReasoning && TROUBLE.has(e.kind))
       return schedule({ listingId: e.listingId, shareId: e.shareId, agent: "decision", point: "problem", note: e.reason });
+    // Every case gets a debrief when it closes: delivered, nobody took it in time, or sent to biogas.
+    if (e.type === "decision" && e.listingId && !e.byReasoning && e.kind === "closed")
+      return schedule({ listingId: e.listingId, agent: "decision", point: "debrief", note: e.reason });
     if (e.type !== "handoff" || !e.listingId) return;
     const base = { listingId: e.listingId, shareId: e.shareId };
     if (e.from === "food") return schedule({ ...base, agent: "food", point: "intake" });
@@ -144,7 +149,7 @@ export function createReasoner({ rt, llm, now = Date.now, debounceMs = 1500, wat
   async function run(job: Job) {
     const ctx = await contextFor(job);
     if (!ctx) return;
-    const t: Thought = { id: rt.id("t"), at: now(), agent: job.agent, point: job.point, listingId: job.listingId, shareId: job.shareId, about: ctx.about, status: "thinking" };
+    const t: Thought = { id: job.resumeId ?? rt.id("t"), at: now(), agent: job.agent, point: job.point, listingId: job.listingId, shareId: job.shareId, about: ctx.about, status: "thinking" };
     trace.thought(t);
     const a = await llm.ask(job.point === "watch" ? "watch" : "reason", systemPrompt(job.agent), userPrompt(job.point, ctx.facts, ctx.tools));
     let done: Thought;
@@ -252,10 +257,12 @@ export function createReasoner({ rt, llm, now = Date.now, debounceMs = 1500, wat
 
       case "debrief": {
         if (l.status !== "closed") return null; // another share is still on its way
-        if ((await store.list("thought", { listingId: l.id, point: "debrief" })).length) return null;
+        if ((await store.list("thought", { listingId: l.id, point: "debrief" })).some((x) => x.status === "done")) return null;
         const delivered = shares.filter((s) => s.status === "delivered");
+        const fed = delivered.reduce((n, s) => n + s.lines.reduce((m, ln) => m + ln.servings, 0), 0);
+        const gas = (await store.list("biogas", { listingId: l.id })).reduce((n, b) => n + b.lines.reduce((m, ln) => m + ln.servings, 0), 0);
         return {
-          about: `Case closed for ${l.donorName}: ${delivered.reduce((n, s) => n + s.lines.reduce((m, ln) => m + ln.servings, 0), 0)} servings delivered`,
+          about: `Case closed for ${l.donorName}: ${fed ? `${fed} servings delivered` : l.lapsed ? "nobody took it in time" : "nothing delivered"}${gas ? `, ${gas} sent to biogas` : ""}`,
           facts: { food, shares: shares.map((s) => ({ ...shareFacts(s, l, names, t), feedback: s.feedback })), unplacedServings: l.unplacedServings, ruleLog: (await ruleLog(store, l.id, 24)).log },
           tools: [],
         };
@@ -468,9 +475,25 @@ export function createReasoner({ rt, llm, now = Date.now, debounceMs = 1500, wat
     trace.pulse({ at: t, live: live.length, shares, noticed: seen });
   }
 
+  /**
+   * Looks a restart cut off mid-thought (a deploy, a crash) are run again under the same id, so their slip on the
+   * agent board finishes instead of saying "thinking" until it's marked interrupted. Only recent ones; the watcher
+   * and meal pairing have their own timing.
+   */
+  async function resumeInterrupted() {
+    const last = new Map<string, Thought>();
+    for (const e of (await store.list("trace")).sort((a, b) => a.seq - b.seq)) if (e.type === "thought") last.set(e.thought.id, e.thought);
+    const done = new Set((await store.list("thought")).map((x) => x.id));
+    for (const t of last.values()) {
+      if (t.status !== "thinking" || done.has(t.id) || !t.listingId || t.point === "watch" || t.point === "meals" || now() - t.at > 30 * MIN) continue;
+      schedule({ listingId: t.listingId, agent: t.agent, point: t.point, shareId: t.shareId, resumeId: t.id, note: "Picked up again after a restart." });
+    }
+  }
+
   return {
     start() {
       const off = trace.on(onEvent);
+      void resumeInterrupted().catch((err) => console.error("luna reasoning resume", err));
       const timer = setInterval(() => void watch().catch((err) => console.error("luna watcher", err)), watchMs);
       timer.unref();
       return () => {

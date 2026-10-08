@@ -212,3 +212,36 @@ describe("the watcher", () => {
     assert.equal(asked.filter((a) => a.purpose === "watch").length, before + 1, "the same drift isn't asked about twice in 10 minutes");
   });
 });
+
+describe("debriefs", () => {
+  test("a debrief a restart cut off runs again under the same id, so its slip finishes", async () => {
+    const { store, luna } = await setup();
+    const l = await luna.submitListing(newListing(), at(12));
+    await store.put("listing", { ...(await store.get("listing", l.id))!, status: "closed" });
+    await store.insert("trace", { id: "tr-x", type: "thought", seq: 1, at: at(12, 5), thought: { id: "t-cut", at: at(12, 5), agent: "decision", point: "debrief", listingId: l.id, about: "Case closed", status: "thinking" } } as never);
+    const { llm } = fakeLlm(() => agree);
+    const reasoner = createReasoner({ rt: luna.runtime, llm, now: () => at(12, 10), debounceMs: 1 });
+    stop = reasoner.start();
+    await new Promise((r) => setTimeout(r, 30));
+    await reasoner.settled();
+    const t = await store.get("thought", "t-cut");
+    assert.equal(t?.status, "done");
+    assert.equal(t?.headline, "Looks right");
+  });
+
+  test("a case that closed because nobody took it gets a debrief too", async () => {
+    const { store, luna } = await setup();
+    const l = await luna.submitListing(newListing(), at(12));
+    await store.put("listing", { ...(await store.get("listing", l.id))!, status: "closed", lapsed: { at: at(14), asked: 1, ended: "collect_by" } });
+    const { llm, asked } = fakeLlm(() => agree);
+    const reasoner = createReasoner({ rt: luna.runtime, llm, now: () => at(14), debounceMs: 1 });
+    stop = reasoner.start();
+    trace.decision({ id: "d-close", at: at(14), agent: "decision", kind: "closed", subject: l.id, reason: "No one took the food before the collect-by time.", listingId: l.id });
+    await new Promise((r) => setTimeout(r, 30));
+    await reasoner.settled();
+    const debriefs = (await store.list("thought", { listingId: l.id })).filter((x) => x.point === "debrief");
+    assert.equal(debriefs.length, 1);
+    assert.match(debriefs[0].about, /nobody took it in time/);
+    assert.ok(asked.length >= 1);
+  });
+});
