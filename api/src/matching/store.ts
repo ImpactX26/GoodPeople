@@ -17,6 +17,7 @@ import type {
   Recipient,
   Share,
 } from "./types.ts";
+import type { Thought } from "./reasoning/types.ts";
 
 export interface Kinds {
   listing: Listing;
@@ -29,6 +30,8 @@ export interface Kinds {
   contact: ContactLog;
   pledge: Pledge;
   wa_in: InboundSeen;
+  /** The reasoning layer's looks at what the rules did (reasoning/). */
+  thought: Thought;
 }
 export type Kind = keyof Kinds;
 

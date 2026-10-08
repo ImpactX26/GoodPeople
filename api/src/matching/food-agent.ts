@@ -21,7 +21,25 @@ export function reviewPassport(l: Listing): { itemId: string; reason: string }[]
     if (isUnsure(item))
       notes.push({ itemId: item.id, reason: `The food checker is only ${item.confidence}% sure about ${itemName(item)}; the partner will check it at pickup.` });
   }
+  const meals = mealsNote(l);
+  if (meals) notes.push({ itemId: "meals", reason: meals });
   return notes;
+}
+
+const dietWord = { jain: "Jain", veg: "veg", egg: "egg", nonveg: "non-veg", unknown: "diet not stated" } as const;
+
+/** Spec §7.5 in plain words: which staples and sides became meals, and what rides along as an add-on. */
+export function mealsNote(l: Listing): string | null {
+  const bundles = l.items.filter((i) => i.bundle);
+  const addons = l.items.filter((i) => i.tags?.includes("addon"));
+  if (!bundles.length && !addons.length) return null;
+  const made = bundles.map((b) => `${b.servings} × ${itemName(b).toLowerCase()} (${dietWord[b.diet]})`).join(", ");
+  const meals = bundles.reduce((n, b) => n + b.servings, 0);
+  const left = addons.map((a) => `${a.servings} servings of ${itemName(a).toLowerCase()}`).join(" and ");
+  return [
+    bundles.length ? `Paired staples with sides into ${meals} meal${meals === 1 ? "" : "s"}: ${made}.` : "No staple here has a side to make a meal with.",
+    addons.length ? `${left.charAt(0).toUpperCase()}${left.slice(1)} ride${addons.length === 1 ? "s" : ""} along as an add-on, not counted as meals.` : "",
+  ].filter(Boolean).join(" ");
 }
 
 const tidy = (n: number) => (n >= 10 || Number.isInteger(n) ? String(Math.round(n)) : String(Math.round(n * 10) / 10));
@@ -33,25 +51,41 @@ function portion(item: Item, servings: number) {
   return `${tidy(amount)} ${item.quantity.unit} ${itemName(item)}`;
 }
 
+/**
+ * The food a share physically is: a meal bundle is its staple and its side (one serving of each per meal), and
+ * the same rice in two bundles and as an add-on is packed as one amount. Items come from the restaurant's own
+ * entries, so amounts stay in its units.
+ */
+function physical(l: Listing, lines: OfferLine[]) {
+  const entry = (id: string) => l.parts?.find((i) => i.id === id) ?? l.items.find((i) => i.id === id)!;
+  const total = new Map<string, number>();
+  for (const ln of lines) {
+    const item = l.items.find((i) => i.id === ln.itemId)!;
+    const ids = item.bundle ? [item.bundle.staple, item.bundle.side] : [item.id];
+    for (const id of ids) total.set(id, (total.get(id) ?? 0) + ln.servings);
+  }
+  return [...total].map(([id, servings]) => ({ item: entry(id), servings }));
+}
+
 /** What the restaurant should keep ready for this share: "6 kg biryani + 4 L payasam". */
 export function keepReady(l: Listing, lines: OfferLine[]) {
-  return lines.map((ln) => portion(l.items.find((i) => i.id === ln.itemId)!, ln.servings)).join(" + ");
+  return physical(l, lines).map((p) => portion(p.item, p.servings)).join(" + ");
 }
 
 /** What goes into one share, item by item, in the restaurant's units: for the packing note and the screens. */
 export function packingLines(l: Listing, lines: OfferLine[]) {
-  return lines.map((ln) => {
-    const item = l.items.find((i) => i.id === ln.itemId)!;
-    const amount = item.quantity ? `${tidy((item.quantity.amount * ln.servings) / item.servings)} ${item.quantity.unit}` : null;
-    return { itemId: item.id, name: itemName(item), servings: ln.servings, amount };
+  return physical(l, lines).map(({ item, servings }) => {
+    const amount = item.quantity ? `${tidy((item.quantity.amount * servings) / item.servings)} ${item.quantity.unit}` : null;
+    return { itemId: item.id, name: itemName(item), servings, amount };
   });
 }
 
 /** Containers for this share alone (spec §9.5): boxes and cans when the partner brings them, else carry bags. */
 export function shareContainers(l: Listing, lines: OfferLine[]): string[] {
-  const parts = lines.map((ln) => {
-    const item = l.items.find((i) => i.id === ln.itemId)!;
-    return { servings: ln.servings, litres: item.litresPerServing != null ? item.litresPerServing * ln.servings : null, container: item.container ?? "box" };
-  });
+  const parts = physical(l, lines).map(({ item, servings }) => ({
+    servings,
+    litres: item.litresPerServing != null ? item.litresPerServing * servings : null,
+    container: item.container ?? "box",
+  }));
   return containersFor(parts, !!l.partnerBrings);
 }

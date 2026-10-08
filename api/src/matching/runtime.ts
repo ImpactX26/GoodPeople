@@ -11,6 +11,7 @@ import type { AgentName, Decision, DecisionKind, Item, Listing, OfferLine, Outbo
 import type { Message } from "./whatsapp/templates.ts";
 import { donationUpdate } from "./whatsapp/templates.ts";
 import { ping } from "./live.ts";
+import { trace } from "./reasoning/trace.ts";
 
 /** Who is acting: a signed-in or WhatsApp phone, an admin, or the demo simulator. */
 export type Actor = { phone: string } | { admin: true } | { sim: true };
@@ -54,7 +55,11 @@ export function createRuntime(store: MatchingStore) {
 
     /** Run one operation at a time. Agents call each other only from inside it. */
     serial<T>(fn: () => Promise<T>): Promise<T> {
-      const run = queue.then(fn, fn);
+      const go = () => {
+        trace.beginOp();
+        return fn();
+      };
+      const run = queue.then(go, go);
       queue = run.catch(() => {});
       return run;
     },
@@ -64,23 +69,35 @@ export function createRuntime(store: MatchingStore) {
     async decide(agent: AgentName, now: number, kind: DecisionKind, subject: string, reason: string, listingId?: string, data?: unknown) {
       const d: Decision = { id: `d-${randomUUID().slice(0, 8)}`, at: now, seq: ++seq, agent, kind, subject, reason, listingId, data };
       await store.insert("decision", d);
+      trace.decision(d);
       return d;
     },
 
-    async send(now: number, to: string | undefined, audience: string, m: Message) {
+    /**
+     * `listingId` and `from` are for the agent console only; without them the message joins the case and agent
+     * the last decision was about. Each agent gets a runtime that fills in `from` (see `as`).
+     */
+    async send(now: number, to: string | undefined, audience: string, m: Message, listingId?: string, from?: AgentName) {
       const out: OutboxMessage = { id: `m-${randomUUID().slice(0, 8)}`, to, audience, ...m, status: "pending", attempts: 0, nextAt: now, createdAt: now };
       await store.insert("outbox", out);
+      trace.message(out, listingId, from);
       ping(to, audience.split(":")[0]);
     },
 
     toDonor(now: number, l: Listing, text: string) {
-      return this.send(now, l.donorPhone, `donor:${l.donorPhone}`, donationUpdate(text));
+      return this.send(now, l.donorPhone, `donor:${l.donorPhone}`, donationUpdate(text), l.id);
     },
 
     async mustGet<K extends Kind>(kind: K, key: string): Promise<Kinds[K]> {
       const doc = await store.get(kind, key);
       if (!doc) throw new Error(`${kind} ${key} not found`);
       return doc;
+    },
+
+    /** The same runtime, with every message it sends credited to `agent` in the trace. */
+    as(agent: AgentName) {
+      const send = this.send;
+      return { ...this, send: (now: number, to: string | undefined, audience: string, m: Message, listingId?: string) => send(now, to, audience, m, listingId, agent) };
     },
 
     /** One bad record must not stop the tick for everything after it. */

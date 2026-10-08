@@ -7,8 +7,8 @@
 # The website runs on https://<laptop-wifi-address>:3000 and forwards /luna-api and /ngo-api to the
 # API and the food checker, so the phone talks to a single HTTPS address. Ctrl+C stops everything.
 #
-# Needs: Node 22+. With --local also Python 3.10+ and Gemini keys in .env at the repo root
-# (GEMINI_API_KEY, optional GEMINI_API_KEY_2). On Railway the keys are Railway variables.
+# Needs: Node 22+. With --local also Python 3.10+ and model keys in .env at the repo root
+# (GEMINI_API_KEY, optional GEMINI_API_KEY_2, GROQ_API_KEY). On Railway the keys are Railway variables.
 set -euo pipefail
 cd "$(dirname "$0")"
 ROOT="$PWD"
@@ -72,7 +72,7 @@ if [ "$LOCAL" = 1 ]; then
   DEMO_LINE="  Ready-made donor / NGO / delivery accounts: https://$IP:3000/demo"
   (.venv/bin/python run.py --host 127.0.0.1 --port 8000 2>&1 | sed 's/^/[food-check] /') & pids+=($!)
   (cd api && HOST=127.0.0.1 PORT=8787 SHOW_DEV_OTP=1 ENABLE_TRIP_DEMO=1 FOOD_AGENT_URL=http://127.0.0.1:8000 \
-    node --watch --experimental-strip-types src/index.ts 2>&1 | sed 's/^/[api] /') & pids+=($!)
+    node --env-file-if-exists=../.env --watch --experimental-strip-types src/index.ts 2>&1 | sed 's/^/[api] /') & pids+=($!)
 else
   API_TARGET="$RAILWAY_API"; NGO_TARGET="$RAILWAY_FOOD"
   DATA_NOTE="Data lives on Railway: every phone and laptop sees the same listings, and nothing resets."

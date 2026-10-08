@@ -1,0 +1,1395 @@
+/* Agent console: the expediter's call sheet on the pass. Case rail above, the sheet of calls across seven
+   lanes, the reasoning slip at the side, the watcher's tape at the foot. */
+
+.screen {
+  --time: 76px;
+  --lanes: 7;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.screen > * {
+  min-width: 0;
+}
+
+/* ---------- Printer bar ---------- */
+
+.bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "brand controls account";
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: linear-gradient(180deg, #2b2c2c 0%, var(--slot) 80%);
+  color: var(--paper);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.45);
+  position: relative;
+  z-index: 3;
+}
+
+.bar :focus-visible {
+  outline-color: var(--paper);
+}
+
+.brand {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -8px;
+  color: var(--paper);
+}
+
+.barMark {
+  color: var(--paper);
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.city {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: #b9b8b1;
+}
+
+/* The connection, printed on the hardware with its own status light. */
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 9px;
+  border: 1.5px solid #6f6e68;
+  color: #d9d8d1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.led {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3fd46b;
+  box-shadow: 0 0 6px 1px rgba(63, 212, 107, 0.55);
+}
+
+.led[data-busy="true"] {
+  background: #ffb020;
+  box-shadow: 0 0 6px 1px rgba(255, 176, 32, 0.6);
+  animation: blink 0.5s steps(2, jump-none) infinite;
+}
+
+.chip[data-state="denied"] .led {
+  background: #6f6e68;
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.controls {
+  grid-area: controls;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.segmented {
+  display: flex;
+  border: 1.5px solid #6f6e68;
+}
+
+.segment {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #d9d8d1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.segment + .segment {
+  border-left: 1.5px solid #6f6e68;
+}
+
+.segment[aria-checked="true"] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.segment:hover:not([aria-checked="true"]) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.account {
+  grid-area: account;
+  justify-self: end;
+  display: flex;
+  gap: 8px;
+}
+
+.barButton {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1.5px solid #6f6e68;
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.barButton:hover {
+  border-color: var(--paper);
+}
+
+/* ---------- Case rail ---------- */
+
+.railWrap {
+  padding: 12px 20px 0;
+}
+
+.railTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.rail {
+  overflow-x: auto;
+  mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+  scrollbar-width: thin;
+  padding-bottom: 14px;
+}
+
+.rail::before {
+  content: "";
+  position: sticky;
+  display: block;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  margin-bottom: -4px;
+  background: linear-gradient(180deg, #f2f3f1 0%, #a8aba6 55%, #7d807b 100%);
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
+  position: relative;
+  z-index: 2;
+}
+
+.tickets {
+  list-style: none;
+  margin: 0;
+  padding: 0 56px 0 0;
+  display: flex;
+  gap: 10px;
+  min-width: min-content;
+}
+
+.ticket {
+  --tooth: 6px;
+  position: relative;
+  width: 176px;
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 12px calc(12px + var(--tooth));
+  border: 0;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  filter: drop-shadow(0 6px 8px rgba(20, 22, 20, 0.16));
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth))
+      var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+  transform-origin: 50% 0;
+  transition: transform 260ms var(--ease-out);
+}
+
+button.ticket:hover {
+  transform: translateY(3px) rotate(-0.6deg);
+}
+
+.ticket[data-on="true"] {
+  transform: translateY(10px) rotate(-1.4deg);
+  background: #fff;
+}
+
+.ticket[data-on="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 6px 6px calc(6px + var(--tooth));
+  border: 2px solid var(--ink);
+  pointer-events: none;
+}
+
+.ticketAll {
+  width: 200px;
+}
+
+.ticketBlank {
+  opacity: 0.55;
+}
+
+.tRank {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.ticket[data-urgent="true"] .tRank {
+  color: var(--ink-red);
+}
+
+.tName {
+  font-size: 14px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.tServings {
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.tServings small {
+  margin-left: 6px;
+  font-family: var(--font-note);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.tNote {
+  font-family: var(--font-note);
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--ink-soft);
+}
+
+/* ---------- Body ---------- */
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 16px;
+  padding: 8px 20px 16px;
+  min-height: 0;
+}
+
+/* ---------- The call sheet ---------- */
+
+.sheetWrap {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  background: var(--paper);
+  box-shadow:
+    0 14px 24px -12px rgba(20, 22, 20, 0.3),
+    0 2px 3px rgba(20, 22, 20, 0.14);
+}
+
+.heads {
+  display: grid;
+  grid-template-columns: var(--time) minmax(0, 1fr);
+  align-items: end;
+  padding: 0 16px 10px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.headTime {
+  padding-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+}
+
+.headLanes {
+  display: grid;
+  grid-template-columns: repeat(var(--lanes), minmax(0, 1fr));
+}
+
+/* An agent is a small printer: dark housing, its own status light, rounded only at its lower corners. */
+.station,
+.phone {
+  position: relative;
+  margin: 0 4px;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 10px 6px 8px;
+  text-align: center;
+}
+
+.station {
+  background: linear-gradient(180deg, #2b2c2c 0%, var(--slot) 80%);
+  color: #d9d8d1;
+  border-radius: 0 0 8px 8px;
+  box-shadow:
+    0 10px 18px -8px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 var(--slot-lip);
+}
+
+.station .led {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+}
+
+/* The slot line under the housing feeds paper when a call lands: HEARD. */
+.station::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 3px;
+  height: 2px;
+  background: #000;
+}
+
+.station[data-hit="true"]::after {
+  animation: slotFeed 900ms steps(3, end);
+}
+
+@keyframes slotFeed {
+  0%,
+  66% {
+    background: var(--paper);
+  }
+  100% {
+    background: #000;
+  }
+}
+
+/* A person is a phone on the far side of the pass: a dashed box, inverted for a moment when a message lands. */
+.phone {
+  margin-top: 12px;
+  min-height: 40px;
+  border: 1.5px dashed var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  justify-content: center;
+}
+
+.phone[data-hit="true"] {
+  animation: buzz 900ms steps(2, jump-none);
+}
+
+@keyframes buzz {
+  0%,
+  75% {
+    background: var(--ink);
+    color: var(--paper);
+    border-style: solid;
+  }
+}
+
+.headName {
+  font-size: 11px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.headShort {
+  display: none;
+}
+
+.headSub {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b9b8b1;
+}
+
+.phone .headSub {
+  color: var(--ink-faded);
+}
+
+.sheet {
+  position: relative;
+  overflow-y: auto;
+  padding: 0 16px;
+  scrollbar-width: thin;
+  min-height: 0;
+}
+
+.paper {
+  position: relative;
+  min-height: 100%;
+  padding: 6px 0 40px;
+}
+
+/* The lanes run down the sheet as dotted guides from each station. */
+.guides {
+  position: absolute;
+  inset: 0 0 0 var(--time);
+  display: grid;
+  grid-template-columns: repeat(var(--lanes), minmax(0, 1fr));
+  pointer-events: none;
+}
+
+.guides span {
+  background: repeating-linear-gradient(180deg, var(--ink-faded) 0 2px, transparent 2px 7px) center / 1px 100% no-repeat;
+  opacity: 0.4;
+}
+
+.empty {
+  position: relative;
+  max-width: 46ch;
+  margin: 72px auto 0;
+  padding: 18px 20px;
+  background: var(--paper);
+  font-family: var(--font-note);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.calls {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--time) minmax(0, 1fr);
+  padding: 9px 0 11px;
+}
+
+.row + .row {
+  border-top: 1px dashed rgba(27, 27, 27, 0.14);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faded);
+}
+
+.caseChip {
+  padding: 0 5px;
+  border: 1.5px solid var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lanes {
+  position: relative;
+  min-height: 30px;
+  padding-top: 20px;
+}
+
+/* A call: a line from the caller's lane to the receiver's, the caller's square at one end, the head at the other. */
+.arrow {
+  position: absolute;
+  top: 7px;
+  left: calc((var(--l) + 0.5) * 100% / var(--lanes));
+  width: calc(var(--w) * 100% / var(--lanes));
+  height: 2px;
+  background: var(--ink);
+}
+
+.arrow[data-dashed="true"] {
+  background: repeating-linear-gradient(90deg, var(--ink) 0 6px, transparent 6px 10px);
+}
+
+.arrow::before,
+.arrow::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  background: var(--ink);
+}
+
+/* the caller */
+.arrow::before {
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+}
+
+/* the receiver */
+.arrow::after {
+  right: -2px;
+  width: 9px;
+  height: 10px;
+  margin-top: -5px;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.arrow[data-left="true"]::before {
+  left: auto;
+  right: -4px;
+}
+
+.arrow[data-left="true"]::after {
+  right: auto;
+  left: -2px;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
+}
+
+.heard {
+  position: absolute;
+  bottom: 6px;
+  right: -10px;
+  padding: 0 4px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+}
+
+.arrow[data-left="true"] .heard {
+  right: auto;
+  left: -10px;
+}
+
+/* A rule's own decision: a solid square on its lane. Reasoning: a hollow one. */
+.dot,
+.hollow {
+  position: absolute;
+  top: 3px;
+  left: calc((var(--l) + 0.5) * 100% / var(--lanes) - 4px);
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+}
+
+.hollow {
+  top: 2px;
+  left: calc((var(--l) + 0.5) * 100% / var(--lanes) - 5px);
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+}
+
+.hollow[data-thinking="true"] {
+  animation: blink 0.5s steps(2, jump-none) infinite;
+}
+
+.text,
+.thoughtSlip {
+  position: relative;
+  margin-left: calc(var(--x) * 100% / var(--lanes) - 4px);
+  width: calc(4 * 100% / var(--lanes) + 8px);
+  max-width: calc(100% - var(--x) * 100% / var(--lanes) + 4px);
+}
+
+.label {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  font-family: var(--font-print);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.count {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.speed {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded);
+  text-transform: none;
+}
+
+.say,
+.said,
+.reason {
+  margin: 3px 0 0;
+  font-family: var(--font-note);
+  line-height: 1.4;
+}
+
+.say {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.said,
+.reason {
+  font-size: 14px;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.more {
+  margin-top: 4px;
+  font-family: var(--font-note);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.more summary {
+  width: fit-content;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-print);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  cursor: pointer;
+}
+
+.more ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
+.more li + li {
+  margin-top: 4px;
+}
+
+/* The reasoning slip: a torn white ticket clipped to the sheet under the agent that wrote it. */
+.thoughtSlip {
+  --tooth: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  margin-top: -2px;
+  padding: 11px 14px calc(12px + var(--tooth));
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  filter: drop-shadow(0 6px 8px rgba(20, 22, 20, 0.16));
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth))
+      var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+  transform-origin: 30% 0;
+  transition: transform 260ms var(--ease-out);
+}
+
+.thoughtSlip:hover {
+  transform: translateY(2px) rotate(-0.4deg);
+}
+
+.thoughtSlip[data-picked="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 5px 5px calc(5px + var(--tooth));
+  border: 2px solid var(--ink);
+  pointer-events: none;
+}
+
+.thinking {
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.caret {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  margin-left: 4px;
+  vertical-align: -2px;
+  background: var(--ink);
+  animation: blink 0.5s steps(2, jump-none) infinite;
+}
+
+.stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.stamp {
+  padding: 1px 6px;
+  border: 1.5px solid var(--ink);
+  font-family: var(--font-print);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.stamp[data-tone="concern"] {
+  border-width: 2.5px;
+}
+
+.stamp[data-tone="would_change"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.stamp[data-tone="red"] {
+  border-color: var(--ink-red);
+  color: var(--ink-red);
+}
+
+.stamp[data-tone="faded"] {
+  border-color: var(--ink-faded);
+  color: var(--ink-faded);
+}
+
+.headline {
+  font-family: var(--font-note);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.because {
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.action {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--font-print);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.action strong {
+  font-weight: 800;
+}
+
+.action[data-status="blocked"] strong {
+  color: var(--ink-soft);
+}
+
+.model {
+  margin-top: 2px;
+  font-family: var(--font-print);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+}
+
+.red {
+  color: var(--ink-red);
+}
+
+.latest {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+/* ---------- Motion: a call is drawn across, HEARD stamps down, the words print in ---------- */
+
+.row[data-fresh="true"] .arrow {
+  animation: draw 360ms var(--ease-out) both;
+}
+
+.row[data-fresh="true"] .arrow[data-left="true"] {
+  animation-name: drawLeft;
+}
+
+@keyframes draw {
+  from {
+    clip-path: inset(-24px calc(100% + 24px) -24px -24px);
+  }
+  to {
+    clip-path: inset(-24px -24px -24px -24px);
+  }
+}
+
+@keyframes drawLeft {
+  from {
+    clip-path: inset(-24px -24px -24px calc(100% + 24px));
+  }
+  to {
+    clip-path: inset(-24px -24px -24px -24px);
+  }
+}
+
+.row[data-fresh="true"] .heard,
+.row[data-fresh="true"] .stamp {
+  animation: stamp 420ms var(--ease-out) 320ms both;
+}
+
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.6) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.row[data-fresh="true"] .text,
+.row[data-fresh="true"] .thoughtSlip {
+  animation: print 420ms steps(6, end) 120ms backwards;
+}
+
+@keyframes print {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-6px);
+  }
+  to {
+    clip-path: inset(0 0 -20px 0);
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Reasoning slip and the model card ---------- */
+
+.slipCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.slip {
+  --tooth: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 20px calc(22px + var(--tooth));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  background: var(--paper);
+  filter: drop-shadow(0 10px 14px rgba(20, 22, 20, 0.18));
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth))
+      var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+}
+
+.printIn {
+  animation: print 560ms steps(9, end) backwards;
+}
+
+.slipTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.slipWhen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.linkButton {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-note);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  color: var(--ink);
+}
+
+.slipNote {
+  margin: 10px 0 0;
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.slip .stamps {
+  margin-top: 12px;
+}
+
+.slipHeadline {
+  margin: 10px 0 0;
+  font-family: var(--font-note);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.rule {
+  border: 0;
+  border-top: 1.5px dashed var(--ink);
+  opacity: 0.5;
+  margin: 16px 0;
+}
+
+.slipHeading {
+  margin: 16px 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rule + .slipHeading {
+  margin-top: 0;
+}
+
+.why {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.why li {
+  padding: 7px 0;
+  font-family: var(--font-note);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.why li + li {
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.35);
+}
+
+.slipBody {
+  margin: 0;
+  font-family: var(--font-note);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.actionBlock + .actionBlock {
+  margin-top: 10px;
+}
+
+.actionNote {
+  margin: 3px 0 0;
+  font-family: var(--font-note);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.blocked {
+  color: var(--ink-soft);
+}
+
+.leader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.leader + .leader {
+  margin-top: 6px;
+}
+
+.leaderLabel {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.leaderDots {
+  flex: 1;
+  min-width: 16px;
+  height: 1em;
+  background: radial-gradient(circle, var(--ink-faded) 0.9px, transparent 1.2px) left bottom 3px / 6px 4px repeat-x;
+}
+
+.leaderValue {
+  margin-left: auto;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.card {
+  flex: none;
+  padding: 14px 18px 16px;
+  background: var(--paper);
+  box-shadow: 0 6px 12px -8px rgba(20, 22, 20, 0.3);
+}
+
+.card .slipHeading {
+  margin-top: 0;
+}
+
+/* ---------- Tape ---------- */
+
+.tape {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px 16px;
+  background: var(--paper);
+  box-shadow: 0 -8px 16px -10px rgba(20, 22, 20, 0.28);
+  position: relative;
+  z-index: 2;
+}
+
+.tapeControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconButton {
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.iconButton:hover,
+.iconButton[data-on="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.waiting {
+  min-width: 150px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.watch {
+  display: grid;
+  grid-template-columns: minmax(160px, 320px) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+/* Twenty looks, thirty seconds apart: ink for a look at live cases, red where it noticed something. */
+.watchCells {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 30px;
+}
+
+.watchCells span {
+  flex: 1;
+  height: 100%;
+  background: rgba(27, 27, 27, 0.85);
+}
+
+.watchCells span[data-state="none"] {
+  height: 30%;
+  background: none;
+  border: 1.5px dashed var(--ink-faded);
+}
+
+.watchCells span[data-state="quiet"] {
+  height: 30%;
+  background: rgba(27, 27, 27, 0.28);
+}
+
+.watchCells span[data-state="noticed"] {
+  background: var(--ink-red);
+}
+
+.readout {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.readout strong {
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* ---------- Narrower desks ---------- */
+
+@media (max-width: 1100px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+  .screen {
+    --time: 64px;
+  }
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 860px) {
+  .screen {
+    --time: 0px;
+    height: auto;
+    min-height: 100dvh;
+  }
+  .bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand account"
+      "controls controls";
+    gap: 8px 10px;
+    padding: 8px var(--gutter) 10px;
+  }
+  .brand {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .title {
+    font-size: 13px;
+  }
+  .city {
+    display: none;
+  }
+  .segmented {
+    flex: 1;
+  }
+  .segment {
+    flex: 1;
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .barButton {
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+  .barButton + .barButton {
+    display: none;
+  }
+  .railWrap {
+    padding: 10px var(--gutter) 0;
+  }
+  .ticket {
+    width: 150px;
+  }
+  .ticketAll {
+    width: 160px;
+  }
+  .body {
+    display: flex;
+    flex-direction: column;
+    padding: 6px var(--gutter) 16px;
+  }
+  .sheetWrap {
+    height: 72dvh;
+  }
+  .heads {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 8px 8px;
+  }
+  .headTime {
+    display: none;
+  }
+  .station,
+  .phone {
+    margin: 0 2px;
+    padding: 8px 2px 7px;
+    min-height: 44px;
+  }
+  .phone {
+    min-height: 36px;
+  }
+  .station .led {
+    top: 5px;
+    right: 5px;
+  }
+  .headName,
+  .headSub {
+    display: none;
+  }
+  .headShort {
+    display: block;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .phone .headShort {
+    display: none;
+  }
+  .sheet {
+    padding: 0 8px;
+  }
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2px;
+  }
+  .meta {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  /* On a phone the lanes stay a strip for the marks and the words take the full width under them. */
+  .text,
+  .thoughtSlip {
+    margin-left: 0;
+    width: 100%;
+    max-width: none;
+  }
+  .slip {
+    flex: none;
+    max-height: none;
+  }
+  .tape {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px var(--gutter) max(14px, env(safe-area-inset-bottom));
+    position: sticky;
+    bottom: 0;
+  }
+  .watch {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* ---------- Not signed in as an admin ---------- */
+
+.gateNote {
+  margin: 18px 0 22px;
+  font-family: var(--font-note);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.gateLink {
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}

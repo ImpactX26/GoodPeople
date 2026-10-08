@@ -52,6 +52,8 @@ export interface Item {
   diet: Diet; // donor
   halal?: boolean; // donor
   allergens?: string[]; // donor
+  /** A meal made of a staple and a side (spec §7.5): one serving of each per serving of this. See engine/bundles.ts. */
+  bundle?: { staple: string; side: string };
 }
 
 export type ListingStatus = "review" | "matching" | "matched" | "partially_matched" | "unmatched" | "closed";
@@ -81,6 +83,8 @@ export interface Listing extends LatLng {
   pickupCode?: string;
   /** The partner must bring containers (else the food is packed and only needs carry bags). */
   partnerBrings?: boolean;
+  /** Staples and sides as the restaurant gave them, before pairing into meals: for packing amounts only. */
+  parts?: Item[];
   /** Last time the Decision Agent asked the NGO Agent again for servings nobody could take. */
   lastReplanAt?: number;
   /** Last "still on it" sent to the donor while waiting. */

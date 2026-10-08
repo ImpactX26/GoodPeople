@@ -14,6 +14,8 @@ import type { GapDonor } from "./gaps.ts";
 import { defaultHunger, type HungerProvider } from "./hooks.ts";
 import { createLogisticsAgent, type LogisticsEvent } from "./logistics-agent.ts";
 import { createNgoAgent } from "./ngo-agent.ts";
+import { traceLogisticsEvent, tracedLogisticsAgent, tracedNgoAgent } from "./reasoning/handoffs.ts";
+import { trace } from "./reasoning/trace.ts";
 import { createRuntime, fail, ok, type Actor, type Result } from "./runtime.ts";
 import { seedPartners, seedRecipients } from "./seed.ts";
 import type { MatchingStore } from "./store.ts";
@@ -33,10 +35,16 @@ export interface LunaDeps {
 export function createLuna(deps: LunaDeps) {
   const rt = createRuntime(deps.store);
   const { store, serial } = rt;
-  const ngo = createNgoAgent(rt, deps.hunger ?? defaultHunger);
+  // Hand-offs between agents are reported to the trace (reasoning/handoffs.ts) on their way through.
+  const ngo = tracedNgoAgent(createNgoAgent(rt.as("ngo"), deps.hunger ?? defaultHunger));
   let onLogistics: (e: LogisticsEvent, now: number) => Promise<void> = async () => {};
-  const logistics = createLogisticsAgent(rt, { emit: (e, now) => onLogistics(e, now) });
-  const decision = createDecisionAgent(rt, { ngo, logistics, listDonors: deps.listDonors });
+  const logistics = createLogisticsAgent(rt.as("logistics"), {
+    emit: (e, now) => {
+      traceLogisticsEvent(e, now);
+      return onLogistics(e, now);
+    },
+  });
+  const decision = createDecisionAgent(rt.as("decision"), { ngo, logistics: tracedLogisticsAgent(logistics, store), listDonors: deps.listDonors });
   onLogistics = decision.onLogistics;
 
   async function seed() {
@@ -57,10 +65,19 @@ export function createLuna(deps: LunaDeps) {
   }
 
   return {
+    /** For the reasoning layer, which acts through the same queue as everyone else. */
+    runtime: rt,
     seed,
     claim,
     // Decision Agent
-    submitListing: (input: NewListing, now: number, opts?: { reviewed?: boolean }) => serial(() => decision.submitListing(input, now, opts)),
+    submitListing: (input: NewListing, now: number, opts?: { reviewed?: boolean }) =>
+      serial(async () => {
+        // The Food Agent's hand-off comes first in the trace, though the listing's id is only known after.
+        const seq = trace.nextSeq();
+        const l = await decision.submitListing(input, now, opts);
+        trace.handoff({ seq, at: now, from: "food", to: "decision", task: `Food Passport: ${l.items.reduce((n, i) => n + i.servings, 0)} servings from ${l.donorName}`, listingId: l.id });
+        return l;
+      }),
     approveListing: (id: string, now: number) => serial(() => decision.approveListing(id, now)),
     feedback: (shareId: string, result: "fewer" | "right" | "more", by: Actor, now: number) => serial(() => decision.feedback(shareId, result, by, now)),
     gapReply: (pledgeId: string, yes: boolean, by: Actor, now: number) => serial(() => decision.gapReply(pledgeId, yes, by, now)),

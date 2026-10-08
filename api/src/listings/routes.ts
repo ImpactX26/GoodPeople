@@ -14,10 +14,12 @@ import { assertOfferOpen, startNgoOffer, tickNgoOffers } from "./offers.ts";
 import { currentScenario, localScenarioEnabled, provisionScenario, scenarioFor } from "./scenario.ts";
 import { applyFoodCheck, foodAgentUrl, requestFoodCheck, servingsOf } from "./foodCheck.ts";
 import { applySessionCheck, checkItems, parseSession } from "./session.ts";
-import { agents, matchingStore } from "../matching/index.ts";
+import { agents, matchingStore, reasoner } from "../matching/index.ts";
 import { syncDirectory } from "../matching/directory.ts";
 import { ping } from "../matching/live.ts";
-import { passportFrom } from "../matching/bridge.ts";
+import { passportFrom, passportItems } from "../matching/bridge.ts";
+import { trace } from "../matching/reasoning/trace.ts";
+import type { Decision } from "../matching/types.ts";
 import { packingLines, shareContainers } from "../matching/food-agent.ts";
 import type { AgentCase } from "./types.ts";
 import { FOOD_CATEGORIES, type FoodListing, type ListingInput, type ListingView } from "./types.ts";
@@ -243,7 +245,23 @@ async function markReplaced(oldId: string, phone: string, newId: string) {
  * Passport and opens a case: the NGO Agent ranks and splits, the Logistics Agent offers and delivers.
  * Walkthrough (sample) listings keep their own scripted offer.
  */
-export async function handOff(id: string, now = Date.now()): Promise<FoodListing | null> {
+export function handOff(id: string, now = Date.now()): Promise<FoodListing | null> {
+  // One hand-over per listing at a time in this process: the sweep, a review and the donor's own screen can
+  // all ask at once, and the Food Agent's reasoning on meal pairing takes a moment.
+  const inFlight = handing.get(id);
+  if (inFlight) return inFlight;
+  const run = handOffOnce(id, now).finally(() => handing.delete(id));
+  handing.set(id, run);
+  return run;
+}
+const handing = new Map<string, Promise<FoodListing | null>>();
+/** "35 meals + 25 extras": extras and unpaired staples or sides aren't meals (spec §7.5). */
+function mealCount(items: { servings: number; tags?: string[] }[]) {
+  const sum = (f: (t: string[]) => boolean) => items.filter(i => f(i.tags ?? [])).reduce((n, i) => n + i.servings, 0);
+  const meals = sum(t => !t.includes("extra") && !t.includes("addon")), extras = sum(t => t.includes("extra")), addons = sum(t => t.includes("addon"));
+  return [`${meals} meal${meals === 1 ? "" : "s"}`, extras ? `${extras} extras` : "", addons ? `${addons} add-ons` : ""].filter(Boolean).join(" + ");
+}
+async function handOffOnce(id: string, now: number): Promise<FoodListing | null> {
   const first = await listings.get(id);
   const luna = agents();
   // "MATCH-…" ids came from the retired Python matcher; those listings get a real case now.
@@ -252,11 +270,17 @@ export async function handOff(id: string, now = Date.now()): Promise<FoodListing
   let matchId: string;
   await syncDirectory(matchingStore);   // NGOs' latest default/today listings and partners before ranking
   try {
-    matchId = (await luna.submitListing(passportFrom(first, now), now, { reviewed: true })).id;
+    // Staples and sides become meals (spec §7.5): the rules pair them; the Food Agent's reasoning may reorder or
+    // leave out pairs first, within a few seconds, or the rules' pairing goes ahead.
+    const pairing = await reasoner()?.pairMeals(first.donorName, passportItems(first, now)).catch(() => null);
+    const passport = passportFrom(first, now, pairing?.advice);
+    matchId = (await luna.submitListing(passport, now, { reviewed: true })).id;
+    await pairing?.finish(matchId);
     // The Food Agent's verdict opens the case's log, like every other agent's decision.
     const c = first.foodCheck, model = c.models?.photo ? ` Photo judged by ${c.models.photo.replace(/^[^:]*:/, "")}.` : " Photo not judged by AI.";
-    await matchingStore.insert("decision", { id: `d-food-${first.id}`, at: now - 1, agent: "food", kind: "graded", subject: matchId, listingId: matchId,
-      reason: `Checked ${first.dish}: Grade ${c.grade}, ${first.assessment.servings} servings, safe until ${new Date(first.assessment.safeUntil).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit" })}${c.unsure ? ", unsure (the partner checks it at pickup)" : ""}.${model}` });
+    const verdict: Decision = { id: `d-food-${first.id}`, at: now - 1, agent: "food", kind: "graded", subject: matchId, listingId: matchId,
+      reason: `Checked ${first.dish}: Grade ${c.grade}, ${mealCount(passport.items)}, safe until ${new Date(first.assessment.safeUntil).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit" })}${c.unsure ? ", unsure (the partner checks it at pickup)" : ""}.${model}` };
+    if (await matchingStore.insert("decision", verdict)) trace.decision(verdict);
   }
   catch (e) { console.error("case handoff failed", (e as Error).message); return first; }
   for (let attempt = 0; attempt < C.casRetries; attempt++) {
@@ -317,7 +341,10 @@ async function caseOf(caseId: string, withCode: boolean): Promise<AgentCase | nu
     const r = await matchingStore.get("recipient", cand.ngoId);
     if (r) ranked.push({ ngoName: r.name, arriveBy: cand.arriveBy });
   }
-  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline };
+  const role = (t: string) => c.items.filter(i => i.tags?.includes(t)).reduce((n, i) => n + i.servings, 0);
+  const meals = { meals: c.items.filter(i => !i.tags?.some(t => t === "extra" || t === "addon")).reduce((n, i) => n + i.servings, 0), addons: role("addon"), extras: role("extra"),
+    bundles: c.items.filter(i => i.bundle).map(i => ({ name: i.name ?? "Meal", servings: i.servings, diet: i.diet })) };
+  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals };
 }
 function caseProgress(c: AgentCase, lead: AgentCase["shares"][number] | undefined) {
   if (!lead) return c.unplacedServings ? "No NGO can safely take it in time · the Luna team is on it" : "Finding the right NGO";

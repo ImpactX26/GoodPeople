@@ -15,6 +15,7 @@ const MODEL_NAMES: Record<string, string> = {
   "gemini-3.1-flash-lite": "Gemini 3.1 Flash-Lite",
   "gemini-2.5-flash": "Gemini 2.5 Flash",
   "meta-llama/llama-4-scout-17b-16e-instruct": "Llama 4 Scout on Groq",
+  "qwen/qwen3.8-27b": "Qwen 3.8 on Groq",
 };
 /** "gemini:gemini-2.5-flash" → "Gemini 2.5 Flash"; null when no model judged it. */
 export function modelName(label: string | null | undefined) {

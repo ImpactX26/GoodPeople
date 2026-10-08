@@ -7,6 +7,7 @@
 import { AREAS } from "../map/model.ts";
 import type { FoodListing, ListingItem } from "../listings/types.ts";
 import { config } from "./config.ts";
+import { assembleMeals, rulePairs, type Pairing } from "./engine/bundles.ts";
 import { straightKm } from "./engine/geo.ts";
 import type { NewListing } from "./luna.ts";
 import { areaIdFromName } from "./seed.ts";
@@ -36,18 +37,32 @@ function itemFrom(it: ListingItem, idx: number, now: number): Item | null {
   };
 }
 
-/** The Food Passport for one checked listing: one item for a single dish, or every safe food in a session. */
-export function passportFrom(l: FoodListing, now: number): NewListing {
+/** Every safe food in a listing, as the agents see it, before staples and sides are paired into meals. */
+export function passportItems(l: FoodListing, now: number): Item[] {
+  return l.items ? l.items.map((it, i) => itemFrom(it, i, now)).filter((x): x is Item => !!x) : [singleItem(l, now)];
+}
+
+/** The Food Agent's reasoning on the pairing (reasoning/reasoner.ts pairMeals): pairs to make first, pairs to leave out. */
+export interface MealAdvice {
+  order: Pairing[];
+  skip: Pairing[];
+}
+
+/**
+ * The Food Passport for one checked listing: one item for a single dish, or every safe food in a session,
+ * with staples and sides paired into meals (spec §7.5). Advice goes first; the rules' order fills in the rest.
+ */
+export function passportFrom(l: FoodListing, now: number, advice?: MealAdvice | null): NewListing {
   const area = areaIdFromName(l.pickup.area) ?? [...AREAS].sort((a, b) => straightKm(a, l.pickup) - straightKm(b, l.pickup))[0].id;
-  const items = l.items
-    ? l.items.map((it, i) => itemFrom(it, i, now)).filter((x): x is Item => !!x)
-    : [singleItem(l, now)];
+  const raw = passportItems(l, now);
+  const meals = assembleMeals(raw, advice ? [...advice.order, ...rulePairs(raw)] : undefined, advice?.skip);
+  const items = meals.items;
   return {
     donorPhone: l.donorPhone, donorName: l.donorName, areaId: area, lat: l.pickup.lat, lng: l.pickup.lng,
     pickupAddress: l.pickup.address, pickupNotes: l.pickup.notes || undefined, pickupContactPhone: l.contactPhone,
     readyFrom: Math.max(now, l.readyFrom), collectBy: Math.max(now, l.collectBy), storage: l.storage, cookedAt: l.cookedAt,
     containers: [], partnerBrings: l.containers === "partner_brings",
-    sourceListingId: l.id, items,
+    sourceListingId: l.id, items, parts: meals.parts.length ? meals.parts : undefined,
   };
 }
 

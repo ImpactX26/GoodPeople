@@ -155,6 +155,8 @@ export interface AgentCase {
   /** The NGO Agent's ranked list for this food, best first (from the first share's candidates). */
   ranked: { ngoName: string; arriveBy: number }[];
   timeline: { at: number; agent: "food" | "ngo" | "logistics" | "decision" | null; kind: string; reason: string }[];
+  /** Spec §7.5: meals (dishes that are a meal, and staples paired with sides), add-ons and extras, in servings. */
+  meals: { meals: number; addons: number; extras: number; bundles: { name: string; servings: number; diet: string }[] };
 }
 export interface ListingView extends Omit<FoodListing, "donorPhone" | "fingerprint" | "contactPhone" | "pickup" | "approval"> {
   pickup: Stop | null;

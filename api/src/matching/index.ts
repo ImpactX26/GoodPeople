@@ -7,6 +7,9 @@ import type { DonorKind } from "../map/model.ts";
 import { store as authStore } from "../store.ts";
 import type { GapDonor } from "./gaps.ts";
 import { createLuna } from "./luna.ts";
+import { startReasoning } from "./reasoning/index.ts";
+import type { Reasoner } from "./reasoning/reasoner.ts";
+import { reasoningRoutes } from "./reasoning/routes.ts";
 import { matchingRoutes } from "./routes.ts";
 import { startScheduler } from "./scheduler.ts";
 import { areaIdFromName } from "./seed.ts";
@@ -36,8 +39,11 @@ async function listDonors(): Promise<GapDonor[]> {
 }
 
 let running: Luna | null = null;
+let reasoning: Reasoner | null = null;
 /** The agents mounted on this API process (null until mountMatching ran, e.g. in unit tests). */
 export const agents = () => running;
+/** Their reasoning layer, when mounted and a model key is set. */
+export const reasoner = () => reasoning;
 export { matchingStore };
 
 export async function mountMatching(app: Hono) {
@@ -49,6 +55,9 @@ export async function mountMatching(app: Hono) {
   const sync = () => syncDirectory(matchingStore).then((n) => n, (e) => console.error("directory sync failed", e));
   await sync();
   setInterval(() => void sync(), 60_000).unref();
+  const r = startReasoning(luna);
+  reasoning = r.status().enabled ? r : null;
+  app.route("/agents/reasoning", reasoningRoutes(r, matchingStore));
   app.route("/agents", matchingRoutes(luna, matchingStore));
   app.route("/webhooks/whatsapp", whatsappWebhook(luna, matchingStore));
   startScheduler(luna, matchingStore, defaultClient());

@@ -47,13 +47,14 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
             <PhotoCanvas photo={l.photo} onPhoto={() => {}} onError={() => {}} scanning={!l.foodCheck} alt={l.dish} readOnly />
             <div className={s.ticketHead}>
               <h2>{l.dish}</h2>
-              <p>{servingsOf(l)} servings · {l.donorName} · {l.pickupArea}</p>
+              <p>{mealsLine(l) ?? `${servingsOf(l)} servings`} · {l.donorName} · {l.pickupArea}</p>
             </div>
           </div>
           <div className={s.resultCol}>
           {l.agentCase && <Updates />}
           {l.foodCheck && <TagSlip l={l} session={session} onChange={setL} />}
           {l.agentCase && <PackingPlan l={l} />}
+          {l.agentCase && <MealsMade l={l} />}
           {l.foodCheck ? <Verdict l={l} /> : (
             <section className={s.verdict} data-pending aria-live="polite">
               <p className={s.working}>Luna’s food check is looking at your photo, cooking time and storage. This takes about 15 seconds.</p>
@@ -200,6 +201,28 @@ function SessionFoods({ l }: { l: ListingView }) {
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+/** "50 meals + 40 extras": extras and leftover staples or sides never count as meals (spec §7.5). */
+function mealsLine(l: ListingView) {
+  const m = l.agentCase?.meals;
+  if (!m || (!m.extras && !m.addons && !m.bundles.length)) return null;
+  return [`${m.meals} meal${m.meals === 1 ? "" : "s"}`, m.extras ? `${m.extras} extras` : "", m.addons ? `${m.addons} add-ons` : ""].filter(Boolean).join(" + ");
+}
+
+const DIET_WORD: Record<string, string> = { jain: "Jain", veg: "veg", egg: "egg", nonveg: "non-veg" };
+
+/** Which of the restaurant's staples and sides the Food Agent paired into meals. */
+function MealsMade({ l }: { l: ListingView }) {
+  const m = l.agentCase?.meals;
+  if (!m?.bundles.length) return null;
+  return (
+    <section className={s.packing} aria-labelledby="meals-title">
+      <header><h2 id="meals-title">Meals made from your food</h2></header>
+      <ul>{m.bundles.map(b => <li key={b.name}>{b.servings} × {b.name} ({DIET_WORD[b.diet] ?? b.diet})</li>)}</ul>
+      <p className={s.note}>Rice or bread with a dal or curry makes one meal. {m.addons ? `${m.addons} servings without a partner go along as add-ons, not counted as meals.` : "Everything paired up."}</p>
     </section>
   );
 }

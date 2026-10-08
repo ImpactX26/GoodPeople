@@ -20,7 +20,8 @@ export interface Allocation {
   unallocated: OfferLine[];
 }
 
-const isExtra = (i: Item) => i.tags?.includes("extra") ?? false;
+/** Extras, and staples or sides left over after pairing (spec §7.5 add-ons): they never count as meals. */
+const isExtra = (i: Item) => (i.tags?.includes("extra") || i.tags?.includes("addon")) ?? false;
 
 /**
  * Spec §11.6: meal food is placed against each NGO's need; extras (sweets, snacks, drinks) never count
