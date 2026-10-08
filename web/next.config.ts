@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   turbopack: { root: fileURLToPath(new URL("..", import.meta.url)) },
   // Lets a phone on the same Wi-Fi load the dev server (hot reload, chunks) by the laptop's address.
   allowedDevOrigins: (process.env.LUNA_DEV_ORIGINS ?? "").split(",").map(s => s.trim()).filter(Boolean),
+  // Gzip holds the agents' live streams (Server-Sent Events) in a buffer, so through /luna-api the
+  // agent console and agents board never received a single event. The laptop proxy sends them as they are.
+  compress: !localProxy,
   async rewrites() {
     if (!localProxy) return [];
     return [
