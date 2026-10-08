@@ -379,7 +379,7 @@ function LaneHead({ lane, busy, hit }: { lane: Lane; busy: boolean; hit: boolean
 function CaseTicket({ l, n, on, thoughts, onPick }: { l: CaseListing; n?: number; on: boolean; thoughts: Thought[]; onPick: () => void }) {
   const servings = l.items.reduce((k, i) => k + i.servings, 0);
   const flagged = thoughts.some((t) => t.actions?.some((a) => a.tool === "flag_for_admin" && a.status === "done"));
-  const stage = { review: "Waiting for a review", matching: "Finding homes", matched: "On its way", partially_matched: "Partly placed", unmatched: "Nowhere safe yet", closed: "Delivered" }[l.status];
+  const stage = l.lapsed ? "No one responded" : { review: "Waiting for a review", matching: "Finding homes", matched: "On its way", partially_matched: "Partly placed", unmatched: "Nowhere safe yet", closed: "Closed" }[l.status];
   const checks = thoughts.filter((t) => t.status === "done").length;
   return (
     <li>

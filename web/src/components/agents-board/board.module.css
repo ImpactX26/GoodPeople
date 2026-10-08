@@ -390,6 +390,17 @@
   pointer-events: none;
 }
 
+/* Nobody took it in time: the stamp is in red ribbon, it's a failure, not a finish. */
+.bigStamp[data-ended="no_one"] {
+  border-color: var(--ink-red);
+  color: var(--ink-red);
+  font-size: 22px;
+}
+
+.bigStamp[data-ended="biogas"] {
+  font-size: 22px;
+}
+
 .bigStamp[data-live="true"] {
   animation: bigStamp 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

@@ -78,6 +78,8 @@ export interface CaseListing {
   status: "review" | "matching" | "matched" | "partially_matched" | "unmatched" | "closed";
   unplacedServings: number;
   createdAt: number;
+  /** Nobody took it before its window closed (the case closed with a sorry). */
+  lapsed?: { at: number; asked: number; ended: "unsafe" | "collect_by" };
 }
 
 export type Connection = "connecting" | "live" | "retrying" | "denied";

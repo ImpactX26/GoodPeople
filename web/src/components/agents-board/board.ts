@@ -97,8 +97,12 @@ export interface Order {
   /** The seq each stage completed at. */
   stages: Partial<Record<StageKey, number>>;
   closedAt?: number;
+  /** The seq the case closed at (so the stamp only lands live when it happens while the board is open). */
+  closedSeq?: number;
   deliveredAt?: number;
   stopped: boolean;
+  /** How the case ended: food delivered, nobody took it in time, or sent to a biogas plant instead. */
+  outcome?: "delivered" | "no_one" | "biogas";
   /** "40 servings from Meghana Foods", from the Food Agent's hand-off, until the case list loads. */
   passport?: string;
 }
@@ -148,11 +152,24 @@ export function buildOrders(events: TraceEvent[]): Order[] {
       lane.lastOut = e.seq;
       const stage = STAGE_OF[e.kind];
       if (stage && o.stages[stage] === undefined) o.stages[stage] = e.seq;
-      if (e.kind === "delivered" || e.kind === "closed") {
+      if (e.kind === "biogas") o.outcome = o.outcome === "delivered" ? "delivered" : "biogas";
+      if (e.kind === "delivered") {
         for (const s of ["checked", "matched", "picked", "delivered"] as StageKey[]) o.stages[s] ??= e.seq;
+        o.deliveredAt ??= e.at;
+        o.outcome = "delivered";
       }
-      if (e.kind === "closed") o.closedAt = e.at;
-      if (e.kind === "delivered") o.deliveredAt ??= e.at;
+      if (e.kind === "closed") {
+        o.closedAt = e.at;
+        o.closedSeq = e.seq;
+        // A case closes three ways; only a delivery ticks the stages through to Delivered.
+        if (/^No one took/.test(e.reason)) {
+          o.outcome ??= "no_one";
+          o.stopped = true;
+        } else if (!o.outcome) {
+          o.outcome = /sent to biogas/.test(e.reason) && !/[1-9]\d* servings delivered/.test(e.reason) ? "biogas" : "delivered";
+          if (o.outcome === "delivered") for (const s of ["checked", "matched", "picked", "delivered"] as StageKey[]) o.stages[s] ??= e.seq;
+        }
+      }
       if (e.kind === "escalated") o.stopped = true;
     } else if (e.type === "message") {
       const from = e.from ?? "decision";
@@ -174,9 +191,11 @@ export function buildOrders(events: TraceEvent[]): Order[] {
 export function withCase(o: Order, l?: CaseListing): Order {
   if (!l) return o;
   const stages = { ...o.stages };
-  if (l.status === "closed") for (const s of ["checked", "matched", "picked", "delivered"] as StageKey[]) stages[s] ??= o.firstSeq;
+  // Closed because nobody took it in time: stopped where it got to, never ticked through to Delivered.
+  const noOne = !!l.lapsed && o.outcome !== "biogas";
+  if (l.status === "closed" && !noOne && o.outcome !== "biogas") for (const s of ["checked", "matched", "picked", "delivered"] as StageKey[]) stages[s] ??= o.firstSeq;
   if (l.status === "matched") for (const s of ["checked", "matched"] as StageKey[]) stages[s] ??= o.firstSeq;
-  return { ...o, stages, stopped: o.stopped || l.status === "unmatched" };
+  return { ...o, stages, stopped: o.stopped || noOne || l.status === "unmatched", outcome: noOne ? "no_one" : o.outcome, closedAt: o.closedAt ?? (noOne ? l.lapsed!.at : undefined) };
 }
 
 export type Status = "waiting" | "on" | "thinking" | "watching" | "wrapping" | "done" | "flagged";
@@ -211,7 +230,8 @@ export function laneStatus(o: Order, agent: AgentName): Status {
 
 /** The stage the food is at now: the first one not yet done. */
 export function currentStage(o: Order): StageKey | null {
-  if (o.closedAt !== undefined) return null;
+  // Nobody took it: the stage it stopped at stays marked (with an X), rather than the row reading as finished.
+  if (o.closedAt !== undefined && o.outcome !== "no_one") return null;
   return STAGES.find((s) => o.stages[s.key] === undefined)?.key ?? null;
 }
 
