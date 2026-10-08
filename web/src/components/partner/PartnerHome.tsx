@@ -302,7 +302,7 @@ function TripSlip({ trip: t, onDone }: { trip: Trip; onDone: () => void }) {
       {atPickup && t.containers.length > 0 && <p className={s.bring}><b>Bring</b>{t.containers.join(" + ")}</p>}
       <LiveDelivery shareId={t.id} viewer="partner" />
       <div className={s.slipActions}>
-        {atPickup && t.pickupDetails?.contact && <a className={n.pass} href={`tel:+91${t.pickupDetails.contact}`}><Phone size={18} aria-hidden /> Call</a>}
+        {atPickup && t.pickupDetails?.contact && <a className={n.pass} href={`tel:+91${t.pickupDetails.contact}`} aria-label={`Call ${t.pickup.name} on ${t.pickupDetails.contact}`}><Phone size={18} aria-hidden /> Call {t.pickup.name} · {t.pickupDetails.contact.slice(0, 5)} {t.pickupDetails.contact.slice(5)}</a>}
       </div>
       <label className={s.codeField}>
         <span>{atPickup ? `Ask ${t.pickup.name} for the pickup code` : `Ask ${t.drop?.name ?? "the NGO"} for the drop code`}</span>

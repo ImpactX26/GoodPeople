@@ -15,7 +15,7 @@ import { answerOffer, answerRedirect, assignByHand, enterCode, fmtTime, ngoShare
 import DonorShell from "@/components/donor/DonorShell";
 import { Reasoning } from "@/components/donor/DonationTicket";
 import TodaySheet from "./TodaySheet";
-import { SharePhoto, Updates } from "@/components/agents/live-bits";
+import { SharePhoto, Updates, VolunteerCalls, WaitClock } from "@/components/agents/live-bits";
 import { GRADE_LABEL, modelName, servingsOf } from "@/components/donor/stages";
 import d from "@/components/donor/donor.module.css";
 import LiveDelivery from "@/components/trip/LiveDelivery";
@@ -417,6 +417,8 @@ function Coming({ sh, onDone }: { sh: NgoShare; onDone: () => Promise<void> }) {
       </header>
       {(t?.lateMin ?? 0) > 5 && <p className={s.lateNote} role="status">{p ?? "The partner"} is about {t!.lateMin} min late. New arrival about {t?.eta ? fmtTime(t.eta) : "soon"}; the food is still safe.</p>}
       <p className={s.nowLine}><b>{nowLine}</b> {nextLine}</p>
+      {sh.status === "finding_partner" && sh.partnerClock && <WaitClock clock={sh.partnerClock} who="ngo" />}
+      {sh.status === "finding_partner" && sh.volunteers && <VolunteerCalls volunteers={sh.volunteers} />}
       {p && t?.partner?.rating && <p className={d.note}>{p} · reliability {t.partner.rating}</p>}
       {(sh.status === "assigned" || sh.status === "picked_up") && !t?.partner?.manual && <LiveDelivery shareId={sh.id} viewer="observer" />}
       <SharePhoto shareId={sh.id} alt={`Photo of ${foodIn(sh)}`} />

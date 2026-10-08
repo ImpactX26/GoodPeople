@@ -290,7 +290,10 @@ export default function SignIn() {
                   </div>
                   <Problem id="phone-error" message={error} />
                   <p id="phone-note" className={s.note}>
-                    We&rsquo;ll text a 6-digit code to this number.
+                    We&rsquo;ll text a 6-digit code to this number.{" "}
+                    {role === "donor" ? "The delivery partner and NGO coming for your food will also call you on it."
+                      : role === "volunteer" ? "Restaurants and NGOs on your pickups can call you on it."
+                      : role === "ngo" ? "Restaurants and your volunteers can call you on it." : ""}
                   </p>
                   <PrimaryButton busy={busy} busyLabel="Sending code">
                     Send code

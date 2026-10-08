@@ -135,7 +135,13 @@ export async function sharePhotoList(shareId: string): Promise<{ i: number; dish
 
 /** NGO */
 /** Each food carries its own grade and safe-until: foods in one listing are checked one by one. */
-export type NgoShare = Share & { donorName?: string; food: (Partial<Item> & { servings: number; safeUntil?: number })[] };
+export type NgoShare = Share & {
+  donorName?: string;
+  food: (Partial<Item> & { servings: number; safeUntil?: number })[];
+  /** Accepted, nobody has taken the pickup: the clock until it moves on, and the NGO's own volunteers to call. */
+  partnerClock?: { from: number; to: number; then: "next_ngo" | "window_closes" } | null;
+  volunteers?: { name: string; phone: string; online: boolean; busy: boolean }[];
+};
 export const ngoShares = () => get<NgoShare[]>("/shares");
 export const answerOffer = (id: string, accept: boolean) => post(`/shares/${id}/${accept ? "accept" : "decline"}`);
 export const answerRedirect = (id: string, accept: boolean) => post(`/shares/${id}/redirect/${accept ? "accept" : "decline"}`);

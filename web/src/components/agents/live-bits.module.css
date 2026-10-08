@@ -242,3 +242,144 @@
   font: 14px/1.4 var(--font-note);
   color: var(--ink-soft);
 }
+
+/* ---------- waiting for a partner: the clock that runs from yellow to red ---------- */
+
+.wait {
+  --wait-ink: color-mix(in oklab, var(--ink-red) calc(var(--t) * 100%), #f2b705);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  border: 2px solid var(--wait-ink);
+  background: color-mix(in oklab, var(--wait-ink) 12%, var(--paper));
+  transition: border-color 1s linear, background-color 1s linear;
+}
+
+.waitHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.waitHead b {
+  font: 800 13px/1.3 var(--font-print);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.waitThen {
+  margin: 0;
+  font: 15px/1.4 var(--font-note);
+}
+
+.waitLeft {
+  flex: none;
+  font: 800 28px/1 var(--font-print);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.wait[data-urgent] .waitLeft {
+  color: #8d1712;
+}
+
+.waitBar {
+  display: block;
+  height: 8px;
+  background: color-mix(in oklab, var(--wait-ink) 22%, var(--paper));
+}
+
+.waitBar i {
+  display: block;
+  height: 100%;
+  background: var(--wait-ink);
+  transform: scaleX(var(--t));
+  transform-origin: left;
+  transition: transform 1s linear, background-color 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wait, .waitBar i { transition: none; }
+}
+
+.calls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.callsTitle {
+  margin: 0;
+  font: 700 11px/1.3 var(--font-print);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.calls ul {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1.5px dashed rgba(27, 27, 27, 0.35);
+}
+
+.calls li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1.5px dashed rgba(27, 27, 27, 0.35);
+}
+
+.calls li > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font: 15px/1.3 var(--font-note);
+}
+
+.calls li em {
+  font: 400 12px/1.3 var(--font-print);
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.calls a {
+  flex: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 2px solid var(--ink);
+  color: var(--ink);
+  font: 700 14px/1 var(--font-print);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.calls a:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.calls a:focus-visible {
+  outline: 2px dashed var(--ink);
+  outline-offset: 3px;
+}
+
+.callsNone {
+  margin: 0;
+  font: 14px/1.45 var(--font-note);
+  color: var(--ink-soft);
+}

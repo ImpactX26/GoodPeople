@@ -121,6 +121,8 @@ function view(s: Share, who: "donor" | "ngo" | "partner" | "admin") {
   return { ...rest, ...(who === "donor" || who === "admin" ? { pickupCode } : {}), ...(who === "ngo" || who === "admin" ? { dropCode } : {}) };
 }
 
+import { partnerClockOf } from "./partner-clock.ts";
+
 export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => number = Date.now) {
   const app = new Hono();
 
@@ -315,13 +317,18 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     if (s instanceof Response) return s;
     const mine = new Set((await store.list("recipient", { phone: s.phone })).map((r) => r.id));
     const shares = (await store.list("share")).filter((sh) => (sh.ngoId && mine.has(sh.ngoId)) || (sh.redirect && mine.has(sh.redirect.ngoId)));
+    // The NGO's own volunteers, with their numbers, so it can call them when nobody has taken a pickup.
+    const volunteers = (await store.list("partner")).filter((p) => p.ngoId && mine.has(p.ngoId) && !p.manual && p.phone)
+      .map((p) => ({ name: p.name, phone: p.phone!, online: p.online, busy: !!p.activeShareId }))
+      .sort((a, b) => Number(b.online) - Number(a.online) || Number(a.busy) - Number(b.busy) || a.name.localeCompare(b.name));
     const out = [];
     for (const sh of shares.sort((a, b) => b.createdAt - a.createdAt).slice(0, 50)) {
       const l = await store.get("listing", sh.listingId);
+      const waiting = sh.status === "finding_partner" && l;
       out.push({ ...view(sh, "ngo"), donorName: l?.donorName, food: sh.lines.map((ln) => {
         const item = l?.items.find((i) => i.id === ln.itemId);
         return { ...item, servings: ln.servings, ...(item && l ? { grade: effectiveGrade(item), safeUntil: safeUntil(item, l.createdAt) } : {}) };
-      }) });
+      }), ...(waiting ? { partnerClock: await partnerClockOf(store, sh, l, clock()), volunteers } : {}) });
     }
     return c.json(out);
   });

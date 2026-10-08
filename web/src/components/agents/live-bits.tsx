@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { Bell, ChevronDown, Images, Maximize2, Minimize2 } from "lucide-react";
+import { Bell, ChevronDown, Images, Maximize2, Minimize2, Phone } from "lucide-react";
 import { fmtTime, myUpdates, sharePhoto, sharePhotoList } from "@/lib/luna/agents";
 import { useNow, usePoll } from "@/lib/luna/usePoll";
 import s from "./live-bits.module.css";
@@ -91,6 +91,51 @@ export function Updates() {
           <ol>{rest.slice(0, 8).map((u) => <li key={u.id}><span className={s.when}>{fmtTime(u.at)}</span>{u.text}</li>)}</ol>
         </details>
       )}
+    </section>
+  );
+}
+
+/**
+ * Nobody has taken the pickup yet: the time left before it moves to another NGO (or the pickup window closes),
+ * as a countdown and a bar that fills and turns from yellow to red as it runs out. Restaurant and NGO see it.
+ */
+export function WaitClock({ clock, who }: { clock: { from: number; to: number; then: "next_ngo" | "window_closes" }; who: "donor" | "ngo" }) {
+  const now = useNow(1000);
+  const span = Math.max(1, clock.to - clock.from);
+  const t = Math.min(1, Math.max(0, (now - clock.from) / span));
+  const left = Math.max(0, Math.ceil((clock.to - now) / 1000));
+  const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, "0");
+  // Under an hour it ticks in seconds; longer waits read as hours and minutes.
+  const shown = left >= 3600 ? `${Math.floor(left / 3600)} h ${Math.floor((left % 3600) / 60)} min` : `${mm}:${ss}`;
+  const then = clock.then === "next_ngo"
+    ? (who === "ngo" ? "Then Luna passes it to another NGO that has a partner free." : "Then Luna offers it to another NGO that has a partner free.")
+    : "Then the pickup window closes.";
+  return (
+    <section className={s.wait} style={{ "--t": t.toFixed(3) } as React.CSSProperties} data-urgent={t > 0.8 || undefined} aria-label="Waiting for a delivery partner">
+      <div className={s.waitHead}>
+        <b>No partner has taken it yet</b>
+        <span className={s.waitLeft} role="timer" aria-label={`${mm} minutes ${ss} seconds left`}>{shown}</span>
+      </div>
+      <i className={s.waitBar} aria-hidden><i /></i>
+      <p className={s.waitThen}>{then}</p>
+    </section>
+  );
+}
+
+/** The NGO's own volunteers with a call link each, online ones first, for when nobody has taken a pickup. */
+export function VolunteerCalls({ volunteers }: { volunteers: { name: string; phone: string; online: boolean; busy: boolean }[] }) {
+  if (!volunteers.length) return <p className={s.callsNone}>None of your volunteers is on Luna yet. Volunteers who pick your NGO when they sign up show here with their number.</p>;
+  return (
+    <section className={s.calls} aria-label="Call your volunteers">
+      <p className={s.callsTitle}>Call your volunteers</p>
+      <ul>
+        {volunteers.map((v) => (
+          <li key={v.phone}>
+            <span><b>{v.name}</b><em>{v.busy ? "On a trip" : v.online ? "Online" : "Offline"}</em></span>
+            <a href={`tel:+91${v.phone}`} aria-label={`Call ${v.name}, ${v.phone}`}><Phone size={16} aria-hidden /> {v.phone.slice(0, 5)} {v.phone.slice(5)}</a>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

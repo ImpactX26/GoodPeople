@@ -19,6 +19,7 @@ import { syncDirectory } from "../matching/directory.ts";
 import { ping } from "../matching/live.ts";
 import { passportFrom, passportItems } from "../matching/bridge.ts";
 import { comeByFor, leftoverOf, linesText, nearestCollector } from "../matching/biogas.ts";
+import { partnerClockOf } from "../matching/partner-clock.ts";
 import { trace } from "../matching/reasoning/trace.ts";
 import type { Decision } from "../matching/types.ts";
 import { packingLines, shareContainers } from "../matching/food-agent.ts";
@@ -371,7 +372,7 @@ async function caseOf(caseId: string, withCode: boolean): Promise<AgentCase | nu
       status: sh.status, servings: sh.lines.reduce((n, x) => n + x.servings, 0), ngoName: ngo?.name ?? null,
       offerDeadlineAt: sh.status === "offering" ? sh.offerDeadlineAt ?? null : null, partnerName: partner?.name ?? null,
       pickupCode: withCode && (sh.status === "assigned" || sh.status === "finding_partner") ? sh.pickupCode : null,
-      arriveBy: sh.arriveBy ?? null, pickedUpAt: sh.pickedUpAt ?? null, held: !!sh.held });
+      arriveBy: sh.arriveBy ?? null, pickedUpAt: sh.pickedUpAt ?? null, held: !!sh.held, partnerClock: await partnerClockOf(matchingStore, sh, c, Date.now()) });
   }
   const timeline = (await matchingStore.list("decision", { listingId: caseId }))
     .filter(d => d.kind !== "filtered").sort((a, b) => a.at - b.at || (a.seq ?? 0) - (b.seq ?? 0))

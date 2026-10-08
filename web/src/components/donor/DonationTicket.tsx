@@ -13,7 +13,7 @@ import PhotoCanvas from "./PhotoCanvas";
 import DonorShell from "./DonorShell";
 import { GRADE_LABEL, GRADE_MEANING, justWentCold, leadShare, modelName, servingsOf, stagesOf, wentCold, type Stage } from "./stages";
 import { keepRelist, tagLine } from "./relist";
-import { Updates } from "@/components/agents/live-bits";
+import { Updates, WaitClock } from "@/components/agents/live-bits";
 import LiveDelivery from "@/components/trip/LiveDelivery";
 import s from "./donor.module.css";
 
@@ -173,6 +173,7 @@ function StageDetail({ stage, l, t }: { stage: Stage; l: ListingView; t: TripVie
         return (
           <>
             <p>{lead?.status === "assigned" ? <><strong>{lead.partnerName ?? "A partner"}</strong> is on the way to you.</> : "Finding a delivery partner, the NGO’s own riders first…"}</p>
+            {lead?.status === "finding_partner" && lead.partnerClock && <WaitClock clock={lead.partnerClock} who="donor" />}
             {lead?.pickupCode && <div className={s.code}><span>Show this code when you hand over the food</span><b>{lead.pickupCode}</b></div>}
           </>
         );
