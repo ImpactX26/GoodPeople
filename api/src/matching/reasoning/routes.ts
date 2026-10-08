@@ -50,6 +50,14 @@ export function reasoningRoutes(reasoner: Reasoner, store: MatchingStore) {
 
   app.get("/status", async (c) => (await admin(c)) ?? c.json(reasoner.status()));
 
+  /** The same snapshot the stream opens with, for screens on networks that can't hold a stream open (they poll). */
+  app.get("/trace", async (c) => {
+    const denied = await admin(c);
+    if (denied) return denied;
+    const limit = Math.min(800, Number(c.req.query("limit") ?? 400));
+    return c.json({ events: await snapshot(store, limit), status: reasoner.status() });
+  });
+
   app.get("/thoughts", async (c) => {
     const denied = await admin(c);
     if (denied) return denied;

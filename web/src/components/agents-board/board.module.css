@@ -115,7 +115,9 @@
 .controls {
   grid-area: controls;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 12px;
 }
 
 .segmented {

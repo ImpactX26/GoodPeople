@@ -19,6 +19,7 @@ import {
   type WatchPulse,
 } from "@/lib/luna/console";
 import { usePoll } from "@/lib/luna/usePoll";
+import ViewSwitch, { type AgentsView } from "@/components/agents-board/ViewSwitch";
 import s from "./console.module.css";
 
 /* ---------- the stations, left to right in the order food travels ---------- */
@@ -111,7 +112,7 @@ const seconds = (ms?: number) => (ms === undefined ? "" : ms < 1000 ? `${Math.ro
 
 type Show = "all" | "calls" | "reasoning";
 
-export default function AgentConsole() {
+export default function AgentConsole({ view = "sheet" }: { view?: AgentsView }) {
   const [rows, setRows] = useState<Row[]>([]);
   const [printed, setPrinted] = useState(0);
   const [status, setStatus] = useState<ReasoningStatus | null>(null);
@@ -201,7 +202,7 @@ export default function AgentConsole() {
           </Link>
           <LunaMark size={26} title="Luna" className={s.barMark} />
           <h1 className={s.title}>
-            Agents live
+            Call sheet
             <span className={s.city}>Bengaluru</span>
           </h1>
           <span className={s.chip} data-state={conn}>
@@ -210,6 +211,7 @@ export default function AgentConsole() {
           </span>
         </div>
         <div className={s.controls}>
+          <ViewSwitch view={view} groupClass={s.segmented} itemClass={s.segment} />
           <div className={s.segmented} role="radiogroup" aria-label="Show">
             {(
               [
@@ -225,9 +227,6 @@ export default function AgentConsole() {
           </div>
         </div>
         <nav className={s.account} aria-label="Admin">
-          <Link href="/admin/agents" className={s.barButton}>
-            Show agents
-          </Link>
           <Link href="/admin" className={s.barButton}>
             Food map
           </Link>

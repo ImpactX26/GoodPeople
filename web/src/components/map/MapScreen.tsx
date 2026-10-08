@@ -171,7 +171,7 @@ export default function MapScreen({
           />
         </div>
         <nav className={s.account} aria-label="Account">
-        {lens === "admin" && <><Link href="/admin/agents" className={s.barButton}>Show agents</Link><Link href="/console" className={s.barButton}>Agents live</Link><Link href="/admin/reviews" className={s.barButton}>Listing reviews</Link><Link href="/deliveries" className={s.barButton}>Deliveries</Link></>}
+        {lens === "admin" && <><Link href="/admin/agents" className={s.barButton}>Agents</Link><Link href="/admin/reviews" className={s.barButton}>Listing reviews</Link><Link href="/deliveries" className={s.barButton}>Deliveries</Link></>}
         {onSignOut ? (
           <button type="button" className={s.barButton} onClick={onSignOut}>
             <LogOut size={15} aria-hidden="true" /> Sign out

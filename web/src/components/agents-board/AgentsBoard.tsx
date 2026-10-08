@@ -30,6 +30,7 @@ import {
   type Status,
   type Step,
 } from "./board";
+import ViewSwitch, { type AgentsView } from "./ViewSwitch";
 import s from "./board.module.css";
 
 const MOOD: Record<Status, Mood> = { waiting: "sleep", on: "busy", thinking: "think", watching: "awake", wrapping: "awake", done: "happy", flagged: "worried" };
@@ -51,7 +52,7 @@ const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? o
 /** The busiest thing any listing's lane is doing, for the cast at the top. */
 const RANK: Status[] = ["thinking", "on", "flagged", "watching", "wrapping", "done", "waiting"];
 
-export default function AgentsBoard() {
+export default function AgentsBoard({ view = "board" }: { view?: AgentsView }) {
   const [events, setEvents] = useState<TraceEvent[]>([]);
   const [printed, setPrinted] = useState(0);
   // Events after this seq arrived while the board was open: those animate. The snapshot prints still.
@@ -170,6 +171,7 @@ export default function AgentsBoard() {
           {aiOn === false && <span className={s.barStamp}>AI check off</span>}
         </div>
         <div className={s.controls}>
+          <ViewSwitch view={view} groupClass={s.segmented} itemClass={s.segment} />
           <div className={s.segmented} role="radiogroup" aria-label="Pace">
             {(
               [
@@ -190,9 +192,6 @@ export default function AgentsBoard() {
               {clearedAt ? "Show all" : "Clear"}
             </span>
           </button>
-          <Link href="/console" className={s.barButton}>
-            Call sheet
-          </Link>
           <Link href="/admin" className={s.barButton}>
             Food map
           </Link>

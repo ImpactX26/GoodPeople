@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import ConsoleRoute from "./ConsoleRoute";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Agents live · Luna",
-  description: "Luna's four agents handing food to each other, with each agent's reasoning, live. For Luna admins.",
-};
-
+/** The call sheet is a view of the agents page now. */
 export default function ConsolePage() {
-  return <ConsoleRoute />;
+  redirect("/admin/agents?view=sheet");
 }

@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import AgentsRoute from "./AgentsRoute";
 
 export const metadata: Metadata = {
-  title: "Agents at work · Luna",
-  description: "Luna's four agents passing each listing along, one row of printers per listing, live. For Luna admins.",
+  title: "Agents · Luna",
+  description: "Luna's four agents at work on every listing, live: the board and the call sheet. For Luna admins.",
 };
 
 export default function AgentsPage() {
-  return <AgentsRoute />;
+  return (
+    <Suspense>
+      <AgentsRoute />
+    </Suspense>
+  );
 }
