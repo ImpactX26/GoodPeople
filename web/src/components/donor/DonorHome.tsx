@@ -9,6 +9,7 @@ import PhotoCanvas, { keepDraftPhoto } from "./PhotoCanvas";
 import DonorShell from "./DonorShell";
 import { DonationRow, useDonations } from "./DonationList";
 import s from "./donor.module.css";
+import { Updates } from "@/components/agents/live-bits";
 
 export default function DonorHome({ session, fields }: { session: Session; fields: Record<string, string> }) {
   const router = useRouter(), [error, setError] = useState("");
@@ -26,6 +27,7 @@ export default function DonorHome({ session, fields }: { session: Session; field
         </section>
 
         <aside className={s.homeSide}>
+          <Updates />
           <section className={s.group} aria-label="Donations in progress">
             <h2>In progress</h2>
             {rows === null ? <p className={s.note}>Loading…</p>

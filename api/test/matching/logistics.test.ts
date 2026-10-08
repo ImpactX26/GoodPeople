@@ -463,3 +463,14 @@ test("the Decision Agent keeps the restaurant, the NGO and the partner told at e
   await luna.enterCode(sh.id, "pickup", sh.pickupCode, { phone: RIDER }, at(12, 15));
   assert.match(await last(store, NGO2), /picked up the .*Keep your drop code ready/);
 });
+
+test("an NGO's rider who helps others can collect for another NGO, after that NGO's own riders", async () => {
+  const { store, luna } = await setup(
+    [recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) }), recipient({ id: "r9", phone: "9000000099", active: false })],
+    [partner({ id: "helper", phone: RIDER, ngoId: "r9", helpsOthers: true, ...east(KORAMANGALA, 0.2) }), partner({ id: "loyal", phone: RIDER2, ngoId: "r9", ...KORAMANGALA })],
+  );
+  const l = await luna.submitListing(newListing(), at(12));
+  const s = await shareOf(store, l.id);
+  await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+  assert.equal((await shareOf(store, l.id)).askedPartnerId, "helper", "r9's rider who helps others is asked; the one who doesn't is never");
+});

@@ -119,6 +119,8 @@ export interface Partner extends LatLng {
   online: boolean;
   /** The NGO this partner rides for; unset for independents. */
   ngoId?: string;
+  /** Rides for an NGO but will also deliver for other NGOs when needed (asked after their own riders). */
+  helpsOthers?: boolean;
   /** Added by an NGO coordinator for this run only (not on the app). */
   manual?: boolean;
   /** Set while the partner is being asked or is on a trip. */

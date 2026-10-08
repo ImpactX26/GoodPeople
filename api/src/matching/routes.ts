@@ -11,6 +11,9 @@ import { straightKm } from "./engine/geo.ts";
 import type { Actor, Luna, NewListing, Result } from "./luna.ts";
 import { areaById, areaIdFromName } from "./seed.ts";
 import type { MatchingStore } from "./store.ts";
+import { reliabilityLine } from "./reliability.ts";
+import { listings as foodListings } from "../listings/repository.ts";
+import { distanceKm, etaMs } from "./engine/geo.ts";
 import { syncDirectory } from "./directory.ts";
 import { onPing, type LivePing } from "./live.ts";
 import { streamSSE } from "hono/streaming";
@@ -175,8 +178,32 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
       await syncDirectory(store);
     const recipients = s.role === "ngo" ? (await store.list("recipient", { phone: s.phone })).map((r) => ({ id: r.id, name: r.name, areaId: r.areaId })) : [];
     const partners =
-      s.role === "volunteer" ? (await store.list("partner", { phone: s.phone })).map((p) => ({ id: p.id, name: p.name, online: p.online, ngoId: p.ngoId })) : [];
+      s.role === "volunteer" ? (await store.list("partner", { phone: s.phone })).map((p) => ({ id: p.id, name: p.name, online: p.online, ngoId: p.ngoId, helpsOthers: !!p.helpsOthers,
+        reliability: { line: reliabilityLine(p.reliability), score: p.reliability?.score ?? null, trips: p.reliability?.trips ?? 0, onTime: p.reliability?.onTime ?? 0 } })) : [];
     return c.json({ recipients, partners });
+  });
+
+  /** What the agents told this person, newest first: the same words as WhatsApp, shown in the app. */
+  app.get("/me/updates", async (c) => {
+    const s = await signedIn(c, "donor", "ngo", "volunteer");
+    if (s instanceof Response) return s;
+    const mine = (await store.list("outbox", { to: s.phone })).sort((a, b) => b.createdAt - a.createdAt).slice(0, 20);
+    return c.json(mine.map((m) => ({ id: m.id, at: m.createdAt, text: m.text })));
+  });
+
+  /** The food photo for anyone in this share's delivery (restaurant, NGO, partner): from the checked listing. */
+  app.get("/shares/:id/photo", async (c) => {
+    const s = await signedIn(c, "donor", "ngo", "volunteer");
+    if (s instanceof Response) return s;
+    const share = await store.get("share", c.req.param("id"));
+    const askedMe = share && s.role === "volunteer" && (await store.list("partner", { phone: s.phone })).some((p) => p.id === share.askedPartnerId);
+    if (!share || !(askedMe || (await sideOf(s, share)))) return c.json({ error: "Not found." }, 404);
+    const l = await store.get("listing", share.listingId);
+    const src = l?.sourceListingId ? await foodListings.get(l.sourceListingId) : null;
+    const m = src?.photo.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+    if (!m) return c.json({ error: "No photo." }, 404);
+    c.header("Cache-Control", "private, max-age=3600");
+    return c.body(Buffer.from(m[2], "base64"), 200, { "Content-Type": m[1] });
   });
 
   /* ---------- restaurant (donor) ---------- */
@@ -292,7 +319,11 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
       // The pickup contact is only for the partner actually on the trip.
       const onTrip = !!sh.partnerId && mine.has(sh.partnerId);
       const pickupDetails = l && { address: l.pickupAddress, notes: l.pickupNotes, contact: onTrip ? (l.pickupContactPhone ?? l.donorPhone) : undefined };
-      out.push({ ...view(sh, "partner"), ...(await luna.track(sh, clock())), pickupDetails });
+      // how long to reach the restaurant from where this partner is, and then the NGO
+      const me = (await store.list("partner", { phone: s.phone }))[0];
+      const ngo = sh.ngoId ? await store.get("recipient", sh.ngoId) : null;
+      const travel = l && me ? { toPickupMin: Math.max(1, Math.round(etaMs(distanceKm(me, l), me.travel) / 60_000)), toDropMin: ngo ? Math.max(1, Math.round(etaMs(distanceKm(l, ngo), me.travel) / 60_000)) : null } : null;
+      out.push({ ...view(sh, "partner"), ...(await luna.track(sh, clock())), pickupDetails, travel, servings: sh.lines.reduce((n, x) => n + x.servings, 0), hasPhoto: !!l?.sourceListingId });
     }
     return c.json(out);
   });

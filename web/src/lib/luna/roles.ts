@@ -8,7 +8,9 @@ export function isRole(value: string): value is Role {
 
 export type DetailField =
   | { key: string; label: string; kind: "text"; placeholder: string; optional?: boolean }
-  | { key: string; label: string; kind: "choice"; options: string[] };
+  | { key: string; label: string; kind: "choice"; options: string[] }
+  /** The NGOs listed on Luna, plus "none"; `helpsKey` holds the "also deliver for other NGOs" opt-in. */
+  | { key: string; label: string; kind: "ngo"; helpsKey: string };
 
 export interface RoleMeta {
   id: Role;
@@ -121,6 +123,7 @@ export const ROLE_META: Record<Role, RoleMeta> = {
         kind: "choice",
         options: ["Two-wheeler", "Bicycle", "Car", "On foot", "Bus or metro"],
       },
+      { key: "affiliatedNgo", label: "Which NGO do you ride for?", kind: "ngo", helpsKey: "helpsOthers" },
     ],
     upcoming: [
       { title: "Nearby tasks", line: "Pickup, drop and time needed on one card." },

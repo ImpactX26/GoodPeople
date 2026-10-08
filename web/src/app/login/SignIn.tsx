@@ -30,6 +30,7 @@ import {
 import { ROLES, ROLE_META, type DetailField, type Role } from "@/lib/luna/roles";
 import { useHydrated } from "@/lib/luna/useHydrated";
 import s from "./signin.module.css";
+import { listNgos } from "@/lib/luna/ngoAgent";
 
 type Step = "role" | "phone" | "code" | "details" | "done";
 
@@ -559,7 +560,7 @@ function DetailsStep({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const gaps = meta.details
-      .filter((f) => !(f.kind === "text" && f.optional) && !(values[f.key] ?? "").trim())
+      .filter((f) => f.kind !== "ngo" && !(f.kind === "text" && f.optional) && !(values[f.key] ?? "").trim())
       .map((f) => f.key);
     if (gaps.length) {
       setMissing(gaps);
@@ -575,7 +576,10 @@ function DetailsStep({
       <p className={s.lede}>A few details, once. Takes about 20 seconds.</p>
       <div className={s.fields}>
         {meta.details.map((f) => (
-          <Field key={f.key} field={f} id={`${uid}-${f.key}`} value={values[f.key] ?? ""} onChange={(v) => set(f.key, v)} missing={missing.includes(f.key)} />
+          f.kind === "ngo"
+            ? <NgoField key={f.key} field={f} id={`${uid}-${f.key}`} value={values[f.key] ?? ""} helps={values[f.helpsKey] === "yes"}
+                onChange={(v) => { set(f.key, v); if (!v) set(f.helpsKey, ""); }} onHelps={(on) => set(f.helpsKey, on ? "yes" : "no")} />
+            : <Field key={f.key} field={f} id={`${uid}-${f.key}`} value={values[f.key] ?? ""} onChange={(v) => set(f.key, v)} missing={missing.includes(f.key)} />
         ))}
       </div>
       <Problem id={`${uid}-error`} message={missing.length ? "Fill in the marked lines to finish." : serverError} />
@@ -583,6 +587,30 @@ function DetailsStep({
         Finish sign-up
       </PrimaryButton>
     </form>
+  );
+}
+
+/** Which NGO a delivery partner rides for (from the NGOs listed on Luna), and whether they'll help others too. */
+function NgoField({ field, id, value, helps, onChange, onHelps }: {
+  field: Extract<DetailField, { kind: "ngo" }>; id: string; value: string; helps: boolean; onChange: (v: string) => void; onHelps: (on: boolean) => void;
+}) {
+  const [ngos, setNgos] = useState<{ ngo_id: string; name: string }[] | null>(null);
+  useEffect(() => { listNgos().then(setNgos, () => setNgos([])); }, []);
+  return (
+    <div className={s.field}>
+      <label htmlFor={id} className={s.fieldLabel}>{field.label}</label>
+      <select id={id} className={s.select} value={value} disabled={!ngos} onChange={(e) => onChange(e.target.value)}>
+        <option value="">No NGO: I help anyone nearby</option>
+        {(ngos ?? []).map((n) => <option key={n.ngo_id} value={n.ngo_id.replace(/^NGO-/, "")}>{n.name}</option>)}
+      </select>
+      {value && (
+        <label className={s.choice} data-on={helps} style={{ marginTop: 10 }}>
+          <input type="checkbox" checked={helps} onChange={(e) => onHelps(e.target.checked)} className={s.choiceRadio} />
+          <span className={s.tick} aria-hidden="true">{helps && <Check size={12} strokeWidth={3.5} />}</span>
+          Also deliver for other NGOs when they need help
+        </label>
+      )}
+    </div>
   );
 }
 
@@ -619,6 +647,7 @@ function Field({
     );
   }
 
+  if (field.kind === "ngo") return null;   // rendered by NgoField
   // Few options: printed tick boxes. Many (areas): a native picker.
   if (field.options.length <= 6) {
     return (

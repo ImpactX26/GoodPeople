@@ -15,6 +15,7 @@ import { answerOffer, answerRedirect, assignByHand, enterCode, fmtTime, ngoShare
 import DonorShell from "@/components/donor/DonorShell";
 import { Reasoning } from "@/components/donor/DonationTicket";
 import TodaySheet from "./TodaySheet";
+import { SharePhoto, Updates } from "@/components/agents/live-bits";
 import { GRADE_LABEL, modelName, servingsOf } from "@/components/donor/stages";
 import d from "@/components/donor/donor.module.css";
 import s from "./ngo.module.css";
@@ -127,6 +128,7 @@ export default function NgoHome({ session, fields: f }: { session: Session; fiel
       </>}>
       <div className={s.home}>
         <div className={s.work}>
+          <Updates />
           <section aria-labelledby="waiting-title" aria-live="polite" className={s.section}>
             <h2 id="waiting-title" className={s.heading}>Food waiting for you {waiting > 0 && <span className={s.count}>{waiting}</span>}</h2>
             {coming.length > 0 && waiting > 1 && (
@@ -322,6 +324,7 @@ function ShareOffer({ sh, redirect = false, now, onDone }: { sh: NgoShare; redir
   return (
     <OfferTicket title={`${servingsIn(sh)} × ${foodIn(sh)}`} from={redirect ? `Already on the way, from ${sh.donorName ?? "a restaurant"}` : `from ${sh.donorName ?? "a restaurant"}`}
       deadline={deadline} now={now} stampText={done || undefined}>
+      <SharePhoto shareId={sh.id} alt={`Photo of ${foodIn(sh)}`} />
       <dl className={d.leaders}>
         {arrive && <Pair k="Reaches you" v={`about ${fmtTime(arrive)}`} />}
         {worst && <Pair k="Grade" v={`${worst} · ${GRADE_LABEL[worst]}`} />}
@@ -371,7 +374,10 @@ function Coming({ sh, onDone }: { sh: NgoShare; onDone: () => Promise<void> }) {
         <div><h3>{title}</h3><p>from {sh.donorName ?? "a restaurant"}</p></div>
         <span className={s.ticketStamp}>{sh.status === "picked_up" ? "On the way" : sh.status === "assigned" ? "Partner coming" : "Accepted"}</span>
       </header>
+      {(t?.lateMin ?? 0) > 5 && <p className={s.lateNote} role="status">{p ?? "The partner"} is about {t!.lateMin} min late. New arrival about {t?.eta ? fmtTime(t.eta) : "soon"}; the food is still safe.</p>}
       <p className={s.nowLine}><b>{nowLine}</b> {nextLine}</p>
+      {p && t?.partner?.rating && <p className={d.note}>{p} · reliability {t.partner.rating}</p>}
+      <SharePhoto shareId={sh.id} alt={`Photo of ${foodIn(sh)}`} />
       {sh.status === "finding_partner" && <SelfCollect id={sh.id} onDone={onDone} />}
       {t?.partner?.manual && <ManualCodes id={sh.id} status={sh.status} onDone={onDone} />}
       {sh.dropCode && (

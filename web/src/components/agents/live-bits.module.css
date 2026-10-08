@@ -1,0 +1,93 @@
+/* Shared live pieces for every role's home (Kitchen Ticket): the food photo and the updates slip. */
+
+.photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: var(--slot);
+}
+
+.photo[data-tall="true"] {
+  aspect-ratio: 4 / 3;
+}
+
+.photo[data-empty] {
+  background: repeating-linear-gradient(-45deg, var(--paper-shade) 0 6px, var(--paper) 6px 12px);
+}
+
+.updates {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+}
+
+/* a new update prints reversed until it's been read */
+.updates[data-fresh="true"] .latest {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.updates[data-fresh="true"] .when {
+  color: #cfcec7;
+}
+
+.latest {
+  display: grid;
+  grid-template-columns: 16px auto 1fr;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0;
+  padding: 12px 14px;
+  font: 15px/1.45 var(--font-note);
+}
+
+.latest svg {
+  align-self: center;
+}
+
+.when {
+  font: 700 12px var(--font-print);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.more summary {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.35);
+  font: 700 11px var(--font-print);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.more summary::-webkit-details-marker {
+  display: none;
+}
+
+.more summary svg {
+  margin-left: auto;
+}
+
+.more ol {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 10px;
+}
+
+.more li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.2);
+  font: 14px/1.4 var(--font-note);
+  color: var(--ink-soft);
+}

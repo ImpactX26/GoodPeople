@@ -14,6 +14,17 @@ import type { Diet } from "./types.ts";
 
 const servings = (l: FoodListing) => l.assessment?.servings ?? l.count * l.feedsEach;
 
+/** What the partner carries: food boxes when the restaurant asked them to bring them (about 10 servings per
+ * 5 L box), otherwise just a carry bag for the restaurant's sealed packs. */
+export function containersFor(l: FoodListing): string[] {
+  const n = servings(l);
+  if (l.containers === "partner_brings") {
+    const boxes = Math.max(1, Math.ceil(n / 10));
+    return [`${boxes} food box${boxes === 1 ? "" : "es"} (5 L each)`, `${Math.max(1, Math.ceil(boxes / 3))} carry bag${boxes > 3 ? "s" : ""}`];
+  }
+  return [`${Math.max(1, Math.ceil(n / 15))} carry bag${n > 15 ? "s" : ""} (the food comes packed)`];
+}
+
 /** The Food Passport for one checked listing: one item (the dish) with its grade, safe time and tags. */
 export function passportFrom(l: FoodListing, now: number): NewListing {
   const check = l.foodCheck, safeUntil = l.assessment?.safeUntil ?? check?.safeUntil ?? now;
@@ -23,7 +34,7 @@ export function passportFrom(l: FoodListing, now: number): NewListing {
     donorPhone: l.donorPhone, donorName: l.donorName, areaId: area, lat: l.pickup.lat, lng: l.pickup.lng,
     pickupAddress: l.pickup.address, pickupNotes: l.pickup.notes || undefined, pickupContactPhone: l.contactPhone,
     readyFrom: Math.max(now, l.readyFrom), collectBy: Math.max(now, l.collectBy), storage: l.storage, cookedAt: l.cookedAt,
-    containers: l.containers === "partner_brings" ? [`Food containers for ${servings(l)} servings`] : [],
+    containers: containersFor(l),
     sourceListingId: l.id,
     items: [{
       id: "i1", name: l.dish, category: l.category ?? "cooked_meal", servings: servings(l),

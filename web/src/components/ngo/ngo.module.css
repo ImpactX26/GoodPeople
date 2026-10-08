@@ -951,3 +951,12 @@
   font: 13px var(--font-note);
   color: var(--ink-soft);
 }
+
+.lateNote {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--ink-red-soft);
+  border: 2px solid var(--ink-red);
+  color: #8d1712;
+  font: 600 15px/1.4 var(--font-note);
+}

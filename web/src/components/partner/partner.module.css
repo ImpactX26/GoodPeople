@@ -212,3 +212,73 @@
   font: 600 17px/1.4 var(--font-note);
   color: var(--ink);
 }
+
+.travel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin: 0;
+  font: 15px/1.4 var(--font-note);
+}
+
+.travel b {
+  font: 800 20px/1 var(--font-print);
+  font-variant-numeric: tabular-nums;
+}
+
+/* what to carry: printed boxed, because forgetting containers wastes the trip */
+.bring {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid var(--ink);
+  font: 600 17px/1.35 var(--font-note);
+}
+
+.bring b {
+  font: 700 11px/1.3 var(--font-print);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.lateBanner {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--ink-red-soft);
+  border: 2px solid var(--ink-red);
+  color: #8d1712;
+  font: 600 15px/1.4 var(--font-note);
+}
+
+.relScore {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+
+.relScore b {
+  font: 800 40px/1 var(--font-print);
+  font-variant-numeric: tabular-nums;
+}
+
+.relScore span {
+  font: 700 14px var(--font-print);
+  color: var(--ink-soft);
+}
+
+.helps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font: 15px/1.4 var(--font-note);
+}
+
+.helps input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--ink);
+}

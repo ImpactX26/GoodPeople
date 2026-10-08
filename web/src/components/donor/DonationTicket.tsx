@@ -13,6 +13,7 @@ import PhotoCanvas from "./PhotoCanvas";
 import DonorShell from "./DonorShell";
 import { GRADE_LABEL, GRADE_MEANING, leadShare, modelName, servingsOf, stagesOf, type Stage } from "./stages";
 import { keepRelist, tagLine } from "./relist";
+import { Updates } from "@/components/agents/live-bits";
 import s from "./donor.module.css";
 
 /** Live view of one donation: a ticket with a coupon per stage that stamps as it completes. */
@@ -50,6 +51,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
             </div>
           </div>
           <div className={s.resultCol}>
+          {l.agentCase && <Updates />}
           {l.foodCheck && <TagSlip l={l} session={session} onChange={setL} />}
           {l.foodCheck ? <Verdict l={l} /> : (
             <section className={s.verdict} data-pending aria-live="polite">

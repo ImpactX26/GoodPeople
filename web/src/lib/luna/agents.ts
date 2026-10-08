@@ -2,7 +2,7 @@
  * Calls to Luna's agents (Food, NGO, Logistics, Decision) on the API.
  * Shapes mirror api/src/matching/types.ts; only the fields screens use.
  */
-import { api } from "./api";
+import { api, API_URL } from "./api";
 import { getSession } from "./auth";
 
 const token = () => getSession()?.token ?? null;
@@ -92,8 +92,10 @@ export interface Track {
   status: ShareStatus;
   pickup: { name: string; lat: number; lng: number };
   drop: { name: string; lat: number; lng: number } | null;
-  partner: { name: string; lat: number; lng: number; manual: boolean } | null;
+  partner: { name: string; lat: number; lng: number; manual: boolean; rating?: string | null } | null;
   eta: number | null;
+  /** Minutes behind the arrival promised when the partner was assigned. */
+  lateMin?: number;
   containers: string[];
   keepReady: string;
 }
@@ -107,7 +109,20 @@ export const track = (shareId: string) => get<Track>(`/shares/${shareId}/track`)
 
 /** NGO and partner: which sample NGO or partner this phone stands in for. */
 export const linked = (refresh = false) =>
-  get<{ recipients: { id: string; name: string }[]; partners: { id: string; name: string; online: boolean; ngoId?: string }[] }>(`/linked${refresh ? "?refresh=1" : ""}`);
+  get<{ recipients: { id: string; name: string }[]; partners: LinkedPartner[] }>(`/linked${refresh ? "?refresh=1" : ""}`);
+export interface LinkedPartner {
+  id: string; name: string; online: boolean; ngoId?: string; helpsOthers?: boolean;
+  reliability?: { line: string; score: number | null; trips: number; onTime: number };
+}
+
+/** What the agents told me, newest first (the same words WhatsApp would carry). */
+export const myUpdates = () => get<{ id: string; at: number; text: string }[]>("/me/updates");
+
+/** The food photo for a share, loaded with my sign-in (img tags can't send it). */
+export async function sharePhoto(shareId: string): Promise<string | null> {
+  const res = await fetch(`${API_URL}/agents/shares/${shareId}/photo`, { headers: { Authorization: `Bearer ${token() ?? ""}` } });
+  return res.ok ? URL.createObjectURL(await res.blob()) : null;
+}
 
 /** NGO */
 export type NgoShare = Share & { donorName?: string; food: (Partial<Item> & { servings: number })[] };
@@ -118,7 +133,13 @@ export const assignByHand = (id: string, name: string, phone?: string) => post(`
 export const sendFeedback = (id: string, result: "fewer" | "right" | "more") => post(`/shares/${id}/feedback`, { result });
 
 /** Delivery partner */
-export type Trip = Share & Track & { pickupDetails?: { address: string; notes?: string; contact?: string } };
+export type Trip = Share & Track & {
+  pickupDetails?: { address: string; notes?: string; contact?: string };
+  /** From this partner to the restaurant, then on to the NGO. */
+  travel?: { toPickupMin: number; toDropMin: number | null } | null;
+  servings?: number;
+  hasPhoto?: boolean;
+};
 export const myTrips = () => get<Trip[]>("/trips");
 export const setOnline = (online: boolean, pos?: { lat: number; lng: number }) => post("/partner/online", { online, ...pos });
 export const answerTrip = (id: string, accept: boolean) => post(`/trips/${id}/${accept ? "accept" : "decline"}`);

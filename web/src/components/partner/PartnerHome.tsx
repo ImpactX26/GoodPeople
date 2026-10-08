@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ChevronDown, Clock, LogOut, Map as MapIcon, Navigation, Phone, Truck, X } from "lucide-react";
 import { formatPhone, getProfile, signOut, updateProfile, type Session } from "@/lib/luna/auth";
-import { answerTrip, enterCode, fmtTime, linked, myTrips, runningLate, sendLocation, setOnline, type Trip } from "@/lib/luna/agents";
+import { answerTrip, enterCode, fmtTime, linked, myTrips, runningLate, sendLocation, setOnline, type LinkedPartner, type Trip } from "@/lib/luna/agents";
 import { listNgos, type Ngo } from "@/lib/luna/ngoAgent";
 import { usePoll } from "@/lib/luna/usePoll";
 import { stamp } from "@/components/ticket/Ticket";
 import DonorShell from "@/components/donor/DonorShell";
 import HomeActivity from "@/components/listing/HomeActivity";
+import { SharePhoto, Updates } from "@/components/agents/live-bits";
 import d from "@/components/donor/donor.module.css";
 import n from "@/components/ngo/ngo.module.css";
 import s from "./partner.module.css";
@@ -69,6 +70,7 @@ export default function PartnerHome({ session, fields: f }: { session: Session; 
       right={<span className={s.barState} data-on={online}>{online ? "Online" : "Offline"}</span>}>
       <div className={n.home}>
         <div className={n.work}>
+          <Updates />
           {live.map((t) => <TripSlip key={t.id} trip={t} onDone={trips.reload} />)}
 
           {live.length === 0 && (
@@ -106,8 +108,16 @@ export default function PartnerHome({ session, fields: f }: { session: Session; 
             </div>
             {live.length > 0 && <p className={d.note}>Finish your trip before going offline.</p>}
             {problem && <p className={d.barError} role="alert">{problem}</p>}
-            <RideFor session={session} ngoId={me[0]?.ngoId} onSaved={() => void link.reload()} />
+            <RideFor session={session} me={me[0]} onSaved={() => void link.reload()} />
           </section>
+
+          {me[0]?.reliability && (
+            <section className={n.card} aria-labelledby="rel-title">
+              <h2 id="rel-title" className={n.heading}>Your reliability</h2>
+              <p className={s.relScore}>{me[0].reliability.score !== null && me[0].reliability.trips > 0 ? <><b>{me[0].reliability.score.toFixed(1)}</b><span>/ 5</span></> : <b>New</b>}</p>
+              <p className={d.note}>{me[0].reliability.line}. On-time trips raise it; a late trip lowers it as it happens, less if you tap “Running late” early.</p>
+            </section>
+          )}
 
           <section className={n.card} aria-labelledby="done-title">
             <h2 id="done-title" className={n.heading}>Delivered {done.length > 0 && <span className={n.count}>{done.length}</span>}</h2>
@@ -159,17 +169,24 @@ function Ask({ trip: t, now, onDone }: { trip: Trip; now: number; onDone: () => 
   return (
     <article className={n.offer} aria-label={`Pickup request: ${t.keepReady}`}>
       {done && <span className={n.stampBig} aria-hidden>{done}</span>}
+      {t.hasPhoto && <SharePhoto shareId={t.id} alt={`Photo of ${t.keepReady}`} />}
       <header className={n.offerHead}>
-        <div><h3>{t.keepReady}</h3></div>
+        <div><h3>{t.keepReady}</h3>{t.servings ? <p>{t.servings} servings to deliver</p> : null}</div>
         <span className={n.timer} data-low={left < 60} role="timer" aria-label={`${Math.floor(left / 60)} minutes ${left % 60} seconds left to accept`}>
           <b>{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</b><span>left to accept</span>
         </span>
       </header>
+      {t.travel && (
+        <p className={s.travel}>
+          <span><b>{t.travel.toPickupMin} min</b> to the restaurant</span>
+          {t.travel.toDropMin !== null && <span><b>{t.travel.toDropMin} min</b> on to the NGO</span>}
+        </p>
+      )}
       <dl className={s.places}>
         <div><dt>Collect from</dt><dd>{t.pickup.name}</dd></div>
-        <div><dt>Drop at</dt><dd>{t.drop?.name ?? "an NGO"}{t.eta ? `, about ${fmtTime(t.eta)}` : ""}</dd></div>
-        {t.containers.length > 0 && <div><dt>Bring</dt><dd>{t.containers.join(", ")}</dd></div>}
+        <div><dt>Drop at</dt><dd>{t.drop?.name ?? "an NGO"}</dd></div>
       </dl>
+      {t.containers.length > 0 && <p className={s.bring}><b>Bring</b>{t.containers.join(" + ")}</p>}
       {problem && <p className={d.barError} role="alert">{problem}</p>}
       <div className={n.answer}>
         <button type="button" className={n.accept} disabled={busy || !!done} onClick={() => void answer(true)}><Check size={22} strokeWidth={3} aria-hidden /> {busy ? "Accepting…" : "Accept pickup"}</button>
@@ -217,14 +234,17 @@ function TripSlip({ trip: t, onDone }: { trip: Trip; onDone: () => void }) {
         <li data-state={atPickup ? "now" : "done"}><span>{atPickup ? "1" : <Check size={14} strokeWidth={3} aria-hidden />}</span>Collect</li>
         <li data-state={atPickup ? "next" : "now"}><span>2</span>Drop</li>
       </ol>
+      {(t.lateMin ?? 0) > 5 && <p className={s.lateBanner} role="status">About {t.lateMin} min behind. The NGO and the restaurant have been told.</p>}
+      {t.hasPhoto && atPickup && <SharePhoto shareId={t.id} alt={`Photo of ${t.keepReady}`} />}
       <h2 id={`slip-${t.id}`} className={s.slipTitle}>{atPickup ? `Collect from ${t.pickup.name}` : `Drop at ${t.drop?.name ?? "the NGO"}`}</h2>
       <p className={s.slipFood}>{t.keepReady}</p>
       <dl className={s.places}>
         {atPickup && t.pickupDetails?.address && <div><dt>Address</dt><dd>{t.pickupDetails.address}</dd></div>}
         {atPickup && t.pickupDetails?.notes && <div><dt>Note</dt><dd>{t.pickupDetails.notes}</dd></div>}
-        {atPickup && t.containers.length > 0 && <div><dt>Bring</dt><dd>{t.containers.join(", ")}</dd></div>}
+
         {!atPickup && t.eta && <div><dt>Arrive about</dt><dd>{fmtTime(t.eta)}</dd></div>}
       </dl>
+      {atPickup && t.containers.length > 0 && <p className={s.bring}><b>Bring</b>{t.containers.join(" + ")}</p>}
       <div className={s.slipActions}>
         {target && <a className={n.pass} href={directions(target.lat, target.lng)} target="_blank" rel="noreferrer"><Navigation size={18} aria-hidden /> Directions</a>}
         {atPickup && t.pickupDetails?.contact && <a className={n.pass} href={`tel:+91${t.pickupDetails.contact}`}><Phone size={18} aria-hidden /> Call</a>}
@@ -245,14 +265,15 @@ function TripSlip({ trip: t, onDone }: { trip: Trip; onDone: () => void }) {
 }
 
 /** Which NGO this partner rides for: its pickups come to them first. */
-function RideFor({ session, ngoId, onSaved }: { session: Session; ngoId?: string; onSaved: () => void }) {
+function RideFor({ session, me, onSaved }: { session: Session; me?: LinkedPartner; onSaved: () => void }) {
+  const ngoId = me?.ngoId;
   const [ngos, setNgos] = useState<Ngo[] | null>(null), [busy, setBusy] = useState(false), [msg, setMsg] = useState("");
   useEffect(() => { listNgos().then(setNgos, () => setNgos([])); }, []);
-  const save = async (value: string) => {
+  const save = async (value: string, helps = me?.helpsOthers === true) => {
     setBusy(true); setMsg("");
     try {
       const fields = getProfile(session.role, session.phone)?.fields ?? {};
-      await updateProfile(session, { ...fields, affiliatedNgo: value });
+      await updateProfile(session, { ...fields, affiliatedNgo: value, helpsOthers: helps ? "yes" : "no" });
       await linked(true); onSaved();
       setMsg(value ? "Saved. That NGO’s pickups come to you first." : "Saved. You get pickups from any NGO near you.");
     } catch (e) { setMsg((e as Error).message); } finally { setBusy(false); }
@@ -263,6 +284,12 @@ function RideFor({ session, ngoId, onSaved }: { session: Session; ngoId?: string
         <option value="">No NGO: I help anyone nearby</option>
         {(ngos ?? []).map((g) => <option key={g.ngo_id} value={g.ngo_id.replace(/^NGO-/, "")}>{g.name}</option>)}
       </select>
+      {ngoId && (
+        <span className={s.helps}>
+          <input type="checkbox" checked={me?.helpsOthers === true} disabled={busy} onChange={(e) => void save(ngoId.replace(/^NGO-/, ""), e.target.checked)} />
+          <span>Also deliver for other NGOs when they need help</span>
+        </span>
+      )}
       {msg && <small role="status">{msg}</small>}
     </label>
   );

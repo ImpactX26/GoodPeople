@@ -108,6 +108,8 @@ export async function syncDirectory(store: MatchingStore, opts: { ngoServiceUrl?
       // Online is the partner's own toggle (POST /agents/partner/online); a new partner starts offline.
       online: existing?.online ?? false,
       ngoId: ngoPhone ? recipientIdFor(ngoPhone) : undefined,
+      helpsOthers: ngoPhone ? f.helpsOthers === "yes" : undefined,   // opt-in at sign-up
+      reliability: existing?.reliability,
       activeShareId: existing?.activeShareId, source: "volunteer",
     };
     await store.put("partner", partner);

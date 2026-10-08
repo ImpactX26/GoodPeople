@@ -34,6 +34,7 @@ import {
 } from "./runtime.ts";
 import { areaById } from "./seed.ts";
 import { fmtMinutes, fmtTime } from "./time.ts";
+import { reliabilityLine } from "./reliability.ts";
 import type { DecisionKind, LatLng, Listing, Partner, Recipient, Share } from "./types.ts";
 import type { SharePlan } from "./ngo-agent.ts";
 import * as msg from "./whatsapp/templates.ts";
@@ -112,7 +113,8 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const until = safeUntilOf(l, share.lines);
     return usable(await store.list("partner"))
       .filter((p) => p.online && !p.manual && (!p.activeShareId || p.activeShareId === share.id))
-      .filter((p) => !share.triedPartnerIds.includes(p.id) && (!p.ngoId || p.ngoId === ngo.id))
+      // its own riders, independents, and other NGOs' riders who said they'll help others too
+      .filter((p) => !share.triedPartnerIds.includes(p.id) && (!p.ngoId || p.ngoId === ngo.id || p.helpsOthers))
       .map((p) => {
         const toPickup = etaMs(distanceKm(p, l), p.travel);
         const leg = legFor(ngo, l, { pos: p, startAt: now, travel: p.travel, pickedUp: false });
@@ -541,7 +543,8 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       status: share.status,
       pickup: { name: l.donorName, lat: l.lat, lng: l.lng },
       drop: ngo ? { name: ngo.name, lat: ngo.lat, lng: ngo.lng } : null,
-      partner: p && share.partnerId ? { name: p.name, lat: share.lastPos?.lat ?? p.lat, lng: share.lastPos?.lng ?? p.lng, manual: !!p.manual } : null,
+      partner: p && share.partnerId ? { name: p.name, lat: share.lastPos?.lat ?? p.lat, lng: share.lastPos?.lng ?? p.lng, manual: !!p.manual, rating: p.manual ? null : reliabilityLine(p.reliability) } : null,
+      lateMin: share.promisedArrival && leg ? Math.max(0, Math.round((leg.arrival - share.promisedArrival) / 60_000)) : 0,
       eta: leg?.arrival ?? null,
       containers: l.containers,
       keepReady: keepReady(l, share.lines),
