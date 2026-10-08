@@ -266,6 +266,8 @@ export interface Share {
   promisedArrival?: number;
   /** Minutes behind the promised arrival at the last notice, and whether the partner warned first. */
   lateNoticeMin?: number;
+  /** When the Decision Agent last told everyone about a delay the partner reported (so the ETA check doesn't repeat it). */
+  lateToldAt?: number;
   lateReported?: boolean;
   lastEtaCheckAt?: number;
   /** Accepted, but no partner was free: since when it has been waiting, and when it last looked. */

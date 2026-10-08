@@ -64,6 +64,7 @@ function describe(e: LogisticsEvent): string | null {
     case "picked_up": return `${e.partner.name} picked it up`;
     case "delivered": return `Delivered to ${e.ngo.name}`;
     case "unplaced": return "Every NGO lined up passed";
+    case "late_reported": return `${e.partner.name} says they're running about ${e.minutes} min late`;
     case "behind_schedule": return `Running behind for ${e.ngo.name}`;
     case "unsafe_delay": return "This delay would make the food unsafe by serving time";
     case "redirect_failed": return "Couldn't redirect to a closer NGO";

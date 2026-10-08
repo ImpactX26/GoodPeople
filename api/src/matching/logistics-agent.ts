@@ -47,6 +47,8 @@ export type LogisticsEvent =
   | { type: "delivered"; share: Share; ngo: Recipient; partner: Partner }
   /** Every candidate NGO passed: the Decision Agent should re-plan these servings. */
   | { type: "unplaced"; share: Share }
+  /** The partner tapped "Running late": the Decision Agent tells the NGO and (before pickup) the restaurant. */
+  | { type: "late_reported"; share: Share; ngo: Recipient; partner: Partner; minutes: number; arrival: number; pickupAt: number | null; safe: boolean }
   /** Late, but the food is still safe when served. */
   | { type: "behind_schedule"; share: Share; ngo: Recipient; arrival: number }
   /** Progress the Decision Agent passes on to everyone involved (spec §14.3). */
@@ -553,8 +555,17 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const next = { ...g.share, delayUntil, lateReported: true };
     await store.put("share", next);
     await decide(now, "delayed", g.p.id, `${g.p.name} says they're running late (about ${fmtMinutes(delayUntil - now)} more).`, next.listingId, { shareId });
-    await watch(next, now, true);
-    return ok("Thanks for telling us. We'll let the NGO know or find a closer drop.");
+    // Hand it to the Decision Agent with the new times, so the NGO and the restaurant hear it straight away.
+    if (next.ngoId && !next.held && !next.redirect) {
+      const l = await rt.mustGet("listing", next.listingId);
+      const ngo = await rt.mustGet("recipient", next.ngoId);
+      const origin = originOf(next, g.p, l, now);
+      const leg = legFor(ngo, l, origin);
+      const pickupAt = next.status === "assigned" ? Math.max(origin.startAt + etaMs(distanceKm(origin.pos, l), g.p.travel), l.readyFrom) : null;
+      await deps.emit({ type: "late_reported", share: next, ngo, partner: g.p, minutes: Math.round((delayUntil - now) / 60_000), arrival: leg.arrival, pickupAt, safe: leg.serveTime <= safeUntilOf(l, next.lines) }, now);
+    }
+    await watch((await store.get("share", shareId)) ?? next, now, true);
+    return ok("Thanks for telling us. Luna has let the NGO and the restaurant know.");
   }
 
   async function location(shareId: string, pos: LatLng, by: Actor, now: number, fix: { accuracyM?: number; speedMps?: number | null; heading?: number | null } = {}): Promise<Result> {

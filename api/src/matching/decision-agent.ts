@@ -283,6 +283,21 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
         }
         break;
       }
+      case "late_reported": {
+        // The partner warned us: the NGO hears the new arrival, the restaurant the new pickup time if it's not
+        // collected yet, and the partner who was told. If the food wouldn't stay safe, the redirect takes over.
+        if (!e.safe) break;
+        const food = foodOf(l, e.share.lines);
+        const lateMin = e.share.promisedArrival ? Math.max(e.minutes, Math.round((e.arrival - e.share.promisedArrival) / 60_000)) : e.minutes;
+        const told = [e.ngo.name, ...(e.pickupAt ? [l.donorName] : [])];
+        await store.put("share", { ...((await store.get("share", e.share.id)) ?? e.share), lateToldAt: now });   // so the ETA check doesn't repeat it
+        await decide(now, "delayed", e.share.id, `${e.partner.name} warned they're running about ${lateMin} min late: ${e.pickupAt ? `pickup about ${fmtTime(e.pickupAt)}, ` : ""}arrival at ${e.ngo.name} about ${fmtTime(e.arrival)}. The food stays safe. Told ${told.join(" and ")}.`, l.id, { shareId: e.share.id, lateMin, reported: true });
+        await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.text(`${e.partner.name} is running about ${lateMin} min late with the ${food}. It now reaches you about ${fmtTime(e.arrival)}, and it's still safe to serve.`));
+        if (e.pickupAt) await rt.toDonor(now, l, `${e.partner.name} is running about ${lateMin} min late and now reaches you about ${fmtTime(e.pickupAt)}. Please keep the ${food} ready.`);
+        else await rt.toDonor(now, l, `Your ${food} is running about ${lateMin} min late to ${e.ngo.name}, arriving about ${fmtTime(e.arrival)}. It's still safe.`);
+        if (!e.partner.manual) await rt.send(now, e.partner.phone, `partner:${e.partner.id}`, msg.text(`Thanks for the heads-up. ${told.join(" and ")} ${told.length > 1 ? "know" : "knows"} you're about ${lateMin} min behind.`));
+        break;
+      }
       case "behind_schedule":
         await decide(now, "delayed", e.share.id, `The partner is behind schedule but the food still reaches ${e.ngo.name} safely (about ${fmtTime(e.arrival)}).`, l.id, { shareId: e.share.id });
         await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.text(`The delivery partner is running a little late. New arrival time: about ${fmtTime(e.arrival)}.`));
@@ -353,6 +368,8 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
       }
     }
 
+    // Everyone heard about this delay from the partner's own warning a moment ago: don't tell them twice.
+    if (share.lateToldAt && now - share.lateToldAt < 5 * 60_000) return;
     const was = fmtTime(share.promisedArrival);
     await decide(now, "delayed", share.id, `${partner.name} is about ${lateMin} min behind${reported ? " (they warned us)" : ""}: ${share.status === "assigned" ? `pickup now about ${fmtTime(pickupAt ?? now)}, ` : ""}arrival at ${ngoName} about ${fmtTime(arrival)} instead of ${was}. The food stays safe until ${until}. Told ${ngoName}, ${l.donorName} and ${partner.name}.`, l.id, { shareId: share.id, lateMin });
     await rt.send(now, ngoPhone, `recipient:${ngoId}`, msg.text(`${partner.name} is running about ${lateMin} min late. The ${food} now reaches you about ${fmtTime(arrival)} (was ${was}). It's still safe to serve.`));

@@ -134,3 +134,19 @@ test("only one NGO and nobody takes the pickup: its hold still ends at 30 minute
   const { leftoverOf } = await import("../../src/matching/biogas.ts");
   assert.ok((await leftoverOf(store, (await store.get("listing", l.id))!)).servings > 0, "it's the restaurant's to send elsewhere (biogas) now");
 });
+
+test("the partner taps Running late: the Decision Agent tells the NGO, the restaurant and the partner, once", async () => {
+  const { luna, share, texts, store, l } = await setup([recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) })], [partner({ id: "p1", phone: ME, ...east(KORAMANGALA, 0.5) })]);
+  const s = await share();
+  await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+  await luna.partnerReply(s.id, true, { phone: ME }, at(12, 2));
+  assert.ok((await luna.late(s.id, { phone: ME }, at(12, 3))).ok);
+  const ngoHeard = (await texts(NGO1)).filter((t) => /running about \d+ min late/.test(t));
+  const donorHeard = (await texts(l.donorPhone)).filter((t) => /running about \d+ min late/.test(t));
+  assert.equal(ngoHeard.length, 1, "the NGO is told");
+  assert.equal(donorHeard.length, 1, "the restaurant is told (not collected yet)");
+  assert.ok((await texts(ME)).some((t) => /Thanks for the heads-up/.test(t)));
+  assert.ok((await store.list("decision", { listingId: l.id })).some((d) => d.agent === "decision" && d.kind === "delayed" && /warned/.test(d.reason)));
+  await luna.tick(at(12, 4));
+  assert.equal((await texts(NGO1)).filter((t) => /running about \d+ min late/.test(t)).length, 1, "not told twice");
+});
