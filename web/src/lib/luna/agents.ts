@@ -120,10 +120,17 @@ export interface LinkedPartner {
 /** What the agents told me, newest first (the same words WhatsApp would carry). */
 export const myUpdates = () => get<{ id: string; at: number; text: string }[]>("/me/updates");
 
-/** The food photo for a share, loaded with my sign-in (img tags can't send it). */
-export async function sharePhoto(shareId: string): Promise<string | null> {
-  const res = await fetch(`${API_URL}/agents/shares/${shareId}/photo`, { headers: { Authorization: `Bearer ${token() ?? ""}` } });
+/** One of a share's food photos (`i`: which food), loaded with my sign-in (img tags can't send it). */
+export async function sharePhoto(shareId: string, i = 0): Promise<string | null> {
+  const res = await fetch(`${API_URL}/agents/shares/${shareId}/photo?i=${i}`, { headers: { Authorization: `Bearer ${token() ?? ""}` } });
   return res.ok ? URL.createObjectURL(await res.blob()) : null;
+}
+
+/** Which photos a share has: one per food in the listing, with the food's name. */
+export async function sharePhotoList(shareId: string): Promise<{ i: number; dish: string }[]> {
+  const res = await fetch(`${API_URL}/agents/shares/${shareId}/photos`, { headers: { Authorization: `Bearer ${token() ?? ""}` } });
+  if (!res.ok) return [{ i: 0, dish: "" }];   // an older server: just the one photo
+  return ((await res.json()) as { photos: { i: number; dish: string }[] }).photos;
 }
 
 /** NGO */

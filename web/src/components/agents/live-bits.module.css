@@ -12,6 +12,157 @@
   aspect-ratio: 4 / 3;
 }
 
+/* The photo box: the first food's photo, and a printed chip saying there are more. Tap opens the album. */
+.photoBox {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--slot);
+  cursor: zoom-in;
+}
+
+/* more than one photo: the next print peeks out underneath, like a second slip on the spike */
+.photoBox[data-many] {
+  margin-bottom: 6px;
+}
+
+.photoBox[data-many]::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -6px;
+  height: 6px;
+  background: var(--slot-lip);
+}
+
+.photoChip {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 700 11px/1 var(--font-print);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.photoBox:hover .photoChip,
+.photoBox:focus-visible .photoChip {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.photoBox:focus-visible {
+  outline: 2px dashed var(--ink);
+  outline-offset: 3px;
+}
+
+/* The album: every photo, scrolling down inside the offer (capped, so Accept stays in reach). */
+.album {
+  display: flex;
+  flex-direction: column;
+  background: var(--slot);
+  color: var(--paper);
+}
+
+.albumBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 6px 6px 12px;
+  font: 700 11px/1.2 var(--font-print);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.albumBar button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1.5px solid var(--paper);
+  background: transparent;
+  color: var(--paper);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.albumBar button:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.albumBar button:focus-visible {
+  outline: 2px dashed var(--paper);
+  outline-offset: 2px;
+}
+
+.albumList {
+  max-height: min(68svh, 620px);
+  margin: 0;
+  padding: 0 6px 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
+  list-style: none;
+  scrollbar-color: var(--ink-faded) transparent;
+  animation: albumOpen 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.albumList li {
+  scroll-snap-align: start;
+}
+
+.albumList li + li {
+  margin-top: 6px;
+}
+
+.albumList figure {
+  margin: 0;
+}
+
+.albumList img {
+  display: block;
+  width: 100%;
+  max-height: min(60svh, 560px);
+  object-fit: contain;
+  background: #000;
+}
+
+.albumList figcaption {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 6px 4px;
+  font: 600 15px/1.35 var(--font-note);
+}
+
+.albumList figcaption b {
+  font: 800 12px/1 var(--font-print);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+@keyframes albumOpen {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .albumList { animation: none; }
+}
+
 .photo[data-empty] {
   background: repeating-linear-gradient(-45deg, var(--paper-shade) 0 6px, var(--paper) 6px 12px);
 }

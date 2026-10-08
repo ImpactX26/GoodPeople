@@ -1,22 +1,71 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Bell, ChevronDown } from "lucide-react";
-import { fmtTime, myUpdates, sharePhoto } from "@/lib/luna/agents";
+import { useEffect, useId, useState } from "react";
+import { Bell, ChevronDown, Images, Maximize2, Minimize2 } from "lucide-react";
+import { fmtTime, myUpdates, sharePhoto, sharePhotoList } from "@/lib/luna/agents";
 import { useNow, usePoll } from "@/lib/luna/usePoll";
 import s from "./live-bits.module.css";
 
-/** The food photo for a share; anyone in its delivery (restaurant, NGO, partner) can see it. */
+/**
+ * The food photos for a share (one per food); anyone in its delivery (restaurant, NGO, partner) can see them.
+ * The box shows the first; tapping it opens an album right there that scrolls down through every photo,
+ * each named, and stays inside the offer so the Accept bar is never pushed out of reach.
+ */
 export function SharePhoto({ shareId, alt, tall = false }: { shareId: string; alt: string; tall?: boolean }) {
-  const [src, setSrc] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<{ dish: string; src: string | null }[] | null>(null);
+  const [open, setOpen] = useState(false);
+  const albumId = useId();
   useEffect(() => {
-    let url: string | null = null, live = true;
-    sharePhoto(shareId).then((u) => { url = u; if (live) setSrc(u); }, () => {});
-    return () => { live = false; if (url) URL.revokeObjectURL(url); };
+    const urls: string[] = [];
+    let live = true;
+    (async () => {
+      const list = await sharePhotoList(shareId).catch(() => [{ i: 0, dish: "" }]);
+      const loaded = await Promise.all(list.map(async (p) => {
+        const src = await sharePhoto(shareId, p.i).catch(() => null);
+        if (src) urls.push(src);
+        return { dish: p.dish, src };
+      }));
+      if (live) setPhotos(loaded.filter((p) => p.src));
+    })();
+    return () => { live = false; urls.forEach((u) => URL.revokeObjectURL(u)); };
   }, [shareId]);
-  if (!src) return <div className={s.photo} data-tall={tall} data-empty aria-hidden />;
-  // eslint-disable-next-line @next/next/no-img-element -- a blob URL from an authorised fetch
-  return <img className={s.photo} data-tall={tall} src={src} alt={alt} />;
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [open]);
+
+  if (!photos?.length) return <div className={s.photo} data-tall={tall} data-empty aria-hidden />;
+  const many = photos.length > 1;
+  const name = (p: { dish: string }, i: number) => p.dish || (many ? `Photo ${i + 1}` : alt);
+  if (open) return (
+    <section className={s.album} id={albumId} aria-label={`${photos.length} food photo${many ? "s" : ""}`}>
+      <header className={s.albumBar}>
+        <span>{many ? `${photos.length} photos · scroll for all` : "Photo"}</span>
+        <button type="button" onClick={() => setOpen(false)} aria-controls={albumId}><Minimize2 size={16} aria-hidden /> Close</button>
+      </header>
+      <ol className={s.albumList}>
+        {photos.map((p, i) => (
+          <li key={i}>
+            <figure>
+              {/* eslint-disable-next-line @next/next/no-img-element -- a blob URL from an authorised fetch */}
+              <img src={p.src!} alt={`Photo of ${name(p, i)}`} />
+              <figcaption><b>{i + 1}/{photos.length}</b> {name(p, i)}</figcaption>
+            </figure>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+  return (
+    <button type="button" className={s.photoBox} data-tall={tall} data-many={many || undefined} onClick={() => setOpen(true)}
+      aria-expanded={false} aria-label={many ? `See all ${photos.length} food photos` : `Enlarge the photo of ${name(photos[0], 0)}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- a blob URL from an authorised fetch */}
+      <img className={s.photo} data-tall={tall} src={photos[0].src!} alt="" />
+      <span className={s.photoChip} aria-hidden>{many ? <><Images size={14} /> 1 of {photos.length} · see all</> : <><Maximize2 size={14} /> Enlarge</>}</span>
+    </button>
+  );
 }
 
 /**

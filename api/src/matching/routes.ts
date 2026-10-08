@@ -193,16 +193,31 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     return c.json(mine.map((m) => ({ id: m.id, at: m.createdAt, text: m.text })));
   });
 
-  /** The food photo for anyone in this share's delivery (restaurant, NGO, partner): from the checked listing. */
-  app.get("/shares/:id/photo", async (c) => {
+  /** The listing's photos (one per food in a session), for anyone in this share's delivery (restaurant, NGO, partner). */
+  async function sharePhotos(c: Context) {
     const s = await signedIn(c, "donor", "ngo", "volunteer");
     if (s instanceof Response) return s;
-    const share = await store.get("share", c.req.param("id"));
+    const share = await store.get("share", c.req.param("id")!);
     const askedMe = share && s.role === "volunteer" && (await store.list("partner", { phone: s.phone })).some((p) => p.id === share.askedPartnerId);
     if (!share || !(askedMe || (await sideOf(s, share)))) return c.json({ error: "Not found." }, 404);
     const l = await store.get("listing", share.listingId);
     const src = l?.sourceListingId ? await foodListings.get(l.sourceListingId) : null;
-    const m = src?.photo.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+    if (!src) return [];
+    return (src.items?.length ? src.items.map((it) => ({ dish: it.dish, photo: it.photo })) : [{ dish: src.dish, photo: src.photo }]).filter((p) => !!p.photo);
+  }
+
+  /** Which photos there are: one per food, with its name, so a viewer can show them all. */
+  app.get("/shares/:id/photos", async (c) => {
+    const all = await sharePhotos(c);
+    if (all instanceof Response) return all;
+    return c.json({ photos: all.map((p, i) => ({ i, dish: p.dish })) });
+  });
+
+  /** One photo (`?i=` picks which food; the first by default). */
+  app.get("/shares/:id/photo", async (c) => {
+    const all = await sharePhotos(c);
+    if (all instanceof Response) return all;
+    const m = all[Math.max(0, Number(c.req.query("i") ?? 0) || 0)]?.photo.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
     if (!m) return c.json({ error: "No photo." }, 404);
     c.header("Cache-Control", "private, max-age=3600");
     return c.body(Buffer.from(m[2], "base64"), 200, { "Content-Type": m[1] });

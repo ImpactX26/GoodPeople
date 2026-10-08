@@ -45,7 +45,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
       {!l ? <p className={s.loading}>{error || "Loading your donation…"}</p> : (
         <div className={s.ticketLayout} data-cold={wentCold(l) || undefined} data-fresh={justWentCold(l) || undefined}>
           <div className={s.composeMedia}>
-            <PhotoCanvas photo={l.photo} onPhoto={() => {}} onError={() => {}} scanning={!l.foodCheck} alt={l.dish} readOnly />
+            <ListingPhotos l={l} />
             <div className={s.ticketHead}>
               <h2>{l.dish}</h2>
               <p>{mealsLine(l) ?? `${servingsOf(l)} servings`} · {l.donorName} · {l.pickupArea}</p>
@@ -82,6 +82,38 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
         </div>
       )}
     </DonorShell>
+  );
+}
+
+/**
+ * Every food's photo, each in its own frame with its name, and each scanned on its own until that food's check
+ * is back (so the scan line visibly finishes food by food). Phones swipe across; wide screens scroll down.
+ */
+function ListingPhotos({ l }: { l: ListingView }) {
+  const shots = l.items && l.items.length > 1
+    ? l.items.map(it => ({ key: it.id, photo: it.photo, dish: it.dish, check: it.foodCheck ?? null }))
+    : [{ key: "one", photo: l.photo, dish: l.dish, check: l.foodCheck }];
+  if (shots.length === 1) return <PhotoCanvas photo={l.photo} onPhoto={() => {}} onError={() => {}} scanning={!l.foodCheck} alt={l.dish} readOnly />;
+  const left = shots.filter(x => !x.check).length;
+  return (
+    <section className={s.shots} aria-label={`${shots.length} food photos`}>
+      <p className={s.shotsBar} aria-live="polite">
+        <span>{shots.length} photos</span>
+        <span>{left ? `Checking ${shots.length - left + 1} of ${shots.length}…` : "Each food checked"}</span>
+      </p>
+      <ol className={s.shotsList}>
+        {shots.map((x, i) => (
+          <li key={x.key} className={s.shot}>
+            <PhotoCanvas photo={x.photo} onPhoto={() => {}} onError={() => {}} scanning={!x.check} alt={`Photo of ${x.dish}`} readOnly />
+            <p className={s.shotCaption}>
+              <b>{i + 1}/{shots.length}</b>
+              <span>{x.dish}</span>
+              {x.check ? <i className={s.shotGrade} data-grade={x.check.grade} aria-label={`Grade ${x.check.grade}`}>{x.check.grade}</i> : <em>Checking…</em>}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
