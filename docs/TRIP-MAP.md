@@ -156,3 +156,15 @@ npm run build
 The 49 backend tests cover listing submission/review, isolated demo provisioning, automatic three-volunteer notification eligibility, countdown bounds and reloads, halfway reminders, concurrent timer workers, next-NGO expiry and late-accept rejection, real agent offer handoffs, concurrent claims, declines, a shared volunteer notification/navigation stream, completed receipt and short-delivery reporting, plus delivery codes, privacy deadlines, geofences, holds, rejected food, GPS validation, prediction, routing isolation, idempotency, redirects and retention. The browser walkthrough starts from the real listing form in separate account tabs and checks the decreasing countdown across a reload, automatic notifications, road navigation, both handovers, photo/checklist, NGO receiving confirmation and donor receipt. The rider camera follows the triangle by default, and dragging pauses following. Revoking a volunteer session clears the private trip view and cached handover access. Earlier checks covered offline pickup/check reconnects and a 390 px layout.
 
 Production still needs Google keys and real-device route/GPS checks, a Postgres persistence smoke test, and the friends' agent callbacks and outbound notification workers. Real listings stay in checking until those agents provide their food passport and ranked-offer handoff; the walkthrough fixture cannot substitute for them. Mobile web cannot guarantee GPS when backgrounded or locked; reliable background navigation needs a native client. In-app/desktop alerts here do not implement closed-app PWA push. Pickup photos currently live in private documents; production media storage remains to be connected.
+
+## Real deliveries on the live map
+
+Real deliveries (the agents' shares, not the walkthrough) use the same maps through [LiveDelivery](../web/src/components/trip/LiveDelivery.tsx):
+
+- **Rider** (trip slip): their own position followed on the map, the road route to the restaurant and then the NGO, the next turn ("In 180 m · Turn right onto 16th C Main Road"), and the time and distance left. Nothing opens Google Maps outside the app.
+- **Restaurant** (donation page): the rider coming to collect, with an ETA, until ten minutes after pickup.
+- **NGO** (coming-to-you ticket): the rider all the way to the drop.
+
+The rider's phone sends a GPS fix every 4 s with accuracy, speed and heading (`POST /agents/trips/:id/location`). When the phone gives no speed, the API works it out from the previous fix, so the marker can glide between fixes (the same 3-second prediction and road snapping as the walkthrough). Each app subscribes to `GET /agents/shares/:id/live` (Server-Sent Events), which sends a fresh view on every fix and handover ([live-track.ts](../api/src/matching/live-track.ts)).
+
+With `NEXT_PUBLIC_GOOGLE_MAPS_KEY` and `GOOGLE_MAPS_ROUTES_KEY` set, these are Google Maps with traffic-aware Google routes. Without them, the apps show OpenStreetMap with the public OSRM router, labelled "Approximate road route · no live traffic" (`LUNA_MAP_FALLBACK=off` turns the fallback off).

@@ -146,7 +146,9 @@ export const myTrips = () => get<Trip[]>("/trips");
 export const setOnline = (online: boolean, pos?: { lat: number; lng: number }) => post("/partner/online", { online, ...pos });
 export const answerTrip = (id: string, accept: boolean) => post(`/trips/${id}/${accept ? "accept" : "decline"}`);
 export const runningLate = (id: string) => post(`/trips/${id}/late`);
-export const sendLocation = (id: string, lat: number, lng: number) => post(`/trips/${id}/location`, { lat, lng });
+/** One GPS fix from the phone: position, and when it has them, accuracy (m), speed (m/s) and heading (degrees). */
+export const sendLocation = (id: string, fix: { lat: number; lng: number; accuracyM?: number | null; speedMps?: number | null; heading?: number | null }) =>
+  post(`/trips/${id}/location`, fix);
 /** Pickup or drop code. NGO coordinators use this for someone they assigned by hand. */
 export const enterCode = (id: string, which: "pickup" | "drop", code: string) => post(`/trips/${id}/${which}`, { code });
 

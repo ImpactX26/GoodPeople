@@ -23,11 +23,15 @@ function loadMaps(): Promise<typeof google.maps> {
   return mapsPromise;
 }
 
-const DemoMap = dynamic(() => import("./DemoMap"), { ssr: false, loading: () => <div className={s.mapWait}>Loading the demo street map…</div> });
-export default function TripMap(props: { trip: TripView; partner: boolean }) {
-  return props.trip.sample ? <DemoMap {...props} /> : <GoogleTripMap key={props.trip.routeRevision} {...props} />;
+/** What the maps draw: a walkthrough trip, or a real delivery's live view (api/src/matching/live-track.ts). */
+export type MapTrip = Pick<TripView, "sample" | "routeRevision" | "location" | "locationVisible" | "closedAt" | "route" | "pickup" | "drop">;
+
+const DemoMap = dynamic(() => import("./DemoMap"), { ssr: false, loading: () => <div className={s.mapWait}>Loading the street map…</div> });
+/** Google Maps when a browser key is set; the walkthrough, and real deliveries without a key, use the street map. */
+export default function TripMap(props: { trip: MapTrip; partner: boolean }) {
+  return props.trip.sample || !process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ? <DemoMap {...props} /> : <GoogleTripMap key={props.trip.routeRevision} {...props} />;
 }
-function GoogleTripMap({ trip, partner }: { trip: TripView; partner: boolean }) {
+function GoogleTripMap({ trip, partner }: { trip: MapTrip; partner: boolean }) {
   const container = useRef<HTMLDivElement>(null), map = useRef<google.maps.Map | null>(null);
   const latest = useRef(trip), follow = useRef(partner);
   useEffect(() => { latest.current = trip; }, [trip]);

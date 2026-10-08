@@ -357,6 +357,9 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       const left = share[triesKey] - 1;
       await store.put("share", { ...share, [triesKey]: left, held: left <= 0 || undefined });
       if (left > 0) return fail(`That ${which} code doesn't match. ${left} ${left === 1 ? "try" : "tries"} left.`, 400);
+      // Held at the restaurant: the partner never got the food, so they're free for other pickups. Held at the
+      // NGO, they still carry it and stay on this trip until the Luna team sorts it out.
+      if (which === "pickup") await store.put("partner", { ...p, activeShareId: undefined });
       await deps.emit({ type: "stuck", share, reason: `${p.name} entered the wrong ${which} code ${config.codeTries} times at ${which === "pickup" ? l.donorName : ngo.name}.` }, now);
       return fail(`That ${which} code still doesn't match. The Luna team has been alerted and will call you.`, 400);
     }
@@ -413,10 +416,16 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     return ok("Thanks for telling us. We'll let the NGO know or find a closer drop.");
   }
 
-  async function location(shareId: string, pos: LatLng, by: Actor, now: number): Promise<Result> {
+  async function location(shareId: string, pos: LatLng, by: Actor, now: number, fix: { accuracyM?: number; speedMps?: number | null; heading?: number | null } = {}): Promise<Result> {
     const g = await guardTrip(shareId, by);
     if (g.error) return g.error;
-    const next = { ...g.share, lastPos: pos };
+    // Phones often report no speed: work it out from the last fix, so the live map can glide between fixes.
+    const prev = g.share.lastFix;
+    const gapS = prev ? (now - prev.at) / 1000 : 0;
+    const derived = prev && gapS >= 1 && gapS <= 30 ? (distanceKm(prev, pos) * 1000) / config.roadFactor / gapS : null;
+    const speedMps = fix.speedMps ?? (derived !== null && derived < 40 ? derived : null);
+    const lastFix = { lat: pos.lat, lng: pos.lng, at: now, accuracyM: fix.accuracyM ?? 20, speedMps, heading: fix.heading ?? null };
+    const next = { ...g.share, lastPos: pos, lastFix };
     await store.put("share", next);
     await store.put("partner", { ...g.p, ...pos });
     await watch(next, now, false);
@@ -610,7 +619,23 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
         if (now > due || now - (s.lastEtaCheckAt ?? 0) >= config.lateness.etaCheckMs) await rt.safely(`watch ${s.id}`, () => watch(s, now, false));
       }
     }
+    await freeIdlePartners();
     await simulate(now);
+  }
+
+  /**
+   * A partner is busy only while their share is live with them: being asked, on the way, or carrying the
+   * food. A share that ended any other way (finished, cancelled, held before pickup, gone) frees them, so
+   * they keep getting pickup requests.
+   */
+  async function freeIdlePartners() {
+    for (const p of await store.list("partner")) {
+      if (!p.activeShareId) continue;
+      const s = await store.get("share", p.activeShareId);
+      const mine = s && (s.partnerId === p.id || s.askedPartnerId === p.id);
+      const live = mine && (s.status === "finding_partner" || s.status === "picked_up" || (s.status === "assigned" && !s.held));
+      if (!live) await store.put("partner", { ...p, activeShareId: undefined });
+    }
   }
 
   /** Sample NGOs and partners that no real phone has claimed act on their own. */

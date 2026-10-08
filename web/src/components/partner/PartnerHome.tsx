@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, ChevronDown, Clock, LogOut, Map as MapIcon, Navigation, Phone, Truck, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Clock, LogOut, Map as MapIcon, Phone, Truck, X } from "lucide-react";
 import { formatPhone, getProfile, signOut, updateProfile, type Session } from "@/lib/luna/auth";
 import { answerTrip, enterCode, fmtTime, linked, myTrips, runningLate, sendLocation, setOnline, type LinkedPartner, type Trip } from "@/lib/luna/agents";
 import { listNgos, type Ngo } from "@/lib/luna/ngoAgent";
@@ -12,11 +12,11 @@ import { stamp } from "@/components/ticket/Ticket";
 import DonorShell from "@/components/donor/DonorShell";
 import HomeActivity from "@/components/listing/HomeActivity";
 import { SharePhoto, Updates } from "@/components/agents/live-bits";
+import LiveDelivery from "@/components/trip/LiveDelivery";
 import d from "@/components/donor/donor.module.css";
 import n from "@/components/ngo/ngo.module.css";
 import s from "./partner.module.css";
 
-const directions = (lat: number, lng: number) => `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 
 function position(): Promise<{ lat: number; lng: number } | undefined> {
   return new Promise((resolve) => {
@@ -199,18 +199,19 @@ function Ask({ trip: t, now, onDone }: { trip: Trip; now: number; onDone: () => 
 /** The trip, one step at a time: go to the restaurant and enter its code, then go to the NGO and enter theirs. */
 function TripSlip({ trip: t, onDone }: { trip: Trip; onDone: () => void }) {
   const atPickup = t.status === "assigned";
-  const target = atPickup ? t.pickup : t.drop;
   const [code, setCode] = useState(""), [busy, setBusy] = useState(false), [problem, setProblem] = useState(""), [lateMsg, setLateMsg] = useState(""), [stamped, setStamped] = useState("");
   const lastSent = useRef(0);
 
-  // Share the phone's position while on a trip, so the NGO and donor see the partner on the map.
+  // Share the phone's position while on a trip, every few seconds, so the live map moves smoothly for the
+  // partner, the NGO and the restaurant. Speed and heading let the map glide between fixes.
   useEffect(() => {
     if (!("geolocation" in navigator)) return;
     const id = navigator.geolocation.watchPosition((p) => {
-      if (Date.now() - lastSent.current < 30_000) return;
+      if (Date.now() - lastSent.current < 4_000) return;
       lastSent.current = Date.now();
-      void sendLocation(t.id, p.coords.latitude, p.coords.longitude).catch(() => {});
-    }, () => {}, { enableHighAccuracy: true, maximumAge: 15_000 });
+      const { latitude: lat, longitude: lng, accuracy, speed, heading } = p.coords;
+      void sendLocation(t.id, { lat, lng, accuracyM: accuracy, speedMps: speed, heading: heading !== null && !Number.isNaN(heading) ? heading : null }).catch(() => {});
+    }, () => {}, { enableHighAccuracy: true, maximumAge: 3_000 });
     return () => navigator.geolocation.clearWatch(id);
   }, [t.id]);
 
@@ -245,8 +246,8 @@ function TripSlip({ trip: t, onDone }: { trip: Trip; onDone: () => void }) {
         {!atPickup && t.eta && <div><dt>Arrive about</dt><dd>{fmtTime(t.eta)}</dd></div>}
       </dl>
       {atPickup && t.containers.length > 0 && <p className={s.bring}><b>Bring</b>{t.containers.join(" + ")}</p>}
+      <LiveDelivery shareId={t.id} viewer="partner" />
       <div className={s.slipActions}>
-        {target && <a className={n.pass} href={directions(target.lat, target.lng)} target="_blank" rel="noreferrer"><Navigation size={18} aria-hidden /> Directions</a>}
         {atPickup && t.pickupDetails?.contact && <a className={n.pass} href={`tel:+91${t.pickupDetails.contact}`}><Phone size={18} aria-hidden /> Call</a>}
       </div>
       <label className={s.codeField}>

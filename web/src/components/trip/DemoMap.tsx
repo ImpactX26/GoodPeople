@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Map as StreetMap, Marker, NavigationControl, setWorkerUrl, type GeoJSONSource } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { bearing, smoothPosition, predict, project, TRIP_CONFIG as C, type LatLng, type TripView } from "@/lib/luna/trip";
+import { bearing, smoothPosition, predict, project, TRIP_CONFIG as C, type LatLng } from "@/lib/luna/trip";
+import type { MapTrip } from "./TripMap";
 import s from "./trip.module.css";
 
 setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
-export default function DemoMap({ trip, partner }: { trip: TripView; partner: boolean }) {
+export default function DemoMap({ trip, partner }: { trip: MapTrip; partner: boolean }) {
   const element = useRef<HTMLDivElement>(null), map = useRef<StreetMap | null>(null), latest = useRef(trip);
   const follow = useRef(partner), stops = useRef<Marker[]>([]);
   const [ready, setReady] = useState(false), [following, setFollowing] = useState(partner), [error, setError] = useState("");
@@ -28,7 +29,7 @@ export default function DemoMap({ trip, partner }: { trip: TripView; partner: bo
       setReady(true);
     });
     const markerRoot = document.createElement("div"); markerRoot.style.cssText = "width:34px;height:40px;pointer-events:none";
-    const triangle = document.createElement("div"); triangle.className = s.marker; triangle.setAttribute("role", "img"); triangle.setAttribute("aria-label", "Simulated delivery partner location"); markerRoot.appendChild(triangle);
+    const triangle = document.createElement("div"); triangle.className = s.marker; triangle.setAttribute("role", "img"); triangle.setAttribute("aria-label", partner ? "Your location" : "Delivery partner location"); markerRoot.appendChild(triangle);
     const marker = new Marker({ element: markerRoot, anchor: "center" }).setLngLat([center.lng, center.lat]).addTo(instance);
     let animation = 0, previousAt = performance.now(), lastCameraAt = 0, rendered: LatLng | null = null, heading = 0;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -70,10 +71,10 @@ export default function DemoMap({ trip, partner }: { trip: TripView; partner: bo
   return <div className={s.mapWrap}>
     <div ref={element} className={s.mapCanvas} aria-label="In-app demo street map" />
     {!ready && <div className={s.mapMessage}>{error || "Loading Bengaluru streets…"}</div>}
-    <span className={s.mapBadge}>{trip.route?.preview ? "Pickup → NGO · route preview" : "Simulated partner · road route"}</span>
+    <span className={s.mapBadge}>{trip.route?.preview ? "Pickup → NGO · route preview" : trip.sample ? "Simulated partner · road route" : "Approximate road route · no live traffic"}</span>
     {ready && trip.locationVisible && trip.location && <button className={s.recenter} onClick={() => {
       follow.current = !following; setFollowing(!following);
       if (trip.location) map.current?.easeTo({ center: [trip.location.lng, trip.location.lat], zoom: partner ? C.partnerZoom : C.observerFollowZoom });
-    }}>{following ? "Following partner" : "Follow partner"}</button>}
+    }}>{partner ? (following ? "Following you" : "Follow me") : following ? "Following partner" : "Follow partner"}</button>}
   </div>;
 }

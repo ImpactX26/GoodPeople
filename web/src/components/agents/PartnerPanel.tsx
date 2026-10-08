@@ -149,7 +149,7 @@ function LiveTrip({ trip, onDone }: { trip: Trip; onDone: () => void }) {
       (p) => {
         if (Date.now() - lastSent.current < 30_000) return;
         lastSent.current = Date.now();
-        void sendLocation(trip.id, p.coords.latitude, p.coords.longitude).catch(() => {});
+        void sendLocation(trip.id, { lat: p.coords.latitude, lng: p.coords.longitude, accuracyM: p.coords.accuracy, speedMps: p.coords.speed }).catch(() => {});
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 15_000 },

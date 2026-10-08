@@ -96,3 +96,22 @@
   .slip { padding: 24px; }
   .listPaper { margin: 16px; padding: 24px; }
 }
+
+/* ---------- A delivery's live map inside the apps (LiveDelivery) ---------- */
+.live { position: relative; display: flex; flex-direction: column; background: var(--paper); border: 2px solid var(--ink); }
+.live .mapWrap { height: 300px; min-height: 0; }
+.live[data-size="nav"] .mapWrap { height: 52dvh; min-height: 320px; }
+.live .mapWait { min-height: 300px; }
+.live button.recenter { position: absolute; left: 12px; top: 12px; min-height: 40px; padding: 0 12px; border: 1.5px solid var(--ink); background: var(--paper); color: var(--ink); font: 700 11px var(--font-print); letter-spacing: .08em; text-transform: uppercase; }
+.live .mapMessage button { min-height: 44px; padding: 0 16px; border: 0; background: var(--ink); color: var(--paper); font: 700 12px var(--font-print); text-transform: uppercase; }
+/* The rider's next turn, printed in ink like the ticket's action bar. */
+.navBar { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--ink); color: var(--paper); }
+.navBar div { display: flex; flex-direction: column; min-width: 0; }
+.navBar b { font: 800 20px/1.1 var(--font-print); font-stretch: 112.5%; text-transform: uppercase; }
+.navBar span { font: 600 15px/1.35 var(--font-note); }
+.watchBar { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-bottom: 1.5px dashed rgba(27, 27, 27, .5); }
+.watchBar b { font: 800 13px/1.3 var(--font-print); letter-spacing: .06em; text-transform: uppercase; }
+.watchBar span { font: 14px/1.4 var(--font-note); color: var(--ink-soft); }
+.liveFoot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 0; padding: 10px 14px; border-top: 1.5px dashed rgba(27, 27, 27, .5); font: 700 12px var(--font-print); letter-spacing: .04em; text-transform: uppercase; }
+.liveFoot span { font-variant-numeric: tabular-nums; }
+.liveNote { margin: 0; font: 14px var(--font-note); color: var(--ink-soft); }

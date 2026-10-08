@@ -11,6 +11,16 @@ bus.setMaxListeners(0);
 
 export interface LivePing { kind: string; at: number }
 
+/** A share's live map changed (a new GPS fix, a pickup, a drop): its map streams send a fresh view. */
+export function pingShare(shareId: string) {
+  bus.emit(`share:${shareId}`);
+}
+
+export function onShare(shareId: string, fn: () => void) {
+  bus.on(`share:${shareId}`, fn);
+  return () => { bus.off(`share:${shareId}`, fn); };
+}
+
 /** Tell everyone signed in with this phone that something changed for them. */
 export function ping(phone: string | undefined, kind = "update") {
   if (phone) bus.emit(phone, { kind, at: Date.now() } satisfies LivePing);

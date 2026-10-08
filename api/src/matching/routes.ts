@@ -15,7 +15,8 @@ import { reliabilityLine } from "./reliability.ts";
 import { listings as foodListings } from "../listings/repository.ts";
 import { distanceKm, etaMs } from "./engine/geo.ts";
 import { syncDirectory } from "./directory.ts";
-import { onPing, type LivePing } from "./live.ts";
+import { onPing, onShare, pingShare, type LivePing } from "./live.ts";
+import { liveTrack } from "./live-track.ts";
 import { streamSSE } from "hono/streaming";
 import type { Decision, Diet, Grade, Item, Quantity, Share, Storage } from "./types.ts";
 
@@ -242,6 +243,45 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
 
   /* ---------- live trip on the map (restaurant, NGO, partner) ---------- */
 
+  /**
+   * The live map for a share, as Server-Sent Events over fetch: a fresh view on every GPS fix and every step
+   * (pickup, drop), and at least every few seconds. Each side sees what spec §12.7 allows (live-track.ts).
+   */
+  app.get("/shares/:id/live", async (c) => {
+    const s = await signedIn(c, "donor", "ngo", "volunteer");
+    if (s instanceof Response) return s;
+    const id = c.req.param("id");
+    const first = await store.get("share", id);
+    const side = first && (await sideOf(s, first));
+    if (!first || !side) return c.json({ error: "Not found." }, 404);
+    c.header("X-Accel-Buffering", "no");
+    return streamSSE(c, async (stream) => {
+      let wake: (() => void) | null = null;
+      const off = onShare(id, () => wake?.());
+      stream.onAbort(off);
+      let last = "", quietSince = Date.now();
+      try {
+        while (!stream.aborted) {
+          const share = await store.get("share", id);
+          if (!share) break;
+          const view = JSON.stringify(await liveTrack(store, share, side, clock()));
+          if (view !== last) {
+            await stream.writeSSE({ event: "snapshot", data: view });
+            last = view;
+            quietSince = Date.now();
+          } else if (Date.now() - quietSince > 15_000) {
+            await stream.writeSSE({ event: "heartbeat", data: "{}" });
+            quietSince = Date.now();
+          }
+          await new Promise<void>((r) => ((wake = r), setTimeout(r, 3_000)));
+          wake = null;
+        }
+      } finally {
+        off();
+      }
+    });
+  });
+
   app.get("/shares/:id/track", async (c) => {
     const s = await signedIn(c, "donor", "ngo", "volunteer");
     if (s instanceof Response) return s;
@@ -346,8 +386,17 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     const b = await body(c);
     const lat = num(b.lat);
     const lng = num(b.lng);
-    if (lat === undefined || lng === undefined) return c.json({ error: "Send lat and lng." }, 400);
-    return reply(c, await luna.location(c.req.param("id"), { lat, lng }, actorOf(s), clock()));
+    if (lat === undefined || lng === undefined || Math.abs(lat) > 90 || Math.abs(lng) > 180) return c.json({ error: "Send lat and lng." }, 400);
+    // Optional, straight from the phone's GPS: how accurate, how fast (m/s) and which way (degrees).
+    const accuracy = num(b.accuracyM), speed = num(b.speedMps), heading = num(b.heading);
+    const fix = {
+      accuracyM: accuracy !== undefined && accuracy >= 0 && accuracy <= 5000 ? accuracy : undefined,
+      speedMps: speed !== undefined && speed >= 0 && speed < 70 ? speed : null,
+      heading: heading !== undefined && heading >= 0 && heading < 360 ? heading : null,
+    };
+    const r = await luna.location(c.req.param("id"), { lat, lng }, actorOf(s), clock(), fix);
+    if (r.ok) pingShare(c.req.param("id"));
+    return reply(c, r);
   });
 
   /** Pickup code (from the restaurant) and drop code (from the NGO). An NGO coordinator enters them for a hand-assigned partner. */
@@ -356,7 +405,9 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     if (s instanceof Response) return s;
     const { code } = await body(c);
     if (typeof code !== "string") return c.json({ error: "Send the 4-digit code." }, 400);
-    return reply(c, await luna.enterCode(c.req.param("id"), c.req.param("which") as "pickup" | "drop", code, actorOf(s), clock()));
+    const r = await luna.enterCode(c.req.param("id"), c.req.param("which") as "pickup" | "drop", code, actorOf(s), clock());
+    if (r.ok) pingShare(c.req.param("id"));   // the map switches to the drop, or closes
+    return reply(c, r);
   });
 
   /* ---------- admin ---------- */

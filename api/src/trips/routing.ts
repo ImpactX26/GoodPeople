@@ -2,7 +2,7 @@ import { TRIP_CONFIG as C } from "./config.ts";
 import { decodePolyline, distance, pathLength, project } from "./geo.ts";
 import { DEMO_ROADS } from "./demo-roads.ts";
 import { pickupStage } from "./engine.ts";
-import type { DeliveryTrip, TripRoute } from "./types.ts";
+import type { DeliveryTrip, LatLng, TripRoute, Vehicle } from "./types.ts";
 
 interface GoogleStep { distanceMeters?: number; polyline?: { encodedPolyline: string }; navigationInstruction?: { instructions?: string; maneuver?: string } }
 interface GoogleRoute {
@@ -10,18 +10,24 @@ interface GoogleRoute {
   legs?: { steps?: GoogleStep[] }[]; warnings?: string[];
 }
 export async function googleRoute(t: DeliveryTrip, now: number, fetcher: typeof fetch = fetch): Promise<TripRoute> {
-  const key = process.env.GOOGLE_MAPS_ROUTES_KEY;
-  if (!key) throw new Error("Live directions are not configured yet. Your delivery status will still update.");
+  if (!process.env.GOOGLE_MAPS_ROUTES_KEY) throw new Error("Live directions are not configured yet. Your delivery status will still update.");
   if (!t.location || now - t.location.at > C.staleMs) throw new Error("Waiting for a fresh delivery partner location to calculate directions.");
   const target = pickupStage(t) ? "pickup" : "drop";
-  const travelMode = { foot: "WALK", bicycle: "BICYCLE", two_wheeler: "TWO_WHEELER", car: "DRIVE" }[t.vehicle];
+  return googleDirections(t.location, t[target], t.vehicle, target, now, fetcher);
+}
+
+/** Google Routes from any point to any stop: traffic-aware for two-wheelers and cars, with turn-by-turn steps. */
+export async function googleDirections(origin: LatLng, destination: LatLng, vehicle: Vehicle, target: TripRoute["target"], now: number, fetcher: typeof fetch = fetch): Promise<TripRoute> {
+  const key = process.env.GOOGLE_MAPS_ROUTES_KEY;
+  if (!key) throw new Error("Live directions are not configured yet. Your delivery status will still update.");
+  const travelMode = { foot: "WALK", bicycle: "BICYCLE", two_wheeler: "TWO_WHEELER", car: "DRIVE" }[vehicle];
   const traffic = travelMode === "DRIVE" || travelMode === "TWO_WHEELER";
   const response = await fetcher("https://routes.googleapis.com/directions/v2:computeRoutes", {
     method: "POST", signal: AbortSignal.timeout(C.routeTimeoutMs),
     headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key,
       "X-Goog-FieldMask": "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps.distanceMeters,routes.legs.steps.polyline.encodedPolyline,routes.legs.steps.navigationInstruction,routes.warnings" },
-    body: JSON.stringify({ origin: { location: { latLng: { latitude: t.location.lat, longitude: t.location.lng } } },
-      destination: { location: { latLng: { latitude: t[target].lat, longitude: t[target].lng } } },
+    body: JSON.stringify({ origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
+      destination: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } },
       travelMode, ...(traffic ? { routingPreference: "TRAFFIC_AWARE_OPTIMAL" } : {}),
       polylineQuality: "HIGH_QUALITY", languageCode: "en", units: "METRIC" }),
   });
@@ -44,8 +50,18 @@ interface Entry { route: TripRoute | null; error: string | null; triedAt: number
 export async function demoRoute(t: DeliveryTrip, now: number, fetcher: typeof fetch = fetch): Promise<TripRoute> {
   if (!t.sample) throw new Error("Demo routing cannot be used for a real delivery.");
   if (!t.location) throw new Error("Waiting for a sample location.");
-  const target = pickupStage(t) ? "pickup" : "drop", destination = t[target];
-  const url = `https://router.project-osrm.org/route/v1/driving/${t.location.lng},${t.location.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
+  const target = pickupStage(t) ? "pickup" : "drop";
+  const route = await osrmDirections(t.location, t[target], target, now, fetcher);
+  route.warnings = ["Demo road route · driving profile · no live traffic. Partner movement is simulated."];
+  return route;
+}
+
+/**
+ * The public OSRM demo router: no traffic and no service guarantee. Only for the walkthrough, and for real
+ * deliveries while no Google key is configured (LUNA_MAP_FALLBACK=off turns that off), always labelled.
+ */
+export async function osrmDirections(origin: LatLng, destination: LatLng, target: TripRoute["target"], now: number, fetcher: typeof fetch = fetch): Promise<TripRoute> {
+  const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
   const response = await fetcher(url, { signal: AbortSignal.timeout(C.routeTimeoutMs) });
   if (!response.ok) throw new Error("The demo road route is temporarily unavailable. Retry shortly.");
   type Geometry = { coordinates: [number, number][] };
@@ -54,7 +70,7 @@ export async function demoRoute(t: DeliveryTrip, now: number, fetcher: typeof fe
   if (data.code !== "Ok" || !r?.geometry?.coordinates?.length || !Number.isFinite(r.distance) || !Number.isFinite(r.duration)) throw new Error("No demo road route was found.");
   const path = (g: Geometry) => g.coordinates.map(([lng, lat]) => ({ lat, lng }));
   return { provider: "osrm-demo", computedAt: now, target, path: path(r.geometry), distanceM: r.distance, durationS: r.duration,
-    warnings: ["Demo road route · driving profile · no live traffic. Partner movement is simulated."],
+    warnings: ["Approximate road route · no live traffic."],
     steps: r.legs.flatMap(l => l.steps.map(step => ({ distanceM: step.distance, path: path(step.geometry), maneuver: step.maneuver.type,
       instruction: demoInstruction(step.maneuver.type, step.maneuver.modifier, step.name) }))) };
 }

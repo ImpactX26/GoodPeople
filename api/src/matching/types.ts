@@ -213,6 +213,8 @@ export interface Share {
   /** The partner reported being stuck until this time ("Running late"). */
   delayUntil?: number;
   lastPos?: LatLng;
+  /** The partner's last GPS fix, for the live map: when, how accurate, how fast and which way (spec §12.7). */
+  lastFix?: LatLng & { at: number; accuracyM: number; speedMps: number | null; heading: number | null };
   /** The restaurant shows it; the partner enters it at pickup. */
   pickupCode: string;
   /** The NGO shows it; the partner enters it at drop. */

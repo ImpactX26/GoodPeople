@@ -91,7 +91,8 @@ export function createLuna(deps: LunaDeps) {
       serial(() => logistics.assignManual(shareId, person, by, now)),
     enterCode: (shareId: string, which: "pickup" | "drop", code: string, by: Actor, now: number) => serial(() => logistics.enterCode(shareId, which, code, by, now)),
     late: (shareId: string, by: Actor, now: number) => serial(() => logistics.late(shareId, by, now)),
-    location: (shareId: string, pos: LatLng, by: Actor, now: number) => serial(() => logistics.location(shareId, pos, by, now)),
+    location: (shareId: string, pos: LatLng, by: Actor, now: number, fix?: { accuracyM?: number; speedMps?: number | null; heading?: number | null }) =>
+      serial(() => logistics.location(shareId, pos, by, now, fix)),
     setOnline: (phone: string, online: boolean, pos?: LatLng) => serial(() => logistics.setOnline(phone, online, pos)),
     activeTripFor: (phone: string) => logistics.activeTripFor(phone),
     track: logistics.track,
