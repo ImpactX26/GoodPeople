@@ -24,7 +24,7 @@ import { trace } from "../matching/reasoning/trace.ts";
 import type { Decision } from "../matching/types.ts";
 import { packingLines, shareContainers } from "../matching/food-agent.ts";
 import type { AgentCase } from "./types.ts";
-import { foodChecked, foodChecking, foodListed } from "./foodTrace.ts";
+import { foodChecked, foodChecking, foodListed, foodRelisted } from "./foodTrace.ts";
 import { FOOD_CATEGORIES, type FoodListing, type ListingInput, type ListingView } from "./types.ts";
 
 type Env = { Variables: { session: Session } };
@@ -205,6 +205,8 @@ export async function sweepListings(now = Date.now()) {
     await checkListing(l.id); checked++;
   }
   const handed = await handOffWaiting(now);
+  // Listings relisted before the agent boards were told about it close there too (once each).
+  for (const l of await listings.list()) if (l.replacedBy) await foodRelisted(l, l.replacedBy).catch(() => {});
   return { checked, handed };
 }
 
@@ -292,7 +294,7 @@ async function markReplaced(oldId: string, phone: string, newId: string) {
     if (!old || old.donorPhone !== phone || old.state !== "tags_held" || old.replacedBy) return;
     old.replacedBy = newId;
     const version = old.version; old.version++;
-    if (await listings.save(old, version)) return;
+    if (await listings.save(old, version)) return void await foodRelisted(old, newId).catch(e => console.error("food trace", (e as Error).message));
   }
 }
 /**

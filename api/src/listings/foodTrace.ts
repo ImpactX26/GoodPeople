@@ -75,3 +75,13 @@ export async function foodChecked(l: FoodListing) {
     await say(l, "review", `Held for the restaurant: the photo questions ${asks || "a tag"}. ${graded}.`);
   } else await say(l, "graded", `${graded}. Handing the Food Passport to the Decision Agent.`);
 }
+
+/**
+ * A listing held for its tags was relisted with corrected ones: the old one closes, pointing at the new one, so
+ * the agent boards don't show it waiting forever. Once per listing (safe to call again from the sweep).
+ */
+export async function foodRelisted(old: FoodListing, newId: string) {
+  const d: Decision = { id: `d-food-relisted-${old.id}`, at: Date.now(), agent: "food", kind: "closed", subject: `${servings(old)} servings from ${old.donorName}`,
+    reason: `Relisted with corrected tags as a new listing (${newId}), which carries on. This one is closed.`, listingId: old.id };
+  if (await matchingStore.insert("decision", d)) trace.decision(d);
+}

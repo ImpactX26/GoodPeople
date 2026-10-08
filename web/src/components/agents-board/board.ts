@@ -103,7 +103,9 @@ export interface Order {
   deliveredAt?: number;
   stopped: boolean;
   /** How the case ended: food delivered, nobody took it in time, or sent to a biogas plant instead. */
-  outcome?: "delivered" | "no_one" | "biogas";
+  outcome?: "delivered" | "no_one" | "biogas" | "relisted";
+  /** Held by the Food Agent until the restaurant fixes or keeps its food tags. */
+  held?: boolean;
   /** "40 servings from Meghana Foods", from the Food Agent's hand-off, until the case list loads. */
   passport?: string;
 }
@@ -151,6 +153,7 @@ export function buildOrders(events: TraceEvent[]): Order[] {
       if (last?.kind === "rule" && last.decision === e.kind && (e.kind === "filtered" || e.kind === "rated")) last.more.push(e.reason);
       else lane.steps.push({ key: `d${e.seq}`, seq: e.seq, at: e.at, kind: "rule", decision: e.kind, text: e.reason, ms: e.ms, more: [] });
       lane.lastOut = e.seq;
+      if (e.kind === "graded" || e.kind === "review" && e.agent === "decision") o.held = false;
       const stage = STAGE_OF[e.kind];
       if (stage && o.stages[stage] === undefined) o.stages[stage] = e.seq;
       if (e.kind === "biogas") o.outcome = o.outcome === "delivered" ? "delivered" : "biogas";
@@ -159,11 +162,16 @@ export function buildOrders(events: TraceEvent[]): Order[] {
         o.deliveredAt ??= e.at;
         o.outcome = "delivered";
       }
+      // The photo check questioned a food tag: the listing waits for the restaurant to relist or keep its tags.
+      if (e.agent === "food" && e.kind === "review" && /^Held for the restaurant/.test(e.reason)) { o.held = true; o.stopped = true; }
       if (e.kind === "closed") {
         o.closedAt = e.at;
         o.closedSeq = e.seq;
-        // A case closes three ways; only a delivery ticks the stages through to Delivered.
-        if (/^No one took/.test(e.reason)) {
+        // A case closes four ways; only a delivery ticks the stages through to Delivered.
+        if (/^Relisted with corrected tags/.test(e.reason)) {
+          o.outcome = "relisted";
+          o.stopped = true;
+        } else if (/^No one took/.test(e.reason)) {
           o.outcome ??= "no_one";
           o.stopped = true;
         } else if (!o.outcome) {
@@ -232,7 +240,7 @@ export function laneStatus(o: Order, agent: AgentName): Status {
 /** The stage the food is at now: the first one not yet done. */
 export function currentStage(o: Order): StageKey | null {
   // Nobody took it: the stage it stopped at stays marked (with an X), rather than the row reading as finished.
-  if (o.closedAt !== undefined && o.outcome !== "no_one") return null;
+  if (o.closedAt !== undefined && o.outcome !== "no_one" && o.outcome !== "relisted") return null;
   return STAGES.find((s) => o.stages[s.key] === undefined)?.key ?? null;
 }
 

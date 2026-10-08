@@ -272,14 +272,14 @@ function OrderRow({ o, l, n, liveFrom, now, rowRef }: { o: Order; l?: CaseListin
   const stage = currentStage(o);
   const deliveredSeq = o.stages.delivered;
   // The rubber stamp says how it ended: delivered, nobody responded in time, or sent to biogas.
-  const ended = o.outcome === "no_one" || o.outcome === "biogas" ? o.outcome : deliveredSeq !== undefined ? "delivered" : null;
+  const ended = o.outcome === "no_one" || o.outcome === "biogas" || o.outcome === "relisted" ? o.outcome : deliveredSeq !== undefined ? "delivered" : o.held ? "held" : null;
   return (
     <li className={s.order} ref={rowRef} data-live={o.firstSeq > liveFrom} data-done={end !== undefined}>
       <div className={s.slipWrap}>
       <header className={s.slip}>
         {ended && (
           <span className={s.bigStamp} data-live={((ended === "delivered" ? deliveredSeq : o.closedSeq) ?? 0) > liveFrom} data-ended={ended} aria-hidden="true">
-            {ended === "delivered" ? "Delivered" : ended === "biogas" ? "Sent to biogas" : "No one responded"}
+            {ended === "delivered" ? "Delivered" : ended === "biogas" ? "Sent to biogas" : ended === "relisted" ? "Relisted" : ended === "held" ? "Held: check tags" : "No one responded"}
           </span>
         )}
         <span className={s.no}>{n ? `#${n}` : "New"}</span>
@@ -290,7 +290,7 @@ function OrderRow({ o, l, n, liveFrom, now, rowRef }: { o: Order; l?: CaseListin
             {food ? ` · ${food}` : ""}
           </p>
           <p className={s.slipTime}>
-            Listed {clock(start)} · <strong>{end !== undefined ? `${o.outcome === "no_one" ? "closed after" : "took"} ${elapsed(took)}` : `${elapsed(took)} so far`}</strong>
+            Listed {clock(start)} · <strong>{end !== undefined ? `${o.outcome === "relisted" ? "relisted after" : o.outcome === "no_one" ? "closed after" : "took"} ${elapsed(took)}` : `${o.held ? "waiting on the restaurant's tags for " : ""}${elapsed(took)}${o.held ? "" : " so far"}`}</strong>
           </p>
         </div>
         <ol className={s.stages} aria-label="Where the food is">

@@ -397,8 +397,15 @@
   font-size: 22px;
 }
 
-.bigStamp[data-ended="biogas"] {
+.bigStamp[data-ended="biogas"],
+.bigStamp[data-ended="relisted"],
+.bigStamp[data-ended="held"] {
   font-size: 22px;
+}
+
+/* Waiting on the restaurant, not finished: a dashed stamp. */
+.bigStamp[data-ended="held"] {
+  border-style: dashed;
 }
 
 .bigStamp[data-live="true"] {
