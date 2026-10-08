@@ -91,6 +91,9 @@ export function createLuna(deps: LunaDeps) {
     ngoReply: (shareId: string, accept: boolean, by: Actor, now: number) => serial(() => logistics.ngoReply(shareId, accept, by, now)),
     redirectReply: (shareId: string, accept: boolean, by: Actor, now: number) => serial(() => logistics.redirectReply(shareId, accept, by, now)),
     partnerReply: (shareId: string, accept: boolean, by: Actor, now: number) => serial(() => logistics.partnerReply(shareId, accept, by, now)),
+    /** Pickups accepted by an NGO that no partner has taken, which this partner could take (missed ones included). */
+    openPickups: (phone: string, now: number) => logistics.openFor(phone, now),
+    claimPickup: (shareId: string, by: Actor, now: number) => serial(() => logistics.claim(shareId, by, now)),
     assignManual: (shareId: string, person: { name: string; phone?: string }, by: Actor, now: number) =>
       serial(() => logistics.assignManual(shareId, person, by, now)),
     enterCode: (shareId: string, which: "pickup" | "drop", code: string, by: Actor, now: number) => serial(() => logistics.enterCode(shareId, which, code, by, now)),

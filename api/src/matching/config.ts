@@ -37,6 +37,12 @@ export const config = {
   partnerAcceptMs: 3 * MIN,
   /** ...and for "serve now" (Grade C) food. */
   partnerAcceptServeNowMs: 90_000,
+  /**
+   * Accepted, but no partner has taken the pickup for this long (it sits on the open pickups board meanwhile):
+   * it moves to the next NGO that has a partner free, without asking the first NGO, which is told why.
+   */
+  partnerWaitBeforeNextNgoMs: 10 * MIN,
+  partnerWaitBeforeNextNgoServeNowMs: 5 * MIN,
   /** Checkpoint slack: expected leg time × this. */
   checkpointSlack: 1.5,
   /** Each "Running late" tap adds this much to the partner's projected arrival. */

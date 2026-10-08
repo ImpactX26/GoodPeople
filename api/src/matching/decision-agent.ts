@@ -210,7 +210,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
         await rt.toDonor(now, l, `${e.ngo.name} will take it. No delivery partner is free just now; one is asked the moment they are. Please keep the food ready.`);
         break;
       case "partner_exhausted":
-        await rt.toDonor(now, l, `${e.ngo.name} couldn't get a delivery partner in time, so Luna is asking another NGO.`);
+        await rt.toDonor(now, l, `No delivery partner could collect for ${e.ngo.name} in time, so Luna is offering your food to another NGO that has a partner free.`);
         break;
       case "eta":
         await onEta(e.share, e.partner, e.ngo.name, e.ngo.phone, e.ngo.id, l, e.arrival, e.pickupAt, now);

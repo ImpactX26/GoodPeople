@@ -367,24 +367,44 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     return reply(c, await luna.setOnline(s.phone, b.online, lat !== undefined && lng !== undefined ? { lat, lng } : undefined));
   });
 
+  /** A share as a partner sees it: the trip, how far, the pickup details (contact only once it's theirs). */
+  async function tripView(sh: Share, phone: string, mine: Set<string>) {
+    const l = await store.get("listing", sh.listingId);
+    // The pickup contact is only for the partner actually on the trip.
+    const onTrip = !!sh.partnerId && mine.has(sh.partnerId);
+    const pickupDetails = l && { address: l.pickupAddress, notes: l.pickupNotes, contact: onTrip ? (l.pickupContactPhone ?? l.donorPhone) : undefined };
+    // how long to reach the restaurant from where this partner is, and then the NGO
+    const me = (await store.list("partner", { phone }))[0];
+    const ngo = sh.ngoId ? await store.get("recipient", sh.ngoId) : null;
+    const travel = l && me ? { toPickupMin: Math.max(1, Math.round(etaMs(distanceKm(me, l), me.travel) / 60_000)), toDropMin: ngo ? Math.max(1, Math.round(etaMs(distanceKm(l, ngo), me.travel) / 60_000)) : null } : null;
+    return { ...view(sh, "partner"), ...(await luna.track(sh, clock())), pickupDetails, travel, servings: sh.lines.reduce((n, x) => n + x.servings, 0), hasPhoto: !!l?.sourceListingId };
+  }
+
   app.get("/trips", async (c) => {
     const s = await signedIn(c, "volunteer");
     if (s instanceof Response) return s;
     const mine = new Set((await store.list("partner", { phone: s.phone })).map((p) => p.id));
     const trips = (await store.list("share")).filter((sh) => mine.has(sh.partnerId ?? sh.askedPartnerId ?? ""));
     const out = [];
-    for (const sh of trips.sort((a, b) => b.createdAt - a.createdAt).slice(0, 50)) {
-      const l = await store.get("listing", sh.listingId);
-      // The pickup contact is only for the partner actually on the trip.
-      const onTrip = !!sh.partnerId && mine.has(sh.partnerId);
-      const pickupDetails = l && { address: l.pickupAddress, notes: l.pickupNotes, contact: onTrip ? (l.pickupContactPhone ?? l.donorPhone) : undefined };
-      // how long to reach the restaurant from where this partner is, and then the NGO
-      const me = (await store.list("partner", { phone: s.phone }))[0];
-      const ngo = sh.ngoId ? await store.get("recipient", sh.ngoId) : null;
-      const travel = l && me ? { toPickupMin: Math.max(1, Math.round(etaMs(distanceKm(me, l), me.travel) / 60_000)), toDropMin: ngo ? Math.max(1, Math.round(etaMs(distanceKm(l, ngo), me.travel) / 60_000)) : null } : null;
-      out.push({ ...view(sh, "partner"), ...(await luna.track(sh, clock())), pickupDetails, travel, servings: sh.lines.reduce((n, x) => n + x.servings, 0), hasPhoto: !!l?.sourceListingId });
-    }
+    for (const sh of trips.sort((a, b) => b.createdAt - a.createdAt).slice(0, 50)) out.push(await tripView(sh, s.phone, mine));
     return c.json(out);
+  });
+
+  /** The open pickups board: accepted by an NGO, taken by nobody, and reachable by me (ones I missed are marked). */
+  app.get("/partner/open", async (c) => {
+    const s = await signedIn(c, "volunteer");
+    if (s instanceof Response) return s;
+    const mine = new Set((await store.list("partner", { phone: s.phone })).map((p) => p.id));
+    const out = [];
+    for (const { share, missed } of await luna.openPickups(s.phone, clock()))
+      out.push({ ...(await tripView(share, s.phone, mine)), missed, waitingSince: share.waitingForPartnerSince ?? share.askedAt ?? share.createdAt });
+    return c.json(out);
+  });
+
+  app.post("/trips/:id/claim", async (c) => {
+    const s = await signedIn(c, "volunteer");
+    if (s instanceof Response) return s;
+    return reply(c, await luna.claimPickup(c.req.param("id"), actorOf(s), clock()));
   });
 
   app.post("/trips/:id/:answer{accept|decline}", async (c) => {

@@ -203,7 +203,7 @@ describe("finding a partner", () => {
     // Nobody else may collect ("other" rides for another NGO): the NGO keeps the food and Luna keeps looking…
     const waiting = await shareOf(store, l.id);
     assert.equal(waiting.status, "finding_partner");
-    assert.match(await last(store, NGO1), /No delivery partner is free right now/);
+    assert.match(await last(store, NGO1), /No delivery partner has taken the pickup yet/);
     // …until the pickup window closes.
     await luna.tick(l.collectBy + 1);
     assert.equal((await shareOf(store, l.id)).status, "unplaced");

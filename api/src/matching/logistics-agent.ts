@@ -130,6 +130,59 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       .sort((a, b) => Number(b.own) - Number(a.own) || Number(lowRated(a.p)) - Number(lowRated(b.p)) || a.toPickup - b.toPickup);
   }
 
+  /**
+   * Whether this partner could take this share now: rides for its NGO, is independent, or helps others; isn't
+   * busy elsewhere; and can collect it in the pickup window and get it there while it's safe. Unlike
+   * partnersFor, someone who missed or passed on the ask still counts (the open pickups board).
+   */
+  function canTake(share: Share, l: Listing, ngo: Recipient, p: Partner, now: number) {
+    if (p.manual || (p.activeShareId && p.activeShareId !== share.id)) return false;
+    if (p.ngoId && p.ngoId !== ngo.id && !p.helpsOthers) return false;
+    const pickupAt = Math.max(now + etaMs(distanceKm(p, l), p.travel), l.readyFrom);
+    const leg = legFor(ngo, l, { pos: p, startAt: now, travel: p.travel, pickedUp: false });
+    return pickupAt <= l.collectBy && leg.serveTime <= safeUntilOf(l, share.lines);
+  }
+
+  /** Pickups an NGO accepted that no partner has taken, that this partner could take (missed ones included). */
+  async function openFor(phone: string, now: number) {
+    const [p] = await store.list("partner", { phone });
+    if (!p) return [];
+    const out: { share: Share; missed: boolean }[] = [];
+    for (const share of await store.list("share", { status: "finding_partner" })) {
+      if (!share.ngoId || share.askedPartnerId === p.id || share.held) continue;
+      const l = await store.get("listing", share.listingId);
+      const ngo = await store.get("recipient", share.ngoId);
+      if (l && ngo && canTake(share, l, ngo, p, now)) out.push({ share, missed: share.triedPartnerIds.includes(p.id) });
+    }
+    return out;
+  }
+
+  /**
+   * A partner takes an open pickup from the board, including one they missed. First come: if someone else is
+   * being asked right now, they're told it's covered.
+   */
+  async function claim(shareId: string, by: Actor, now: number): Promise<Result> {
+    if (!("phone" in by)) return fail("Only a delivery partner can take a pickup.", 403);
+    const share = await store.get("share", shareId);
+    if (!share || !share.ngoId) return fail("Unknown pickup.", 404);
+    if (share.status !== "finding_partner") return fail("Someone has already taken this pickup.");
+    const [p] = await store.list("partner", { phone: by.phone });
+    if (!p) return fail("Your partner account isn't set up yet.", 403);
+    const l = await rt.mustGet("listing", share.listingId);
+    const ngo = await rt.mustGet("recipient", share.ngoId);
+    if (p.activeShareId && p.activeShareId !== share.id) return fail("Finish your current pickup first.");
+    if (!canTake(share, l, ngo, p, now)) return fail("You can't reach this pickup in time for the food to stay safe.");
+    const asked = share.askedPartnerId && share.askedPartnerId !== p.id ? await store.get("partner", share.askedPartnerId) : null;
+    if (asked) {
+      await store.put("partner", { ...asked, activeShareId: undefined });
+      await toPartner(now, asked, msg.text("Thanks! Another partner has taken that pickup, so you're no longer needed for it."));
+    }
+    const missed = share.triedPartnerIds.includes(p.id);
+    await decide(now, "assigned", p.id, `${p.name} took the open pickup for ${ngo.name}${missed ? " after missing the first ask" : ""}.`, l.id, { shareId, claimed: true });
+    await assign({ ...share, askedPartnerId: undefined, askDeadlineAt: undefined }, p, now);
+    return ok("It's yours. Head to the restaurant.");
+  }
+
   /** What a partner carries for this share: the donor's own list if given, else worked out from the share's food (§9.5). */
   const containersOf = (l: Listing, lines: Share["lines"]) => (l.containers.length ? l.containers : shareContainers(l, lines));
 
@@ -213,13 +266,22 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const ngo = await rt.mustGet("recipient", share.ngoId!);
     const best = (await partnersFor(share, l, ngo, now))[0];
     if (!best && now < l.collectBy && safeUntilOf(l, share.lines) > now) {
-      // Nobody free yet: keep the NGO's acceptance and keep looking (its own riders first) until the pickup window closes.
+      // Nobody free yet: keep the NGO's acceptance and keep looking (its own riders first) until the pickup window
+      // closes. Meanwhile the pickup sits on the open pickups board, where anyone who can reach it (including
+      // partners who missed the ask) can take it.
       const first = !share.waitingForPartnerSince;
-      await store.put("share", { ...share, askedPartnerId: undefined, askDeadlineAt: undefined, waitingForPartnerSince: share.waitingForPartnerSince ?? now, lastPartnerTryAt: now });
+      const since = share.waitingForPartnerSince ?? now;
+      if (!first && (await handOnToNextNgo(share, l, ngo, since, now))) return;
+      await store.put("share", { ...share, askedPartnerId: undefined, askDeadlineAt: undefined, waitingForPartnerSince: since, lastPartnerTryAt: now });
       if (first) {
-        await decide(now, "delayed", ngo.id, `No delivery partner is free near ${l.donorName} right now. Waiting for ${ngo.name}'s own volunteers first, then anyone nearby, until ${fmtTime(l.collectBy)}.`, l.id, { shareId: share.id });
-        await toNgo(now, ngo, msg.text(`Accepted. No delivery partner is free right now; we'll ask your own volunteers first the moment one is. If your staff can collect, tap "Our own staff will collect".`));
+        const wait = waitLimit(l, share);
+        await decide(now, "delayed", ngo.id, `No delivery partner has taken the pickup near ${l.donorName}. It's on the open pickups board for every partner who can reach it; if nobody takes it in ${fmtMinutes(wait)}, it moves to the next NGO with a partner free.`, l.id, { shareId: share.id });
+        await toNgo(now, ngo, msg.text(`Accepted. No delivery partner has taken the pickup yet, so it's open to every partner nearby. If nobody takes it in ${fmtMinutes(wait)}, Luna passes it to another NGO so it isn't wasted. If your staff can collect, tap "Our own staff will collect".`));
         await deps.emit({ type: "partner_waiting", share, ngo }, now);
+        // One heads-up to everyone who could still take it, including those who missed the ask.
+        for (const p of usable(await store.list("partner")))
+          if (p.online && canTake(share, l, ngo, p, now))
+            await toPartner(now, p, msg.text(`Pickup still open: ${keepReady(l, share.lines)} from ${l.donorName} to ${ngo.name}, safe until ${fmtTime(safeUntilOf(l, share.lines))}. Nobody has taken it yet. Open Luna to take it.`));
       }
       return;
     }
@@ -255,6 +317,37 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
         containers: containersOf(l, share.lines),
       }),
     );
+  }
+
+  const waitLimit = (l: Listing, share: Share) =>
+    itemsOf(l, share.lines).some((i) => effectiveGrade(i) === "C") ? config.partnerWaitBeforeNextNgoServeNowMs : config.partnerWaitBeforeNextNgoMs;
+
+  /**
+   * The pickup has waited too long with no partner: if another NGO on the share's list has a partner free who
+   * can get the food there safely, the share moves to it (no need to ask the first NGO), and the first NGO is
+   * told why. Otherwise it stays with the first NGO, on the open board. True when it moved.
+   */
+  async function handOnToNextNgo(share: Share, l: Listing, ngo: Recipient, since: number, now: number) {
+    const wait = waitLimit(l, share);
+    if (now - since < wait) return false;
+    const tried = new Set([...share.triedNgoIds, ngo.id]);
+    let target: Recipient | null = null;
+    for (const c of share.candidates) {
+      if (tried.has(c.ngoId)) continue;
+      const r = await store.get("recipient", c.ngoId);
+      if (!r?.active || (!config.simulateUnclaimed && !r.phone)) continue;
+      if ((await partnersFor({ ...share, triedPartnerIds: [] }, l, r, now)).length) { target = r; break; }
+    }
+    if (!target) return false;
+    const candidates = [...share.candidates.filter((c) => c.ngoId === target!.id), ...share.candidates.filter((c) => c.ngoId !== target!.id)];
+    const next: Share = { ...share, status: "offering", candidates, ngoId: undefined, askedPartnerId: undefined, askDeadlineAt: undefined, triedPartnerIds: [], triedNgoIds: [...share.triedNgoIds, ngo.id], waitingForPartnerSince: undefined, lastPartnerTryAt: undefined };
+    await store.put("share", next);
+    const food = foodOf(l, share.lines);
+    await decide(now, "replanned", ngo.id, `No delivery partner took the pickup for ${ngo.name} in ${fmtMinutes(now - since)}, so the ${food} moves to ${target.name}, which has a partner free. ${ngo.name} was told why.`, l.id, { shareId: share.id, from: ngo.id, to: target.id });
+    await toNgo(now, ngo, msg.text(`No delivery partner took the ${food} pickup from ${l.donorName} within ${fmtMinutes(now - since)}, so Luna has passed it to another NGO that has a partner free, before it stops being safe. Nothing for you to do. Thank you for saying yes.`));
+    await deps.emit({ type: "partner_exhausted", share: next, ngo }, now);
+    await offerNext(next, now);
+    return true;
   }
 
   async function releaseAsk(share: Share, p: Partner, now: number, how: "declined" | "expired") {
@@ -683,6 +776,8 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     startShare,
     ngoReply,
     partnerReply,
+    openFor,
+    claim,
     assignManual,
     enterCode,
     late,
