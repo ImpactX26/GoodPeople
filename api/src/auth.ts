@@ -15,7 +15,7 @@ const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 
 /** The only admin. ADMIN_PHONE overrides the number on a test server. */
-export const ADMIN = { phone: process.env.ADMIN_PHONE ?? "8611487776", name: "Vrunda.C" };
+export const ADMIN = { phone: process.env.ADMIN_PHONE ?? "8618147776", name: "Vrunda.C" };
 const NOT_ADMIN = "This number isn’t Luna’s admin. Sign in with the admin number, or choose another role.";
 
 const isRole = (r: unknown): r is Role => typeof r === "string" && (ROLES as string[]).includes(r);
