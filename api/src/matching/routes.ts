@@ -122,6 +122,7 @@ function view(s: Share, who: "donor" | "ngo" | "partner" | "admin") {
 }
 
 import { partnerClockOf } from "./partner-clock.ts";
+import { donationLabel } from "../impact/label.ts";
 
 export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => number = Date.now) {
   const app = new Hono();
@@ -386,7 +387,10 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     const me = (await store.list("partner", { phone }))[0];
     const ngo = sh.ngoId ? await store.get("recipient", sh.ngoId) : null;
     const travel = l && me ? { toPickupMin: Math.max(1, Math.round(etaMs(distanceKm(me, l), me.travel) / 60_000)), toDropMin: ngo ? Math.max(1, Math.round(etaMs(distanceKm(l, ngo), me.travel) / 60_000)) : null } : null;
-    return { ...view(sh, "partner"), ...(await luna.track(sh, clock())), pickupDetails, travel, servings: sh.lines.reduce((n, x) => n + x.servings, 0), hasPhoto: !!l?.sourceListingId };
+    // The donation label, so the partner sees what FSSAI expects on the food when they collect it.
+    const src = onTrip && l?.sourceListingId ? await foodListings.get(l.sourceListingId) : null;
+    const label = src ? donationLabel(src, (await authStore.getProfile("donor", src.donorPhone))?.fields.fssai) : null;
+    return { ...view(sh, "partner"), ...(await luna.track(sh, clock())), pickupDetails, travel, servings: sh.lines.reduce((n, x) => n + x.servings, 0), hasPhoto: !!l?.sourceListingId, label };
   }
 
   app.get("/trips", async (c) => {

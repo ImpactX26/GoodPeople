@@ -9,6 +9,7 @@ import type { GapDonor } from "./gaps.ts";
 import { createLuna } from "./luna.ts";
 import { startReasoning } from "./reasoning/index.ts";
 import type { Reasoner } from "./reasoning/reasoner.ts";
+import { impactRoutes } from "../impact/routes.ts";
 import { reasoningRoutes } from "./reasoning/routes.ts";
 import { trace } from "./reasoning/trace.ts";
 import { matchingRoutes } from "./routes.ts";
@@ -63,6 +64,7 @@ export async function mountMatching(app: Hono) {
   const r = startReasoning(luna);
   reasoning = r.status().enabled ? r : null;
   app.route("/agents/reasoning", reasoningRoutes(r, matchingStore));
+  app.route("/agents", impactRoutes(luna, matchingStore));
   app.route("/agents", matchingRoutes(luna, matchingStore));
   app.route("/webhooks/whatsapp", whatsappWebhook(luna, matchingStore));
   startScheduler(luna, matchingStore, defaultClient());

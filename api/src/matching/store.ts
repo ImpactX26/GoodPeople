@@ -19,6 +19,7 @@ import type {
   Share,
 } from "./types.ts";
 import type { Thought, TraceEvent } from "./reasoning/types.ts";
+import type { Bag, BagHold } from "../impact/bags.ts";
 
 export interface Kinds {
   listing: Listing;
@@ -33,6 +34,9 @@ export interface Kinds {
   wa_in: InboundSeen;
   /** Food sent to a biogas plant when no NGO could take it. */
   biogas: BiogasPickup;
+  /** Surprise bags a restaurant sells at a discount, and who reserved them (impact/bags.ts). */
+  bag: Bag;
+  bag_hold: BagHold;
   /** The reasoning layer's looks at what the rules did (reasoning/). */
   thought: Thought;
   /** Every event the agent dashboards draw, kept so any screen opened later sees the whole story. */

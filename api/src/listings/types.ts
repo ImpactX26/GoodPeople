@@ -1,3 +1,4 @@
+import type { DonationLabel } from "../impact/label.ts";
 import type { Stop } from "../trips/types.ts";
 import type { BulkUnit, ContainerHint, EntryMode, Role } from "./portions.ts";
 
@@ -189,4 +190,6 @@ export interface ListingView extends Omit<FoodListing, "donorPhone" | "fingerpri
   offerRecipientName: string | null;
   serverNow: number;
   agentCase: AgentCase | null;
+  /** The donation label FSSAI expects on donated food (impact/label.ts), for the restaurant to print. */
+  label: DonationLabel | null;
 }

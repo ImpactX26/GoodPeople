@@ -20,6 +20,7 @@ import { ping } from "../matching/live.ts";
 import { passportFrom, passportItems } from "../matching/bridge.ts";
 import { comeByFor, leftoverOf, linesText, nearestCollector } from "../matching/biogas.ts";
 import { partnerClockOf } from "../matching/partner-clock.ts";
+import { donationLabel } from "../impact/label.ts";
 import { trace } from "../matching/reasoning/trace.ts";
 import type { Decision } from "../matching/types.ts";
 import { packingLines, shareContainers } from "../matching/food-agent.ts";
@@ -452,7 +453,8 @@ export async function listingView(l: FoodListing, s: Session): Promise<ListingVi
     progress: l.state === "not_for_people" ? "Not safe for people · see the food check" : l.state === "tags_held" ? (l.replacedBy ? "Relisted with corrected tags" : l.foodCheck?.tagsVerdict === "wrong" ? "Tags don't match the photo · relist it" : "Check your tags · relist or keep them") : delivered ? "Delivered" : t?.status === "failed_at_pickup" ? "Food did not pass pickup checks" : t?.pickedUpAt ? "On the way to the NGO" : accepted ? "NGO accepted · pickup arranged" : t?.offer?.status === "exhausted" ? "NGO offer expired · finding another safe option" : t?.offer?.history.length ? `${t.offer.history.at(-1)!.name} did not reply · asking ${t.drop.name} next` : l.state === "offered" ? "Food checked · NGO offer sent" : l.state === "checking" ? (agentCase ? caseProgress(agentCase, lead) : l.assessment && l.assessment.safeUntil < Date.now() ? "No longer safe to give out" : l.foodCheck ? "Food checked · finding the right NGO" : "Checking your food") : l.state === "unplaced" ? "This food cannot be offered in this walkthrough" : "First listing · awaiting Luna review",
     tripId: t?.id ?? null, trackingUrl: accepted && t ? `/deliveries?id=${t.id}` : null,
     recipientName: accepted && t ? t.drop.name : lead && lead.status !== "offering" ? lead.ngoName : null, deliveredAt: delivered ? t!.closedAt : [...agentCase?.timeline ?? []].reverse().find(d => d.kind === "delivered")?.at ?? null,
-    offerDeadline: t?.offer?.status === "pending" ? t.offer.deadline : null, offerRecipientName: t?.offer?.status === "pending" ? t.drop.name : null, serverNow: Date.now(), agentCase };
+    offerDeadline: t?.offer?.status === "pending" ? t.offer.deadline : null, offerRecipientName: t?.offer?.status === "pending" ? t.drop.name : null, serverNow: Date.now(), agentCase,
+    label: s.role === "donor" || s.role === "admin" ? donationLabel(l, (await store.getProfile("donor", l.donorPhone))?.fields.fssai) : null };
 }
 function actionKey(key: string | undefined) { if (!key || key.length > 200) throw new TripError("An Idempotency-Key is required.", 400); return key; }
 const allergens = ["dairy", "nuts", "peanuts", "gluten", "egg", "soy", "sesame", "seafood", "onion_garlic"];
