@@ -11,7 +11,7 @@ import type { ListingView } from "@/lib/luna/listing";
 import { TRIP_STATUS, tripTime, type TripView } from "@/lib/luna/trip";
 import PhotoCanvas from "./PhotoCanvas";
 import DonorShell from "./DonorShell";
-import { GRADE_LABEL, GRADE_MEANING, leadShare, modelName, servingsOf, stagesOf, type Stage } from "./stages";
+import { GRADE_LABEL, GRADE_MEANING, justWentCold, leadShare, modelName, servingsOf, stagesOf, wentCold, type Stage } from "./stages";
 import { keepRelist, tagLine } from "./relist";
 import { Updates } from "@/components/agents/live-bits";
 import LiveDelivery from "@/components/trip/LiveDelivery";
@@ -43,7 +43,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
   return (
     <DonorShell title={l?.deliveredAt ? "Donation receipt" : "Your donation"} back={{ label: "Donations", href: "/listings" }}>
       {!l ? <p className={s.loading}>{error || "Loading your donation…"}</p> : (
-        <div className={s.ticketLayout}>
+        <div className={s.ticketLayout} data-cold={wentCold(l) || undefined} data-fresh={justWentCold(l) || undefined}>
           <div className={s.composeMedia}>
             <PhotoCanvas photo={l.photo} onPhoto={() => {}} onError={() => {}} scanning={!l.foodCheck} alt={l.dish} readOnly />
             <div className={s.ticketHead}>
@@ -54,6 +54,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
           <div className={s.resultCol}>
           {l.agentCase && <Updates />}
           {l.agentCase?.shares.filter(x => x.status === "assigned" || x.status === "picked_up").map(x => <LiveDelivery key={x.id} shareId={x.id} viewer="observer" />)}
+          {wentCold(l) && l.agentCase?.lapsed && <ColdSlip l={l} session={session} onChange={setL} />}
           {l.agentCase && <BiogasSlip l={l} session={session} onChange={setL} />}
           {l.foodCheck && <TagSlip l={l} session={session} onChange={setL} />}
           {l.agentCase && <PackingPlan l={l} />}
@@ -118,6 +119,7 @@ function StageDetail({ stage, l, t }: { stage: Stage; l: ListingView; t: TripVie
           </>
         );
         const left = l.agentCase.leftover;
+        if (stage.state === "failed" && l.agentCase.lapsed && !l.agentCase.biogas?.length) return <p>No NGO said yes before {l.agentCase.lapsed.ended === "unsafe" ? "the food stopped being safe" : "your collect-by time"}. Luna has closed it.</p>;
         if (stage.state === "failed") return <p>No NGO can take it before it stops being safe: {left?.why || "every NGO that could take it passed"}.{l.agentCase.biogas?.length ? " It’s going to biogas instead." : ""}</p>;
         if (left?.waitingOnPartner) return <p>An NGO will take it, but no delivery partner can collect it yet. Luna asks again as soon as one can, while it’s still safe.</p>;
         return <p>Luna’s NGO Agent is finding the right NGO.</p>;
@@ -344,13 +346,52 @@ function FoodsVerdict({ l, model }: { l: ListingView; model: string | null }) {
 }
 
 /**
+ * Nobody took it before its window closed. The ticket goes cold: a black slip, a rubber stamp, a plain sorry,
+ * the one safety instruction that matters now, and the one useful thing left to do (biogas).
+ */
+function ColdSlip({ l, session, onChange }: { l: ListingView; session: Session; onChange: (l: ListingView) => void }) {
+  const [busy, setBusy] = useState(false), [error, setError] = useState("");
+  const c = l.agentCase!, lapsed = c.lapsed!, plant = c.leftover?.servings ? c.leftover.plant : null;
+  const send = async () => {
+    setBusy(true); setError("");
+    try { onChange(await api<ListingView>(`/listings/${l.id}/biogas`, { method: "POST", token: session.token, body: "{}" })); }
+    catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+  };
+  return (
+    <section className={s.cold} data-fresh={justWentCold(l) || undefined} aria-labelledby="cold-title">
+      <header className={s.coldHead}>
+        <h2 id="cold-title">Sorry. No one could take it in time.</h2>
+        <span className={s.coldStamp} aria-hidden>No one<br />responded</span>
+      </header>
+      <dl className={s.coldLines}>
+        <div><dt>NGOs offered it</dt><dd>{lapsed.asked}</dd></div>
+        <div><dt>Closed at</dt><dd>{tripTime(lapsed.at)}</dd></div>
+      </dl>
+      {c.leftover?.why && !lapsed.asked && <p className={s.coldWhy}>{c.leftover.why.charAt(0).toUpperCase() + c.leftover.why.slice(1)}.</p>}
+      <p className={s.coldSafety}>{lapsed.ended === "unsafe" ? "It’s past its safe time now. Please don’t give it to anyone." : "Your collect-by time has passed, so Luna has stopped looking."}</p>
+      {plant && (
+        <div className={s.coldAction}>
+          <p>It doesn’t have to be wasted: <strong>{plant.name}</strong> ({plant.km} km) can collect it and turn it into biogas.</p>
+          <button type="button" className={s.coldButton} disabled={busy} onClick={() => void send()}>
+            <Recycle size={18} aria-hidden /> {busy ? "Booking…" : "Send to biogas"}
+          </button>
+        </div>
+      )}
+      <p className={s.coldThanks}>Thank you for trying.</p>
+      {error && <p className={s.barError} role="alert">{error}</p>}
+    </section>
+  );
+}
+
+/**
  * No NGO can take some of the food in time and none is left to ask: the restaurant can send it to the nearest
  * biogas plant, which collects it. Once booked, it marks the pickup collected.
  */
 function BiogasSlip({ l, session, onChange }: { l: ListingView; session: Session; onChange: (l: ListingView) => void }) {
   const [busy, setBusy] = useState(""), [error, setError] = useState("");
   const c = l.agentCase!, left = c.leftover, booked = c.biogas ?? [];
-  if (!booked.length && !(left?.servings && left.plant)) return null;
+  const offer = !!(left?.servings && left.plant) && !c.lapsed;   // a cold ticket carries its own biogas offer
+  if (!booked.length && !offer) return null;
   const act = async (key: string, path: string) => {
     setBusy(key); setError("");
     try { onChange(await api<ListingView>(path, { method: "POST", token: session.token, body: "{}" })); }
@@ -371,7 +412,7 @@ function BiogasSlip({ l, session, onChange }: { l: ListingView; session: Session
           ) : <p><strong>{b.plantName}</strong> collected {b.what}{b.collectedAt ? ` at ${tripTime(b.collectedAt)}` : ""}. It becomes cooking gas, not landfill.</p>}
         </div>
       ))}
-      {left?.servings > 0 && left.plant && (
+      {offer && left.plant && (
         <div className={s.biogasPart} data-state="offer">
           <h2 id={booked.length ? undefined : "biogas-title"}><Recycle size={20} aria-hidden /> No NGO can take {booked.length ? "the rest" : "this food"} in time</h2>
           <p>{left.why.charAt(0).toUpperCase() + left.why.slice(1)}.</p>

@@ -73,3 +73,24 @@ test("the restaurant books the biogas pickup, then marks it collected; the case 
   assert.equal((await store.get("listing", l.id))!.status, "closed");
   assert.match((await store.list("decision", { listingId: l.id })).find((d) => d.kind === "closed")!.reason, /18 sent to biogas/);
 });
+
+test("nobody takes it before its window closes: the case closes with a sorry, and biogas is still on offer", async () => {
+  const { store, luna, l } = await lateNight();
+  await luna.tick(at(23, 20));
+  assert.equal((await store.get("listing", l.id))!.lapsed, undefined, "still inside the collect-by window");
+
+  await luna.tick(at(23, 31));
+  const closed = (await store.get("listing", l.id))!;
+  assert.equal(closed.status, "closed");
+  assert.deepEqual(closed.lapsed, { at: at(23, 31), asked: 0, ended: "collect_by" });
+  const sorry = (await store.list("outbox")).filter((m) => m.audience.startsWith("donor:")).map((m) => m.text).find((t) => t.includes("Sorry"));
+  assert.match(sorry!, /no one could take your paneer manchurian and samosa in time:/);
+  assert.match(sorry!, /Send to biogas/);
+  assert.equal((await store.list("decision", { listingId: l.id })).filter((d) => d.kind === "closed").length, 1);
+
+  await luna.tick(at(23, 45));
+  assert.equal((await store.list("decision", { listingId: l.id })).filter((d) => d.kind === "closed").length, 1, "closed once");
+  assert.equal((await leftoverOf(store, closed)).servings, 18, "a lapsed case can still go to biogas");
+  assert.ok((await luna.sendToBiogas(l.id, { phone: l.donorPhone }, at(23, 50))).ok);
+  assert.equal((await store.get("listing", l.id))!.status, "closed");
+});

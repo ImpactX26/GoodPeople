@@ -16,6 +16,7 @@ import type { NgoAgent } from "./ngo-agent.ts";
 import { code4, fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
 import { areaById } from "./seed.ts";
 import { comeByFor, leftoverOf, linesText, nearestCollector } from "./biogas.ts";
+import { safeUntil } from "./engine/safety.ts";
 import { fmtTime } from "./time.ts";
 import type { DecisionKind, Item, Listing, Partner, Share, TripMark } from "./types.ts";
 import { markFor, reliabilityLine, withMark } from "./reliability.ts";
@@ -97,7 +98,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
 
   async function refreshListing(listingId: string, now: number) {
     const l = await store.get("listing", listingId);
-    if (!l || l.status === "review") return;
+    if (!l || l.status === "review" || l.lapsed) return;
     const shares = await store.list("share", { listingId });
     const live = shares.filter((s) => LIVE.has(s.status));
     const bio = await store.list("biogas", { listingId });
@@ -439,9 +440,35 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     return ok("Thanks! Marked as collected.");
   }
 
+  /**
+   * The food's window has closed (the restaurant's collect-by time, or the last food stops being safe) and no NGO
+   * took any of it: close the case and say sorry, plainly, so it doesn't sit "in progress" forever. A biogas
+   * plant can still collect it; the restaurant is told so.
+   */
+  async function closeLapsed(now: number) {
+    for (const l of await store.list("listing")) {
+      if (l.status === "closed" || l.status === "review" || l.lapsed) continue;
+      const lastSafe = Math.max(...l.items.map((i) => safeUntil(i, l.createdAt)));
+      if (now < Math.min(l.collectBy, lastSafe)) continue;
+      const shares = await store.list("share", { listingId: l.id });
+      if (shares.some((s) => LIVE.has(s.status) || s.status === "delivered")) continue;
+      if ((await store.list("biogas", { listingId: l.id })).length) continue;
+      const asked = new Set((await store.list("decision", { listingId: l.id })).filter((d) => d.kind === "offered").map((d) => d.subject)).size;
+      const ended = now >= lastSafe ? "unsafe" : "collect_by";
+      for (const s of shares) if (s.status === "unplaced" && !s.held) await store.put("share", { ...s, held: true });
+      await store.put("listing", { ...l, status: "closed", lapsed: { at: now, asked, ended } });
+      const food = l.items.map((i) => itemName(i)).join(" and ");
+      const why = asked ? `${asked} NGO${asked === 1 ? " was" : "s were"} offered it and none said yes in time` : (l.stuckWhy ?? "no NGO could take it");
+      await decide(now, "closed", l.id, `No one took ${l.donorName}'s ${food} before ${ended === "unsafe" ? "it stopped being safe" : "the collect-by time"}: ${why}. Closed the case and said sorry.`, l.id, { lapsed: true, asked, ended });
+      const plant = await nearestCollector(store, l);
+      await rt.toDonor(now, l, `Sorry, no one could take your ${food} in time: ${why}. ${ended === "unsafe" ? "It's past its safe time now, so please don't give it to anyone." : "Your collect-by time has passed, so Luna has stopped looking."}${plant ? ' A biogas plant can still collect it: tap "Send to biogas" in Luna.' : ""} Thank you for trying.`);
+    }
+  }
+
   async function tick(now: number) {
     await logistics.tick(now);
     await heartbeat(now);
+    await closeLapsed(now);
     await replanUnplaced(now);
     // Food stranded only for want of a partner goes out again once someone can collect it.
     for (const s of await logistics.retryUnplaced(now)) {

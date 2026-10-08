@@ -1350,6 +1350,221 @@
   }
 }
 
+/* ---------- gone cold: nobody took it before its window closed ---------- */
+
+/* A rubber stamp's ink never lands evenly: a fine turbulence mask wears the edges and the fill. */
+.rowStamp,
+.coldStamp {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.5 1.75'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.5 1.75'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-size: 160px;
+  mask-size: 160px;
+}
+
+.donation[data-cold] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.donation[data-cold] .thumb img {
+  filter: grayscale(1) contrast(1.08) brightness(0.82);
+}
+
+.donation[data-cold] .donationText > span {
+  color: rgba(251, 250, 246, 0.72);
+}
+
+.donationText .now[data-tone="cold"] {
+  color: var(--paper);
+}
+
+.rowStamp {
+  flex: none;
+  padding: 5px 7px 4px;
+  border: 2px solid var(--paper);
+  color: var(--paper);
+  font: 800 10px/1.15 var(--font-print);
+  font-stretch: 112.5%;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+  rotate: -5deg;
+}
+
+.rowStamp[data-fresh] {
+  animation: coldStamp 460ms 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The donation page: the photo drains to grey, then the stamp lands on the black slip. */
+.ticketLayout[data-cold] .canvasImg {
+  filter: grayscale(1) contrast(1.06) brightness(0.86);
+}
+
+.ticketLayout[data-cold][data-fresh] .canvasImg {
+  animation: goCold 1400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cold {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 20px 20px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 12px 20px -12px rgba(20, 22, 20, 0.5);
+}
+
+.cold h2 {
+  margin: 0;
+  font: 800 24px/1.1 var(--font-print);
+  font-stretch: 112.5%;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.coldHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+}
+
+.coldStamp {
+  margin-top: 2px;
+  padding: 7px 10px 6px;
+  border: 3px solid var(--paper);
+  color: var(--paper);
+  font: 800 13px/1.15 var(--font-print);
+  font-stretch: 112.5%;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-transform: uppercase;
+  rotate: -7deg;
+  pointer-events: none;
+}
+
+.cold[data-fresh] .coldStamp {
+  animation: coldStamp 520ms 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.coldLines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1.5px dashed rgba(251, 250, 246, 0.35);
+}
+
+.coldLines div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font: 13px/1.4 var(--font-print);
+  letter-spacing: 0.02em;
+}
+
+.coldLines dt {
+  flex: none;
+  color: rgba(251, 250, 246, 0.72);
+  text-transform: uppercase;
+}
+
+.coldLines div::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  min-width: 16px;
+  height: 1em;
+  background: radial-gradient(circle, rgba(251, 250, 246, 0.45) 0.9px, transparent 1.2px) left bottom 3px / 6px 4px repeat-x;
+}
+
+.coldLines dd {
+  order: 2;
+  flex: none;
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.coldWhy,
+.coldThanks,
+.coldAction p {
+  margin: 0;
+  font: 16px/1.45 var(--font-note);
+}
+
+.coldSafety {
+  margin: 0;
+  font: 700 16px/1.4 var(--font-note);
+}
+
+.coldThanks {
+  color: rgba(251, 250, 246, 0.72);
+}
+
+.coldAction {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1.5px dashed rgba(251, 250, 246, 0.35);
+}
+
+.coldButton {
+  min-height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 22px;
+  border: 2px solid var(--paper);
+  background: var(--paper);
+  color: var(--ink);
+  font: 700 14px/1 var(--font-print);
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.coldButton:hover:not(:disabled) {
+  background: transparent;
+  color: var(--paper);
+}
+
+.coldButton:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.cold :focus-visible {
+  outline-color: var(--paper);
+}
+
+@keyframes goCold {
+  from { filter: none; }
+  to { filter: grayscale(1) contrast(1.06) brightness(0.86); }
+}
+
+@keyframes coldStamp {
+  0% { opacity: 0; scale: 1.7; rotate: -16deg; }
+  65% { opacity: 1; scale: 0.94; rotate: -4deg; }
+  100% { opacity: 1; scale: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowStamp[data-fresh],
+  .cold[data-fresh] .coldStamp,
+  .ticketLayout[data-cold][data-fresh] .canvasImg {
+    animation: none;
+  }
+}
+
 /* ---------- saved addresses: picker, sheet, profile ---------- */
 
 .picker {

@@ -93,6 +93,11 @@ export interface Listing extends LatLng {
   lastHeartbeatAt?: number;
   /** Why no NGO can take the servings left over, in plain words (the NGO Agent's finding). */
   stuckWhy?: string;
+  /**
+   * Nobody took it before its window closed (the restaurant's collect-by time, or the last food stops being
+   * safe): the case closes with an apology. `asked`: NGOs that were offered it; `ended`: which limit was hit.
+   */
+  lapsed?: { at: number; asked: number; ended: "unsafe" | "collect_by" };
 }
 
 /**

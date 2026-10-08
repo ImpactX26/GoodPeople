@@ -38,7 +38,7 @@ export interface PlanResult {
 export function whyUnplaced(items: Item[], skipped: Skip[]): string {
   const real = skipped.filter((s) => s.code !== "EXCLUDED" && s.code !== "INACTIVE" && items.some((i) => i.id === s.item.id));
   if (!items.length) return "";
-  if (!real.length) return "no NGO near you is taking food right now (closed, full, or already passed on it)";
+  if (!real.length) return "no NGO near you is taking food right now; they're closed, full or have passed on it";
   if (real.every((s) => s.code === "EXPIRES_BEFORE_SERVING" && s.detail.opens)) {
     const names = [...new Set(real.map((s) => s.recipient.name))];
     const opens = real.map((s) => String(s.detail.opens)).sort()[0];

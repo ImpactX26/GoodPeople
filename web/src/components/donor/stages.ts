@@ -65,8 +65,14 @@ export function stagesOf(l: ListingView, t: TripView | null): Stage[] {
   ];
 }
 
+/** Nobody took it before its window closed (and it hasn't gone to biogas since): its ticket goes cold. */
+export const wentCold = (l: ListingView) => l.state === "unplaced" || (!!l.agentCase?.lapsed && !l.agentCase.biogas?.length);
+/** The cold ticket stamps itself only in the first few minutes; after that it's simply cold, not re-announced. */
+export const justWentCold = (l: ListingView) => !!l.agentCase?.lapsed && l.serverNow - l.agentCase.lapsed.at < 10 * 60_000;
+
 /** One short line for lists: what is happening now. */
 export function nowLine(l: ListingView, t: TripView | null) {
+  if (wentCold(l)) return "Sorry. No NGO could take it in time.";
   if (l.state === "not_for_people") return "Not safe for people";
   if (l.state === "tags_held") return l.replacedBy ? "Relisted with corrected tags" : l.foodCheck?.tagsVerdict === "wrong" ? "Tags don’t match the photo · relist" : "Check your tags";
   if (l.agentCase && !l.deliveredAt) return l.progress;

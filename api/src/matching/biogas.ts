@@ -27,7 +27,8 @@ export interface Leftover {
  */
 export async function leftoverOf(store: MatchingStore, l: Listing): Promise<Leftover> {
   const none: Leftover = { lines: [], servings: 0, waitingOnPartner: 0, why: "" };
-  if (l.status === "review" || l.status === "closed") return none;
+  // A case closed because nobody came in time can still send its food to biogas.
+  if (l.status === "review" || (l.status === "closed" && !l.lapsed)) return none;
   const shares = await store.list("share", { listingId: l.id });
   const passed = new Map<string, Set<string>>();
   for (const d of await store.list("decision", { listingId: l.id }))

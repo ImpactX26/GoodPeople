@@ -8,7 +8,7 @@ import { api } from "@/lib/luna/api";
 import type { Session } from "@/lib/luna/auth";
 import type { ListingView } from "@/lib/luna/listing";
 import { tripTime } from "@/lib/luna/trip";
-import { nowLine, servingsOf, stagesOf } from "./stages";
+import { justWentCold, nowLine, servingsOf, stagesOf, wentCold } from "./stages";
 import s from "./donor.module.css";
 
 export function useDonations(session: Session) {
@@ -27,23 +27,25 @@ export function useDonations(session: Session) {
 
 /** A donation as a row: photo, dish, servings, the four stage ticks and what's happening now. */
 export function DonationRow({ l }: { l: ListingView }) {
-  const stages = stagesOf(l, null);
+  const stages = stagesOf(l, null), cold = wentCold(l);
   return (
-    <Link className={s.donation} href={`/listings/${l.id}`}>
+    <Link className={s.donation} href={`/listings/${l.id}`} data-cold={cold || undefined}>
       <span className={s.thumb}>{l.photo && <Image src={l.photo} alt="" fill sizes="64px" unoptimized />}</span>
       <span className={s.donationText}>
         <b>{l.dish}</b>
         <span>{servingsOf(l)} servings · {tripTime(l.createdAt)}{l.foodCheck ? ` · Grade ${l.foodCheck.grade}` : ""}</span>
-        <span className={s.now} data-tone={l.state === "not_for_people" || l.state === "unplaced" || l.state === "tags_held" ? "bad" : l.deliveredAt ? "done" : "live"}>{nowLine(l, null)}</span>
+        <span className={s.now} data-tone={cold ? "cold" : l.state === "not_for_people" || l.state === "tags_held" ? "bad" : l.deliveredAt ? "done" : "live"}>{nowLine(l, null)}</span>
       </span>
-      <span className={s.ticks} aria-hidden>{stages.map(st => <i key={st.key} data-state={st.state} />)}</span>
+      {cold
+        ? <span className={s.rowStamp} data-fresh={justWentCold(l) || undefined}>No one<br />responded</span>
+        : <span className={s.ticks} aria-hidden>{stages.map(st => <i key={st.key} data-state={st.state} />)}</span>}
     </Link>
   );
 }
 
 export default function DonationList({ session }: { session: Session }) {
   const { rows, error } = useDonations(session);
-  const active = rows?.filter(l => !l.deliveredAt && l.state !== "not_for_people" && l.state !== "unplaced" && !(l.state === "tags_held" && l.replacedBy)) ?? [];
+  const active = rows?.filter(l => !l.deliveredAt && l.state !== "not_for_people" && !wentCold(l) && l.agentCase?.status !== "closed" && !(l.state === "tags_held" && l.replacedBy)) ?? [];
   const past = rows?.filter(l => !active.includes(l)) ?? [];
   return (
     <>

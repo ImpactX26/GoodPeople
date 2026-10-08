@@ -394,9 +394,10 @@ async function caseOf(caseId: string, withCode: boolean): Promise<AgentCase | nu
   }
   const leftover: AgentCase["leftover"] = { servings: left.servings, what: linesText(c, left.lines), why: left.why, waitingOnPartner: left.waitingOnPartner,
     plant: plant ? { name: plant.name, km: plant.km, comeBy: comeByFor(plant.km, Date.now()) } : null };
-  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals, leftover, biogas };
+  return { id: c.id, status: c.status, unplacedServings: c.unplacedServings, shares: out, ranked, timeline, meals, leftover, biogas, lapsed: c.lapsed ?? null };
 }
 function caseProgress(c: AgentCase, lead: AgentCase["shares"][number] | undefined) {
+  if (c.lapsed && !c.biogas.length) return "No one responded in time";
   if (c.biogas.some(b => b.status === "booked")) return `${c.biogas.find(b => b.status === "booked")!.plantName} is collecting it for biogas`;
   if (!lead && c.biogas.length) return "Collected for biogas";
   if (!lead) return c.leftover.servings ? `No NGO can take it in time${c.leftover.plant ? " · send it to biogas" : " · the Luna team is on it"}`
