@@ -39,6 +39,8 @@ export const AREAS = [
   "Hebbal",
   "Yelahanka",
   "Electronic City",
+  "Nagarabhavi",
+  "Rajarajeshwari Nagar",
   "Somewhere else in Bengaluru",
 ];
 

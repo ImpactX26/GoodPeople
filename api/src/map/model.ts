@@ -148,6 +148,16 @@ export const AREAS: Area[] = [
     ngos: [{ name: "Railway Colony Shelter", type: "Shelter", mealsPerDay: 170, fridge: false }],
     donors: [{ name: "APMC Yard Canteen", kind: "restaurant" }, { name: "Orion Food Court", kind: "restaurant" }],
   },
+  {
+    id: "nagarabhavi", name: "Nagarabhavi", lng: 77.5098, lat: 12.9606, surplus: s(170, 90, 20, 80), reach: 0.6,
+    ngos: [{ name: "Nagarabhavi Seva Trust", type: "NGO", mealsPerDay: 120, fridge: false }],
+    donors: [{ name: "Ring Road Darshini", kind: "restaurant" }, { name: "2nd Stage Kalyana Mantapa", kind: "caterer" }],
+  },
+  {
+    id: "rrnagar", name: "Rajarajeshwari Nagar", lng: 77.5195, lat: 12.9274, surplus: s(180, 160, 30, 90), reach: 0.55,
+    ngos: [{ name: "RR Nagar Vriddhashrama", type: "Old-age home", mealsPerDay: 70, fridge: true }],
+    donors: [{ name: "Ideal Homes Tiffin Centre", kind: "restaurant" }, { name: "Arch Road Convention Hall", kind: "caterer" }],
+  },
 ];
 
 const AREA_BY_ID = new Map(AREAS.map((a) => [a.id, a]));

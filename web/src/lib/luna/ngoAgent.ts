@@ -227,6 +227,8 @@ export const AREA_COORDS: Record<string, { latitude: number; longitude: number }
   Hebbal: { latitude: 13.0358, longitude: 77.597 },
   Yelahanka: { latitude: 13.1007, longitude: 77.5963 },
   "Electronic City": { latitude: 12.8452, longitude: 77.6602 },
+  Nagarabhavi: { latitude: 12.9606, longitude: 77.5098 },
+  "Rajarajeshwari Nagar": { latitude: 12.9274, longitude: 77.5195 },
   "Somewhere else in Bengaluru": { latitude: 12.9716, longitude: 77.5946 },
 };
 
