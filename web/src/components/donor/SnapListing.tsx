@@ -24,6 +24,7 @@ const KINDS: { value: Category; label: string }[] = [
   { value: "packaged", label: "Packaged" }, { value: "beverages", label: "Drinks" }, { value: "raw_produce", label: "Raw produce" },
 ];
 const COOKED = [{ value: "15", label: "15 min ago" }, { value: "30", label: "30 min" }, { value: "60", label: "1 h" }, { value: "120", label: "2 h" }, { value: "180", label: "3 h" }, { value: "exact", label: "Exact time" }];
+const GOOD_FOR = [{ value: "", label: "Not sure" }, { value: "1", label: "1 h" }, { value: "2", label: "2 h" }, { value: "3", label: "3 h" }, { value: "4", label: "4 h" }, { value: "6", label: "6 h" }, { value: "8", label: "8 h+" }];
 const WITHIN = [{ value: "30", label: "30 min" }, { value: "60", label: "1 hour" }, { value: "120", label: "2 hours" }, { value: "exact", label: "Set times" }];
 const ALLERGEN_LABEL: Record<string, string> = { onion_garlic: "Onion / garlic" };
 const label = (a: string) => ALLERGEN_LABEL[a] ?? a[0].toUpperCase() + a.slice(1);
@@ -32,7 +33,7 @@ const UNIT_WORD: Record<BulkUnit, string> = { kg: "kg", g: "g", L: "litres", ml:
 let seq = 0;
 function blankItem(photo = ""): DraftItem {
   return { key: `i${Date.now()}${seq++}`, photo, dish: "", category: "cooked_meal", diet: "veg", jain: false, halal: "unsure", spice: "medium", contains: [],
-    mode: "bulk", count: 10, feeds: 4, amount: 5, unit: "kg", servings: null, cookedAt: Date.now() - 15 * 60_000, storage: "hot", temp: "" };
+    mode: "bulk", count: 10, feeds: 4, amount: 5, unit: "kg", servings: null, cookedAt: Date.now() - 15 * 60_000, storage: "hot", temp: "", goodFor: "" };
 }
 
 type Step = "food" | "pickup" | "review";
@@ -148,7 +149,7 @@ export default function SnapListing({ session }: { session: Session }) {
               <h2 className={s.reviewTitle}>{items.length === 1 ? items[0].dish : `${items.length} foods`}</h2>
               <ul className={s.reviewItems}>
                 {items.map(d => { const v = servingsOfDraft(d); return (
-                  <li key={d.key}><b>{d.dish}</b><span>{v.servings} servings · {d.diet === "veg" ? (d.jain ? "Veg · Jain" : "Veg") : d.diet === "egg" ? "Veg with egg" : "Non-veg"} · cooked {tripTime(d.cookedAt)}, {d.storage === "hot" ? "kept hot" : d.storage === "fridge" ? "in a fridge" : "room temp"}</span></li>
+                  <li key={d.key}><b>{d.dish}</b><span>{v.servings} servings · {d.diet === "veg" ? (d.jain ? "Veg · Jain" : "Veg") : d.diet === "egg" ? "Veg with egg" : "Non-veg"} · cooked {tripTime(d.cookedAt)}, {d.storage === "hot" ? "kept hot" : d.storage === "fridge" ? "in a fridge" : "room temp"}{d.goodFor ? ` · good for about ${d.goodFor} h` : ""}</span></li>
                 ); })}
               </ul>
               <dl className={s.leaders}>
@@ -258,6 +259,10 @@ export default function SnapListing({ session }: { session: Session }) {
                 <label className={s.field} data-inline><span>Thermometer reading <small>(optional)</small></span>
                   <span className={s.unitInput}><input type="number" inputMode="decimal" step="0.5" min={-30} max={120} value={cur.temp} onChange={e => set("temp", e.target.value)} placeholder="—" /><b>°C</b></span>
                 </label>
+              </Row>
+              <Row title="Stays good for">
+                <ChoiceChips label="How long it stays good from now" name="goodfor" value={cur.goodFor} onChange={v => set("goodFor", v)} options={GOOD_FOR} />
+                <p className={s.note}>Your best guess, from now. Luna never promises it stays good longer than you say, and uses its food-safety rules when they say sooner.</p>
               </Row>
 
               <button type="button" className={s.addFood} onClick={addAnother}><Plus size={18} aria-hidden /> Add another food to this session</button>

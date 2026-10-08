@@ -18,6 +18,8 @@ export interface ListingInput {
   category?: FoodCategory;
   /** Thermometer reading, if the donor took one. */
   temperatureC?: number | null;
+  /** The restaurant's own estimate of when the food stops being good (from `safeForHours`): no check may promise longer. */
+  donorSafeUntil?: number | null;
   readyFrom: number;
   collectBy: number;
   containers: "donor_packs" | "partner_brings";
@@ -54,6 +56,8 @@ export interface ListingItem {
   cookedAt: number;
   storage: "hot" | "room" | "fridge";
   temperatureC?: number | null;
+  /** The restaurant's own estimate of when this food stops being good: no check may promise longer. */
+  donorSafeUntil?: number | null;
   /** This item's food check; null while it runs. */
   foodCheck?: FoodCheck | null;
 }
@@ -99,6 +103,8 @@ export interface FoodCheck {
   tagChecks?: TagCheck[];
   tagsVerdict?: "ok" | "unsure" | "wrong";
   reasoning?: { summary: string; steps: { title: string; detail: string; effect: string; status: "pass" | "warn" | "fail" | "info" }[] } | null;
+  /** The restaurant's own "good until", when it gave one: this check was capped at it (foodCheck.ts capByDonor). */
+  donorSafeUntil?: number;
 }
 export interface FoodListing extends ListingInput {
   id: string;

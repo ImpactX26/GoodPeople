@@ -22,6 +22,8 @@ export interface DraftItem {
   cookedAt: number;
   storage: ListingInput["storage"];
   temp: string;
+  /** The restaurant's own "stays good for about N hours from now"; "" = not sure. Luna never promises longer. */
+  goodFor: string;
 }
 
 /** The unit shown for this food: the donor's pick when it fits the dish (litres for payasam), else the dish's first unit. */
@@ -43,7 +45,7 @@ export function servingsOfDraft(d: DraftItem) {
 export function itemBody(d: DraftItem) {
   return { dish: d.dish.trim(), category: d.category, diet: d.diet, jain: d.diet === "veg" && d.jain, halal: d.halal, spice: d.spice, contains: d.contains,
     quantity: quantityOf(d), servings: servingsOfDraft(d).servings, photo: d.photo, cookedAt: d.cookedAt, storage: d.storage,
-    temperatureC: d.temp.trim() === "" ? null : Number(d.temp) };
+    temperatureC: d.temp.trim() === "" ? null : Number(d.temp), safeForHours: d.goodFor ? Number(d.goodFor) : null };
 }
 
 /** A held session's foods, with the photo check's tag fixes applied per food, for relisting. */
@@ -65,6 +67,7 @@ export function draftsFromListing(l: ListingView): DraftItem[] {
       diet, jain, halal: it.halal, spice: (pick("spice") as ListingInput["spice"] | undefined) ?? it.spice, contains,
       mode: q.mode, count: q.count ?? 10, feeds: q.feedsEach ?? 4, amount: q.amount ?? 5, unit: q.unit ?? "kg",
       servings: "servings" in it ? (it.servings as number) : null, cookedAt: it.cookedAt, storage: it.storage, temp: it.temperatureC != null ? String(it.temperatureC) : "",
+      goodFor: "",   // time has passed since the first listing: ask again
     };
   });
 }

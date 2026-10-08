@@ -5,7 +5,7 @@ import { Hono } from "hono";
 import { store, type Session } from "../src/store.ts";
 import { food, handOff, tripId } from "../src/listings/routes.ts";
 import type { Scenario } from "../src/listings/scenario.ts";
-import type { ListingInput, ListingView } from "../src/listings/types.ts";
+import type { FoodListing, ListingInput, ListingView } from "../src/listings/types.ts";
 import { listings } from "../src/listings/repository.ts";
 import { delivery } from "../src/trips/routes.ts";
 import { acceptShare, canView, present } from "../src/trips/engine.ts";
@@ -74,7 +74,8 @@ test("first listing requires review, retry keys preserve one listing and other a
 test("approval creates an offer with safety assessment, hides exact pins and excludes unrelated NGOs", async () => {
   const o = await offer(), response = await request("/offers", o.s.sessions.ngo), data = await response.json();
   const value = data.offers[0] as ListingView;
-  assert.equal(value.id, o.id); assert.equal(value.assessment?.grade, "A");
+  // cooked 15 min ago and kept hot: the 4 h hot-holding limit leaves under 4 h, so Grade B (docs/FOOD-SAFETY-BASIS.md)
+  assert.equal(value.id, o.id); assert.equal(value.assessment?.grade, "B");
   assert.equal(value.assessment?.unsure, true); assert.equal(value.assessment?.servings, 10);
   assert.equal(value.pickup, null); assert.equal(value.trackingUrl, null);
   assert.equal("contactPhone" in value, false); assert.equal("fingerprint" in value, false);
@@ -317,8 +318,9 @@ test("every listing gets a food check: rules-only and Unsure when the Food Agent
   const s = await accounts(), { id } = await (await request("/listings", s.sessions.donor, input(s))).json();
   const l = (await listings.get(id))!;
   assert.equal(l.foodCheck?.source, "rules_only"); assert.equal(l.foodCheck?.unsure, true); assert.equal(l.foodCheck?.photoChecked, false);
-  assert.equal(l.foodCheck?.grade, "A"); assert.equal(l.assessment?.grade, "A"); assert.equal(l.assessment?.servings, 10);
-  assert.match(l.foodCheck?.reasoning?.summary ?? "", /^Grade A/); assert.equal(l.foodCheck?.reasoning?.steps.at(-1)?.title, "Final grade");
+  // the same 4 h hot-holding limit as the Food Agent (it used to be 8 h here): Grade B, not A
+  assert.equal(l.foodCheck?.grade, "B"); assert.equal(l.assessment?.grade, "B"); assert.equal(l.assessment?.servings, 10);
+  assert.match(l.foodCheck?.reasoning?.summary ?? "", /^Grade B/); assert.equal(l.foodCheck?.reasoning?.steps.at(-1)?.title, "Final grade");
 });
 test("Food Agent results map onto the listing; its safe-until and grade drive the offer", async () => {
   const s = await accounts(), base = { ...input(s), id: "lst_x", version: 1, donorPhone: s.sessions.donor.phone, donorName: "Annapurna Kitchen",
@@ -537,4 +539,34 @@ test("a listing session: several foods, servings from the portion table, split a
   assert.match(notes[0], /Pickup code: \d{4}/);
   const view = await (await request(`/listings/${id}`, session)).json() as ListingView;
   assert.ok(view.agentCase!.shares[0].lines.length >= 1);
+});
+test("the fallback rules match the Food Agent's: 2 h at room temperature, a quarter less for meat, 1 h in a warm room", async () => {
+  const { shelfHours } = await import("../src/listings/foodCheck.ts");
+  assert.equal(shelfHours({ category: "cooked_meal", storage: "room", temperatureC: null, diet: "veg" }).hours, 2);
+  assert.equal(shelfHours({ category: "cooked_meal", storage: "hot", temperatureC: null, diet: "veg" }).hours, 4);
+  assert.equal(shelfHours({ category: "cooked_meal", storage: "hot", temperatureC: null, diet: "nonveg" }).hours, 3);
+  assert.equal(shelfHours({ category: "cooked_meal", storage: "hot", temperatureC: 50, diet: "veg" }).hours, 1, "not really hot: the room rule, halved because 50 °C is warm");
+  assert.equal(shelfHours({ category: "cooked_meal", storage: "room", temperatureC: 35, diet: "veg" }).hours, 1, "warm room halves it");
+  assert.equal(shelfHours({ category: "cooked_meal", storage: "fridge", temperatureC: null, diet: "veg" }).hours, 24);
+});
+test("the restaurant's own estimate caps the food check: never longer, grade only goes down, too short is not for people", async () => {
+  const { capByDonor, rulesOnlyCheck } = await import("../src/listings/foodCheck.ts");
+  const s = await accounts(), now = Date.now(), HOUR = 60 * 60_000;
+  const fridge = { ...input(s), storage: "fridge", cookedAt: now - 60 * 60_000 } as unknown as FoodListing;
+  const base = rulesOnlyCheck(fridge, now, "test");
+  assert.equal(base.grade, "A");
+  const capped = capByDonor(base, now + 4 * HOUR);
+  assert.equal(capped.safeUntil, now + 4 * HOUR); assert.equal(capped.grade, "B");
+  assert.equal(capped.reasoning?.steps.at(-1)?.title, "Your estimate");
+  assert.deepEqual(capByDonor(capped, now + 1 * HOUR), capped, "applied once");
+  const later = capByDonor(base, now + 48 * HOUR);
+  assert.equal(later.safeUntil, base.safeUntil, "a longer estimate never extends the rules' time"); assert.equal(later.grade, "A");
+  const tooShort = capByDonor(base, now + 20 * 60_000);
+  assert.equal(tooShort.grade, "D"); assert.equal(tooShort.safeUntil, null);
+  // through the API: a session food with "good for 1 h" is checked against that hour
+  const res = await request("/listings", s.sessions.donor, { ...input(s), safeForHours: 1 });
+  assert.equal(res.status, 201);
+  const l = (await listings.get((await res.json()).id))!;
+  assert.ok(l.foodCheck!.safeUntil! <= Date.now() + HOUR + 1000); assert.equal(l.foodCheck!.grade, "C");
+  assert.equal((await request("/listings", s.sessions.donor, { ...input(s), safeForHours: 500 })).status, 400);
 });

@@ -20,6 +20,16 @@ export const MAX_ITEMS = 10;
 
 const isNum = (v: unknown, min: number, max: number) => typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
 
+export const MIN_SAFE_HOURS = 0.5, MAX_SAFE_HOURS = 72;
+/**
+ * The restaurant's "it stays good for about N hours (from now)": null when not given, undefined when invalid.
+ * Kept as an absolute time; the food check may never promise longer (foodCheck.ts capByDonor).
+ */
+export function donorEstimate(hours: unknown, now: number): number | null | undefined {
+  if (hours === undefined || hours === null || hours === "") return null;
+  return isNum(hours, MIN_SAFE_HOURS, MAX_SAFE_HOURS) ? now + (hours as number) * 60 * 60_000 : undefined;
+}
+
 /** One item from the app, checked and with its servings worked out; or the reason it was refused. */
 function parseItem(raw: unknown, i: number, now: number): ListingItem | string {
   const b = (raw ?? {}) as Record<string, unknown>;
@@ -37,6 +47,8 @@ function parseItem(raw: unknown, i: number, now: number): ListingItem | string {
   if (typeof b.photo !== "string" || !PHOTO.test(b.photo) || b.photo.length > C.maxPhotoBytes) return `${at}: add a photo of this food.`;
   if (!isNum(b.cookedAt, now - 72 * 60 * 60_000, now) || !["hot", "room", "fridge"].includes(b.storage as string)) return `${at}: when it was cooked and how it was kept.`;
   if (b.temperatureC !== undefined && b.temperatureC !== null && !isNum(b.temperatureC, -30, 120)) return `${at}: thermometer reading isn't valid.`;
+  const donorSafeUntil = donorEstimate(b.safeForHours, now);
+  if (donorSafeUntil === undefined) return `${at}: how long it stays good must be between ${MIN_SAFE_HOURS * 60} minutes and ${MAX_SAFE_HOURS} hours.`;
   const quantity = { mode: q.mode as EntryMode, count: q.count as number | undefined, feedsEach: q.feedsEach as number | undefined, amount: q.amount as number | undefined, unit: q.unit as BulkUnit | undefined };
   const rec = servingsFor(b.dish, b.category as string | undefined, quantity);
   // The donor confirms the recommendation or gives their own number (packs: their count is trusted).
@@ -48,12 +60,12 @@ function parseItem(raw: unknown, i: number, now: number): ListingItem | string {
     servings: donor, recommended: rec.servings, role: rec.role, estimate: rec.estimate || donor !== rec.servings, donorOverride: farFrom(donor, rec.servings),
     dishId: rec.dishId, container: rec.container, litres: rec.litres,
     photo: b.photo, cookedAt: b.cookedAt as number, storage: b.storage as ListingItem["storage"], temperatureC: (b.temperatureC as number | null | undefined) ?? null,
-    foodCheck: null,
+    donorSafeUntil, foodCheck: null,
   };
 }
 
 /** The single-dish view of a session, for code that reads one dish (trips, older screens, the food check fallback). */
-export function summaryOf(items: ListingItem[]): Pick<ListingInput, "dish" | "diet" | "jain" | "halal" | "contains" | "spice" | "entryMode" | "count" | "feedsEach" | "photo" | "cookedAt" | "storage" | "category" | "temperatureC"> {
+export function summaryOf(items: ListingItem[]): Pick<ListingInput, "dish" | "diet" | "jain" | "halal" | "contains" | "spice" | "entryMode" | "count" | "feedsEach" | "photo" | "cookedAt" | "storage" | "category" | "temperatureC" | "donorSafeUntil"> {
   const diet = items.reduce((d, i) => (DIET_RANK[i.diet] > DIET_RANK[d] ? i.diet : d), "veg" as ListingItem["diet"]);
   const nonveg = items.filter((i) => i.diet === "nonveg");
   return {
@@ -66,6 +78,7 @@ export function summaryOf(items: ListingItem[]): Pick<ListingInput, "dish" | "di
     photo: items[0].photo, cookedAt: Math.min(...items.map((i) => i.cookedAt)),
     storage: items.reduce((s, i) => (STORAGE_RISK[i.storage] > STORAGE_RISK[s] ? i.storage : s), "fridge" as ListingItem["storage"]),
     category: items[0].category, temperatureC: null,
+    donorSafeUntil: items.some((i) => i.donorSafeUntil) ? Math.min(...items.flatMap((i) => (i.donorSafeUntil ? [i.donorSafeUntil] : []))) : null,
   };
 }
 
@@ -89,6 +102,7 @@ export async function checkItems(l: FoodListing): Promise<FoodCheck[]> {
   return Promise.all((l.items ?? []).map((it) => it.foodCheck ? Promise.resolve(it.foodCheck) : requestFoodCheck({
     ...l, dish: it.dish, category: it.category, diet: it.diet, jain: it.jain, halal: it.halal, contains: it.contains, spice: it.spice,
     entryMode: "per_person_pack", count: it.servings, feedsEach: 1, photo: it.photo, cookedAt: it.cookedAt, storage: it.storage, temperatureC: it.temperatureC,
+    donorSafeUntil: it.donorSafeUntil ?? null,
   })));
 }
 

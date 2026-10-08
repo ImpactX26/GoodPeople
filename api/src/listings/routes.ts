@@ -13,7 +13,7 @@ import { listings } from "./repository.ts";
 import { assertOfferOpen, startNgoOffer, tickNgoOffers } from "./offers.ts";
 import { currentScenario, localScenarioEnabled, provisionScenario, scenarioFor } from "./scenario.ts";
 import { applyFoodCheck, foodAgentUrl, requestFoodCheck, servingsOf } from "./foodCheck.ts";
-import { applySessionCheck, checkItems, parseSession } from "./session.ts";
+import { applySessionCheck, checkItems, donorEstimate, MAX_SAFE_HOURS, MIN_SAFE_HOURS, parseSession } from "./session.ts";
 import { agents, matchingStore, reasoner } from "../matching/index.ts";
 import { syncDirectory } from "../matching/directory.ts";
 import { ping } from "../matching/live.ts";
@@ -70,6 +70,12 @@ food.post("/listings", async c => {
   const session = Array.isArray(sent.items) ? parseSession(sent, now) : null;
   if (session && "error" in session) throw new TripError(session.error, 400);
   const body = (session ? session.input : sent) as ListingInput;
+  // A single dish's own estimate; a session's is per food (session.ts).
+  if (!session) {
+    const until = donorEstimate((sent as Record<string, unknown>).safeForHours, now);
+    if (until === undefined) throw new TripError(`How long it stays good must be between ${MIN_SAFE_HOURS * 60} minutes and ${MAX_SAFE_HOURS} hours.`, 400);
+    body.donorSafeUntil = until;
+  }
   // the shared fields (pickup, timing, containers, contact, declaration) are checked the same way
   if (!validListing(session ? { ...body, count: Math.min((body as ListingInput).count, 200) } : body, now)) throw new TripError("Complete the food, photo, tags, timing, pickup details and declaration.", 400);
   const key = actionKey(c.req.header("Idempotency-Key"));
