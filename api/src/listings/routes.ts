@@ -13,10 +13,12 @@ import { listings } from "./repository.ts";
 import { assertOfferOpen, startNgoOffer, tickNgoOffers } from "./offers.ts";
 import { currentScenario, localScenarioEnabled, provisionScenario, scenarioFor } from "./scenario.ts";
 import { applyFoodCheck, foodAgentUrl, requestFoodCheck, servingsOf } from "./foodCheck.ts";
+import { applySessionCheck, checkItems, parseSession } from "./session.ts";
 import { agents, matchingStore } from "../matching/index.ts";
 import { syncDirectory } from "../matching/directory.ts";
 import { ping } from "../matching/live.ts";
 import { passportFrom } from "../matching/bridge.ts";
+import { packingLines, shareContainers } from "../matching/food-agent.ts";
 import type { AgentCase } from "./types.ts";
 import { FOOD_CATEGORIES, type FoodListing, type ListingInput, type ListingView } from "./types.ts";
 
@@ -61,15 +63,21 @@ food.post("/listings", async c => {
   if (!profile) throw new TripError("Finish your donor profile first.", 400);
   const raw = await c.req.json().catch(() => null);
   // "replaces": relisting food whose photo didn't match its veg / non-veg label.
-  const { replaces, ...body } = raw && typeof raw === "object" ? raw as Record<string, unknown> : { replaces: undefined };
-  if (!validListing(body, now)) throw new TripError("Complete the food, photo, tags, timing, pickup details and declaration.", 400);
+  const { replaces, ...sent } = raw && typeof raw === "object" ? raw as Record<string, unknown> : { replaces: undefined };
+  // A session lists several foods at once (items[]); a single-dish body still works.
+  const session = Array.isArray(sent.items) ? parseSession(sent, now) : null;
+  if (session && "error" in session) throw new TripError(session.error, 400);
+  const body = (session ? session.input : sent) as ListingInput;
+  // the shared fields (pickup, timing, containers, contact, declaration) are checked the same way
+  if (!validListing(session ? { ...body, count: Math.min((body as ListingInput).count, 200) } : body, now)) throw new TripError("Complete the food, photo, tags, timing, pickup details and declaration.", 400);
   const key = actionKey(c.req.header("Idempotency-Key"));
   const id = `lst_${createHash("sha256").update(`${s.phone}:${key}`).digest("hex").slice(0, 24)}`;
-  const fingerprint = createHash("sha256").update(JSON.stringify(body)).digest("hex");
+  const fingerprint = createHash("sha256").update(JSON.stringify(sent)).digest("hex");
   const existing = await listings.get(id);
   if (existing && existing.fingerprint !== fingerprint) throw new TripError("This submission key was already used for different food.");
   const value: FoodListing = { ...body, id, version: 1, donorPhone: s.phone, donorName: profile.fields.org || profile.fields.name,
-    createdAt: now, fingerprint, sample: !!scenarioFor(s.phone), state: "in_review", approval: null, assessment: null, foodCheck: null };
+    createdAt: now, fingerprint, sample: !!scenarioFor(s.phone), state: "in_review", approval: null, assessment: null, foodCheck: null,
+    ...(session ? { items: session.items } : {}) };
   const background = !!foodAgentUrl();
   if (!existing) {
     // Real listings go straight on to the agents; a new donor's first one is flagged for the Luna team to
@@ -78,7 +86,10 @@ food.post("/listings", async c => {
     if (approvedBefore || !value.sample) value.state = "checking";
     if (!approvedBefore && !value.sample) value.reviewPending = true;
     // Without a Food Agent the rules-only grade is instant; with one, the check runs after the reply.
-    if (!background) applyFoodCheck(value, await requestFoodCheck(value));
+    if (!background) {
+      if (value.items) applySessionCheck(value, await checkItems(value));
+      else applyFoodCheck(value, await requestFoodCheck(value));
+    }
     if (value.state === "checking" && value.foodCheck && value.sample) assessScenario(value, now);
     if (await listings.create(value) && background) void checkListing(id);
   }
@@ -266,11 +277,12 @@ export async function checkListing(id: string) {
 async function runCheck(id: string) {
   const first = await listings.get(id);
   if (!first || first.foodCheck) return;
-  const check = await requestFoodCheck(first);
+  // a session checks every food (in parallel); a single dish has one check
+  const checks = first.items ? await checkItems(first) : [await requestFoodCheck(first)];
   for (let attempt = 0; attempt < C.casRetries; attempt++) {
     const l = await listings.get(id);
     if (!l || l.foodCheck) return;
-    applyFoodCheck(l, check);
+    if (l.items) applySessionCheck(l, checks); else applyFoodCheck(l, checks[0]);
     if (l.state === "checking" && l.sample && scenarioFor(l.donorPhone)) assessScenario(l, Date.now());
     const version = l.version; l.version++;
     if (await listings.save(l, version)) {
@@ -291,7 +303,8 @@ async function caseOf(caseId: string, withCode: boolean): Promise<AgentCase | nu
   for (const sh of shares.sort((a, b) => a.createdAt - b.createdAt)) {
     const ngo = sh.ngoId ? await matchingStore.get("recipient", sh.ngoId) : null;
     const partner = sh.partnerId ? await matchingStore.get("partner", sh.partnerId) : null;
-    out.push({ id: sh.id, status: sh.status, servings: sh.lines.reduce((n, x) => n + x.servings, 0), ngoName: ngo?.name ?? null,
+    out.push({ id: sh.id, lines: packingLines(c, sh.lines).map(p => ({ name: p.name, servings: p.servings, amount: p.amount })), containers: shareContainers(c, sh.lines),
+      status: sh.status, servings: sh.lines.reduce((n, x) => n + x.servings, 0), ngoName: ngo?.name ?? null,
       offerDeadlineAt: sh.status === "offering" ? sh.offerDeadlineAt ?? null : null, partnerName: partner?.name ?? null,
       pickupCode: withCode && (sh.status === "assigned" || sh.status === "finding_partner") ? sh.pickupCode : null,
       arriveBy: sh.arriveBy ?? null, pickedUpAt: sh.pickedUpAt ?? null, held: !!sh.held });

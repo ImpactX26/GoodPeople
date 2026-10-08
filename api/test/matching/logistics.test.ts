@@ -68,7 +68,10 @@ describe("the whole flow", () => {
     s = await shareOf(store, l.id);
     assert.equal(s.status, "assigned");
     // The restaurant is told who's coming, when, what to keep ready, and the pickup code.
-    assert.match(await last(store, DONOR), new RegExp(`Ravi, 12:\\d\\d pm, keep 6 kg veg biryani \\+ 4 L payasam ready\\. Pickup code: ${s.pickupCode}`));
+    const note = await last(store, DONOR);
+    assert.match(note, /Pack for Ravi, delivering to .*Arrives about 12:\d\d pm/);
+    assert.match(note, /• veg biryani: 6 kg \(\d+ servings\)\n• payasam: 4 L \(\d+ servings\)/);
+    assert.match(note, new RegExp(`Pickup code: ${s.pickupCode}`));
     assert.match(await last(store, NGO1), new RegExp(`Your drop code is ${s.dropCode}`));
     const trip = await last(store, RIDER);
     assert.match(trip, /Collect 6 kg veg biryani \+ 4 L payasam/);
@@ -253,7 +256,7 @@ describe("finding a partner", () => {
     assert.equal(suresh.manual, true);
     assert.equal(suresh.ngoId, "r1");
     assert.match(await last(store, RIDER), /no longer needed/);
-    assert.match(await last(store, DONOR), /Suresh, .*Pickup code/);
+    assert.match(await last(store, DONOR), /Pack for Suresh, .*Pickup code/s);
     assert.equal((await luna.enterCode(a.id, "pickup", a.pickupCode, { phone: RIDER }, at(12, 10))).ok, false);
     assert.equal((await luna.enterCode(a.id, "pickup", a.pickupCode, { phone: NGO1 }, at(12, 10))).ok, true);
     assert.equal((await luna.enterCode(a.id, "drop", a.dropCode, { phone: NGO1 }, at(12, 30))).ok, true);

@@ -477,3 +477,64 @@ test("the background sweep finishes a food check that was interrupted, with nobo
   assert.ok(l?.foodCheck, "checked by the sweep");
   assert.equal(l?.foodCheck?.source, "rules_only");   // no Food Agent URL in tests
 });
+test("a listing session: several foods, servings from the portion table, split across NGOs, one pickup code, a packing note per partner", async () => {
+  const { Hono } = await import("hono");
+  const { mountMatching, matchingStore, agents } = await import("../src/matching/index.ts");
+  const { config } = await import("../src/matching/config.ts");
+  const { recipientFrom } = await import("../src/matching/directory.ts");
+  config.simulateUnclaimed = false;
+  if (!agents()) await mountMatching(new Hono());
+  const s = await accounts(), now = Date.now();
+  // a real (non-walkthrough) donor
+  const { store: authStore } = await import("../src/store.ts");
+  const donorPhone = "9876500333";
+  await authStore.putProfile({ role: "donor", phone: donorPhone, fields: { name: "Ravi", org: "Session Kitchen", area: "Indiranagar" }, createdAt: now });
+  const session = { ...s.sessions.donor, phone: donorPhone, token: "tok-" + donorPhone };
+  await authStore.putSession(session);
+  // only these two NGOs (each needs 20) and two free partners take part: earlier tests' NGOs and partners step aside
+  for (const r of await matchingStore.list("recipient")) await matchingStore.put("recipient", { ...r, active: false });
+  for (const p of await matchingStore.list("partner")) await matchingStore.put("partner", { ...p, online: false });
+  // two NGOs that each need 20, nearby; a free partner for each
+  for (const [phone, name, lng] of [["9811111101", "Asha Home", 77.6412], ["9811111102", "Bala Shelter", 77.6452]] as const) {
+    await matchingStore.put("recipient", recipientFrom({ ngo_id: `NGO-${phone}`, name, address: "Indiranagar, Bengaluru", location: { latitude: 12.9719, longitude: lng }, service_area_km: 10,
+      capacity: { daily_meal_capacity: 200, available_capacity_today: 200 }, current_demand: { meals_needed: 20, urgency: "HIGH" }, accepted_categories: [],
+      dietary_constraints: [], receiving_hours: { start: "00:00", end: "23:59" }, status: "ACTIVE" }, "NGO")!);
+  }
+  await matchingStore.put("partner", { id: "prt_s1", phone: "9822222201", name: "Arjun", areaId: "indiranagar", lat: 12.972, lng: 77.641, travel: "two_wheeler", online: true, source: "volunteer" });
+  await matchingStore.put("partner", { id: "prt_s2", phone: "9822222202", name: "Kavya", areaId: "indiranagar", lat: 12.972, lng: 77.645, travel: "two_wheeler", online: true, source: "volunteer" });
+  const base = input(s), photo = base.photo;
+  const item = (dish: string, quantity: Record<string, unknown>, extra: Record<string, unknown> = {}) =>
+    ({ dish, diet: "veg", jain: false, halal: "unsure", contains: [], spice: "mild", quantity, photo, cookedAt: now - 30 * 60_000, storage: "hot", category: "cooked_meal", ...extra });
+  const body = { items: [item("Veg biryani", { mode: "bulk", amount: 18, unit: "kg" }), item("Payasam", { mode: "bulk", amount: 4, unit: "L" }, { contains: ["dairy", "nuts"], category: "dairy" })],
+    readyFrom: now, collectBy: now + 2 * 60 * 60_000, containers: "partner_brings", pickup: base.pickup, contactName: "Ravi", contactPhone: donorPhone, declarationAccepted: true };
+  const res = await request("/listings", session, body);
+  assert.equal(res.status, 201);
+  const { id } = await res.json();
+  const l = (await listings.get(id))!;
+  assert.deepEqual(l.items!.map(i => [i.dish, i.servings, i.recommended, i.role]), [["Veg biryani", 30, 30, "meal"], ["Payasam", 33, 33, "extra"]]);
+  assert.equal(l.count, 63); assert.equal(l.dish, "Veg biryani + Payasam");
+  assert.ok(l.items!.every(i => i.foodCheck), "every food checked");
+  assert.equal(l.state, "checking");
+  const handed = await handOff(id, now);
+  const shares = await matchingStore.list("share", { listingId: handed!.matchId! });
+  // 30 meals over two NGOs that each need 20: 20 + 10; the payasam rides along in proportion (22 + 11)
+  assert.equal(shares.length, 2, "split across NGOs");
+  const mealsPer = shares.map(x => x.lines.find(ln => ln.itemId === "i1")?.servings).sort();
+  assert.deepEqual(mealsPer, [10, 20]);
+  assert.deepEqual(shares.map(x => x.lines.find(ln => ln.itemId === "i2")?.servings).sort(), [11, 22]);
+  assert.equal(new Set(shares.map(x => x.pickupCode)).size, 1, "one pickup code for the session");
+  // both NGOs accept; the partners accept; the restaurant gets a packing note for each
+  for (const sh of shares) await agents()!.ngoReply(sh.id, true, { phone: (await matchingStore.get("recipient", sh.ngoId!))!.phone! }, now + 60_000);
+  for (const sh of await matchingStore.list("share", { listingId: handed!.matchId! })) if (sh.askedPartnerId) {
+    const p = (await matchingStore.get("partner", sh.askedPartnerId))!;
+    await agents()!.partnerReply(sh.id, true, { phone: p.phone! }, now + 120_000);
+  }
+  const notes = (await matchingStore.list("outbox", { to: donorPhone })).map(m => m.text).filter(t => t.includes("Pack for"));
+  assert.ok(notes.length >= 1);
+  assert.match(notes[0], /delivering to (Asha Home|Bala Shelter)/);
+  // every share has meals; the payasam rides along with them
+  assert.ok(notes.every(n => /• Veg biryani: [\d.]+ kg \(\d+ servings\)/.test(n) && /• Payasam: [\d.]+ L/.test(n)), notes.join("\n---\n"));
+  assert.match(notes[0], /Pickup code: \d{4}/);
+  const view = await (await request(`/listings/${id}`, session)).json() as ListingView;
+  assert.ok(view.agentCase!.shares[0].lines.length >= 1);
+});

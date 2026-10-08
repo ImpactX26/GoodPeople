@@ -6,6 +6,7 @@
  * amounts to keep ready for each share.
  */
 import { itemName } from "./engine/reasons.ts";
+import { containersFor } from "../listings/portions.ts";
 import { effectiveGrade, isUnsure } from "./engine/safety.ts";
 import { fmtMinutes } from "./time.ts";
 import type { Item, Listing, OfferLine } from "./types.ts";
@@ -35,4 +36,22 @@ function portion(item: Item, servings: number) {
 /** What the restaurant should keep ready for this share: "6 kg biryani + 4 L payasam". */
 export function keepReady(l: Listing, lines: OfferLine[]) {
   return lines.map((ln) => portion(l.items.find((i) => i.id === ln.itemId)!, ln.servings)).join(" + ");
+}
+
+/** What goes into one share, item by item, in the restaurant's units: for the packing note and the screens. */
+export function packingLines(l: Listing, lines: OfferLine[]) {
+  return lines.map((ln) => {
+    const item = l.items.find((i) => i.id === ln.itemId)!;
+    const amount = item.quantity ? `${tidy((item.quantity.amount * ln.servings) / item.servings)} ${item.quantity.unit}` : null;
+    return { itemId: item.id, name: itemName(item), servings: ln.servings, amount };
+  });
+}
+
+/** Containers for this share alone (spec §9.5): boxes and cans when the partner brings them, else carry bags. */
+export function shareContainers(l: Listing, lines: OfferLine[]): string[] {
+  const parts = lines.map((ln) => {
+    const item = l.items.find((i) => i.id === ln.itemId)!;
+    return { servings: ln.servings, litres: item.litresPerServing != null ? item.litresPerServing * ln.servings : null, container: item.container ?? "box" };
+  });
+  return containersFor(parts, !!l.partnerBrings);
 }

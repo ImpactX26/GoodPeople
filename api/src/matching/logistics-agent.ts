@@ -15,7 +15,7 @@ import { config } from "./config.ts";
 import { distanceKm, etaMs, mapsLink, round1 } from "./engine/geo.ts";
 import { legFor, type Origin } from "./engine/match.ts";
 import { effectiveGrade, isUnsure } from "./engine/safety.ts";
-import { keepReady } from "./food-agent.ts";
+import { keepReady, shareContainers } from "./food-agent.ts";
 import {
   code4,
   countdown,
@@ -90,7 +90,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       triedPartnerIds: [],
       pickupBy: 0,
       deliverBy: 0,
-      pickupCode: code4(),
+      pickupCode: l.pickupCode ?? code4(),   // the session's one code
       dropCode: code4(),
       pickupTriesLeft: config.codeTries,
       dropTriesLeft: config.codeTries,
@@ -124,6 +124,9 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       // own riders first; within a tier, partners rated below the low mark are asked after the rest
       .sort((a, b) => Number(b.own) - Number(a.own) || Number(lowRated(a.p)) - Number(lowRated(b.p)) || a.toPickup - b.toPickup);
   }
+
+  /** What a partner carries for this share: the donor's own list if given, else worked out from the share's food (§9.5). */
+  const containersOf = (l: Listing, lines: Share["lines"]) => (l.containers.length ? l.containers : shareContainers(l, lines));
 
   const lowRated = (p: Partner) => (p.reliability?.trips ?? 0) >= config.reliability.newUntilTrips && (p.reliability?.score ?? 5) < config.reliability.lowScore;
 
@@ -244,7 +247,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
         minutes: Math.round((best.leg.arrival - now) / 60_000),
         safeUntil: safeUntilOf(l, share.lines),
         replyMinutes: ms / 60_000,
-        containers: l.containers,
+        containers: containersOf(l, share.lines),
       }),
     );
   }
@@ -323,7 +326,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const place = l.pickupAddress.startsWith(l.donorName) ? l.pickupAddress : `${l.donorName}, ${l.pickupAddress}`;
     const lines = [
       `You're on! Collect ${keepReady(l, share.lines)} from ${place}.`,
-      l.containers.length ? `Bring: ${l.containers.join(", ")}.` : "",
+      `Bring: ${containersOf(l, share.lines).join(", ")}.`,
       l.pickupNotes ? `Note: ${l.pickupNotes}` : "",
       `Pickup contact: ${contact}`,
       `Directions: ${mapsLink(p, l, p.travel)}`,
@@ -546,7 +549,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       partner: p && share.partnerId ? { name: p.name, lat: share.lastPos?.lat ?? p.lat, lng: share.lastPos?.lng ?? p.lng, manual: !!p.manual, rating: p.manual ? null : reliabilityLine(p.reliability) } : null,
       lateMin: share.promisedArrival && leg ? Math.max(0, Math.round((leg.arrival - share.promisedArrival) / 60_000)) : 0,
       eta: leg?.arrival ?? null,
-      containers: l.containers,
+      containers: containersOf(l, share.lines),
       keepReady: keepReady(l, share.lines),
     };
   }

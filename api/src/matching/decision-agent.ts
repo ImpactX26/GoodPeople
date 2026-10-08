@@ -9,11 +9,11 @@
 import { config } from "./config.ts";
 import { distanceKm, round1 } from "./engine/geo.ts";
 import { itemName } from "./engine/reasons.ts";
-import { keepReady, reviewPassport } from "./food-agent.ts";
+import { keepReady, packingLines, reviewPassport, shareContainers } from "./food-agent.ts";
 import { findGaps, mapDonors, planOutreach, windowLabel, type GapDonor } from "./gaps.ts";
 import type { LogisticsAgent, LogisticsEvent } from "./logistics-agent.ts";
 import type { NgoAgent } from "./ngo-agent.ts";
-import { fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
+import { code4, fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
 import { areaById } from "./seed.ts";
 import { fmtTime } from "./time.ts";
 import type { DecisionKind, Item, Listing, Partner, Share, TripMark } from "./types.ts";
@@ -37,7 +37,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
   /** `reviewed`: the Luna API already ran first-listing review (and the food check), so the case opens now. */
   async function submitListing(input: NewListing, now: number, opts: { reviewed?: boolean } = {}): Promise<Listing> {
     const first = (await store.list("listing", { donorPhone: input.donorPhone })).length === 0;
-    const listing: Listing = { ...input, id: rt.id("l"), createdAt: now, status: first && config.reviewFirstListing && !opts.reviewed ? "review" : "matching", unplacedServings: 0 };
+    const listing: Listing = { pickupCode: code4(), ...input, id: rt.id("l"), createdAt: now, status: first && config.reviewFirstListing && !opts.reviewed ? "review" : "matching", unplacedServings: 0 };
     await store.insert("listing", listing);
     for (const n of reviewPassport(listing)) await rt.decide("food", now, "graded", n.itemId, n.reason, listing.id);
 
@@ -167,8 +167,18 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
         break;
       }
       case "partner_assigned": {
-        // "Ravi, 9:55 pm, keep 6 kg biryani + 4 L payasam ready."
-        await rt.toDonor(now, l, `${e.partner.name}, ${fmtTime(e.pickupAt)}, keep ${keepReady(l, e.share.lines)} ready. Pickup code: ${e.share.pickupCode} (show it to ${e.partner.name} at pickup).`);
+        // The packing note (spec §12.6.1): who's coming, for which NGO, exactly what to pack for them, and the one code.
+        const live = (await store.list("share", { listingId: l.id })).filter((s) => s.partnerId || s.id === e.share.id).sort((a, b) => a.createdAt - b.createdAt);
+        const k = live.findIndex((s) => s.id === e.share.id) + 1;
+        const pack = packingLines(l, e.share.lines).map((p) => `• ${p.name}: ${p.amount ? `${p.amount} (${p.servings} servings)` : `${p.servings} servings`}`).join("\n");
+        const many = live.length > 1 || (await store.list("share", { listingId: l.id })).length > 1;
+        await rt.toDonor(now, l, [
+          `Pack for ${e.partner.name}, delivering to ${e.ngo.name}. Arrives about ${fmtTime(e.pickupAt)}; please have it ready by ${fmtTime(e.pickupAt - 5 * 60_000)}:`,
+          pack,
+          `${e.partner.name} brings ${(l.containers.length ? l.containers : shareContainers(l, e.share.lines)).join(" + ")}.`,
+          `Pickup code: ${e.share.pickupCode}${many ? " (the same for every partner collecting from this listing)" : ""}. Show it when you hand over the food.`,
+          many ? `This is pickup ${Math.max(k, 1)} from your listing; keep each partner's food packed separately.` : "",
+        ].filter(Boolean).join("\n"));
         await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.dropCode({ partner: partnerLabel(e.partner), servings: servingsOf(e.share.lines), arriveBy: e.arriveBy, code: e.share.dropCode }));
         break;
       }

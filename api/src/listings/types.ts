@@ -1,4 +1,5 @@
 import type { Stop } from "../trips/types.ts";
+import type { BulkUnit, ContainerHint, EntryMode, Role } from "./portions.ts";
 
 export interface ListingInput {
   dish: string;
@@ -25,12 +26,47 @@ export interface ListingInput {
   contactPhone: string;
   declarationAccepted: boolean;
 }
+/** One food in a listing session: its own photo, tags, quantity, cooking time and food check (spec §6.3–6.5). */
+export interface ListingItem {
+  id: string;
+  dish: string;
+  category?: FoodCategory;
+  diet: "veg" | "egg" | "nonveg";
+  jain: boolean;
+  halal: "yes" | "no" | "unsure";
+  contains: string[];
+  spice: "mild" | "medium" | "hot";
+  /** How the donor gave the amount (§6.3). */
+  quantity: { mode: EntryMode; count?: number; feedsEach?: number; amount?: number; unit?: BulkUnit };
+  /** What the donor confirmed: the recommendation, or their own number. */
+  servings: number;
+  /** What the portion table recommends (§7.4), shown to the donor in yellow. */
+  recommended: number;
+  role: Role;
+  /** "about N": category default, near spelling or a guess (§7.4). */
+  estimate: boolean;
+  /** The donor's number is more than 40% off the recommendation (§7.8). */
+  donorOverride: boolean;
+  dishId: string | null;
+  container: ContainerHint;
+  litres: number | null;
+  photo: string;
+  cookedAt: number;
+  storage: "hot" | "room" | "fridge";
+  temperatureC?: number | null;
+  /** This item's food check; null while it runs. */
+  foodCheck?: FoodCheck | null;
+}
+
 export type FoodCategory = "cooked_meal" | "bakery" | "dairy" | "packaged" | "beverages" | "raw_produce";
 export const FOOD_CATEGORIES: FoodCategory[] = ["cooked_meal", "bakery", "dairy", "packaged", "beverages", "raw_produce"];
 /** Result of the Food Agent (or the rules-only fallback) for one listing. */
 export interface TagCheck {
   /** "diet" | "jain" | "spice" | "category" | "contains:<allergen>" */
   tag: string;
+  /** In a session: which food this is about. */
+  itemId?: string;
+  itemName?: string;
   verdict: "wrong" | "maybe";
   certainty: "sure" | "unsure";
   seen: string;
@@ -87,10 +123,18 @@ export interface FoodListing extends ListingInput {
   assessment: { grade: "A" | "B" | "C"; safeUntil: number; servings: number; unsure: boolean; source: "rules_only_demo" | "food_agent" | "rules_only" } | null;
   /** null while the Food Agent is still checking. */
   foodCheck: FoodCheck | null;
+  /**
+   * A listing session: every food the restaurant gave away at once. The single-dish fields above then hold
+   * a summary (names joined, strictest diet, total servings, the first photo) so older code keeps working.
+   */
+  items?: ListingItem[];
 }
 /** One share of a case as the donor or admin sees it (api/src/matching Share, flattened). */
 export interface AgentShareView {
   id: string;
+  /** What's in this share, item by item, in the restaurant's units (the packing list). */
+  lines: { name: string; servings: number; amount: string | null }[];
+  containers: string[];
   status: "offering" | "finding_partner" | "assigned" | "picked_up" | "delivered" | "unplaced" | "failed";
   servings: number;
   ngoName: string | null;

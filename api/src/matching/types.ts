@@ -43,6 +43,9 @@ export interface Item {
   servings: number; // checker
   /** Kind of food ("cooked_meal", "bakery", …), for NGOs that only take some kinds. */
   category?: string;
+  /** For packing and containers (spec §9.5): container type, and litres per serving for loose food. */
+  container?: "box" | "leakproof" | "tray" | "bag";
+  litresPerServing?: number | null;
   grade: Grade; // checker
   confidence: number; // checker, 0–100
   safeTime: number; // checker, minutes safe from listing time
@@ -74,6 +77,10 @@ export interface Listing extends LatLng {
   createdAt: number;
   /** The Luna API listing (food check, photo, tags) this case came from. */
   sourceListingId?: string;
+  /** One pickup code for the whole session, whichever partners come (restaurants shouldn't juggle codes). */
+  pickupCode?: string;
+  /** The partner must bring containers (else the food is packed and only needs carry bags). */
+  partnerBrings?: boolean;
   /** Last time the Decision Agent asked the NGO Agent again for servings nobody could take. */
   lastReplanAt?: number;
   /** Last "still on it" sent to the donor while waiting. */
