@@ -1,0 +1,23 @@
+[
+  {
+    "ngo_id": "NGO-REPLACE-ME",
+    "name": "Replace with a real, consenting NGO",
+    "address": "Street, Area, Bengaluru",
+    "location": { "latitude": 12.978, "longitude": 77.601 },
+    "service_area_km": 8,
+    "capacity": { "daily_meal_capacity": 500, "available_capacity_today": 120 },
+    "current_demand": { "meals_needed": 100, "urgency": "HIGH" },
+    "food_preferences": ["vegetarian", "cooked_meal"],
+    "accepted_categories": ["cooked_meal", "bakery", "packaged"],
+    "dietary_constraints": [],
+    "receiving_hours": { "start": "06:00", "end": "22:00" },
+    "active_donations": 0,
+    "donations_received_today": 0,
+    "population_served": 150,
+    "reliability": { "source": "none" },
+    "history": { "typical_daily_distribution_min": 100, "typical_daily_distribution_max": 150, "category_stats": {} },
+    "contact": { "phone": "+91-00000-00000", "webhook_url": null },
+    "status": "ACTIVE",
+    "data_source": "LIVE"
+  }
+]

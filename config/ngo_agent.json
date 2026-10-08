@@ -1,0 +1,281 @@
+{
+  "_comment": "LUNA NGO Matching Agent configuration. Every tunable number lives here; code reads it via luna_ngo.config.get_config().",
+  "match_score_weights": {
+    "demand_urgency": 0.3,
+    "capacity_fit": 0.2,
+    "travel_time": 0.15,
+    "food_compatibility": 0.15,
+    "receiving_hours": 0.1,
+    "reliability": 0.05,
+    "current_load": 0.05
+  },
+  "demand_urgency_levels": {
+    "LOW": 0.3,
+    "MEDIUM": 0.6,
+    "HIGH": 0.85,
+    "CRITICAL": 1.0
+  },
+  "logistics_estimates": {
+    "_comment": "Deterministic ETA model until the Logistics Agent supplies real routing.",
+    "road_distance_factor": 1.35,
+    "average_speed_kmph": 20.0,
+    "pickup_preparation_minutes": 8,
+    "receiving_handover_minutes": 5,
+    "split_overhead_minutes_per_extra_ngo": 4,
+    "safety_margin_minutes": 3,
+    "max_reasonable_travel_minutes": 60
+  },
+  "candidate_search": {
+    "search_radius_km": 15.0,
+    "enforce_service_area": true,
+    "service_area_tolerance_factor": 1.25,
+    "max_candidates_returned": 12
+  },
+  "capacity": {
+    "demand_overflow_tolerance": 0.2,
+    "min_allocation_meals": 15,
+    "max_active_donations": 5,
+    "typical_distribution_overflow_factor": 1.2
+  },
+  "receiving_hours": {
+    "timezone": "Asia/Kolkata",
+    "comfortable_buffer_minutes": 30
+  },
+  "split": {
+    "enabled": true,
+    "max_ngos": 3,
+    "min_expected_gain_ratio": 0.1
+  },
+  "reliability": {
+    "min_samples_for_history": 5,
+    "neutral_prior": 0.6,
+    "category_rejection_penalty_threshold": 0.5,
+    "min_category_samples": 3
+  },
+  "confirmation": {
+    "demo_timeout_seconds": 10,
+    "live_timeout_seconds": 120,
+    "poll_interval_seconds": 0.5
+  },
+  "demo": {
+    "_comment": "Pacing only, so humans can follow the activity feed. Does not change decisions.",
+    "step_delay_seconds": 0.8,
+    "default_response_delay_seconds": 2.5
+  },
+  "agent_limits": {
+    "max_iterations": 30,
+    "max_tool_calls": 45,
+    "wall_clock_timeout_seconds": 900,
+    "llm_max_retries": 2,
+    "allow_rule_based_fallback": true
+  },
+  "llm": {
+    "provider": "anthropic",
+    "_food_provider": "The food safety check (photo + Food Agent) uses its own provider; everything else uses 'provider'.",
+    "food_provider": "gemini",
+    "gemini_model": "gemini-3.5-flash",
+    "gemini_base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "gemini_reasoning_effort": "low",
+    "gemini_max_tokens": 4096,
+    "anthropic_model": "claude-sonnet-4-5",
+    "openai_model": "gpt-4o-mini",
+    "openai_base_url": "https://api.openai.com/v1",
+    "temperature": 0.1,
+    "max_tokens": 1200,
+    "request_timeout_seconds": 60,
+    "_food_fallbacks": "If the food provider fails: retry temporary errors (429 rate limit, 5xx) food_retries times, then try each fallback in order (a used-up quota skips ahead at once). Order: key 1 models, then the backup key GEMINI_API_KEY_2, then Groq. Fallbacks without a key are skipped. Last resort is the rules-only grade (Unsure).",
+    "food_retries": 2,
+    "food_retry_backoff_seconds": [
+      1.0,
+      3.0
+    ],
+    "food_fallbacks": [
+      {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite"
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.1-flash-lite"
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash",
+        "key_env": "GEMINI_API_KEY_2"
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "key_env": "GEMINI_API_KEY_2"
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.1-flash-lite",
+        "key_env": "GEMINI_API_KEY_2"
+      },
+      {
+        "provider": "groq",
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "base_url": "https://api.groq.com/openai/v1",
+        "key_env": "GROQ_API_KEY"
+      }
+    ],
+    "_food_check_reasoning": "App food check (/api/luna/food-check): 'rules' spends one AI call per listing (the photo) and lets the deterministic safety rules do the rest; 'llm' also runs the step-by-step agent loop (5-8 calls).",
+    "food_check_reasoning": "rules"
+  },
+  "flow": {
+    "_comment": "End-to-end Luna flow (Food Agent -> NGO Agent). mode: DEMO uses the synthetic NGO database + simulated NGO confirmations; LIVE uses real NGOs + the NGO portal.",
+    "mode": "LIVE",
+    "demo_script": "accept_all",
+    "demo_step_delay_seconds": 0.5,
+    "max_image_mb": 6,
+    "ngo_wait_timeout_seconds": 900,
+    "restaurant": {
+      "restaurant_id": "REST-0091",
+      "name": "Green Leaf Kitchen",
+      "latitude": 12.9716,
+      "longitude": 77.5946
+    }
+  },
+  "food_safety": {
+    "_comment": "Deterministic food-safety policy. The LLM/VLM can only make decisions STRICTER, never looser.",
+    "min_rescue_minutes": 30,
+    "max_rescue_window_minutes": 360,
+    "approve_max_risk_score": 45,
+    "medium_risk_from": 25,
+    "max_hours": {
+      "cooked_meal": {
+        "hot_held": 4,
+        "refrigerated": 24,
+        "room_temp": 2,
+        "frozen": 72
+      },
+      "bakery": {
+        "hot_held": 4,
+        "refrigerated": 72,
+        "room_temp": 24,
+        "frozen": 168
+      },
+      "raw_produce": {
+        "hot_held": 2,
+        "refrigerated": 72,
+        "room_temp": 12,
+        "frozen": 168
+      },
+      "packaged": {
+        "hot_held": 4,
+        "refrigerated": 168,
+        "room_temp": 168,
+        "frozen": 336
+      },
+      "dairy": {
+        "hot_held": 2,
+        "refrigerated": 24,
+        "room_temp": 2,
+        "frozen": 72
+      },
+      "beverages": {
+        "hot_held": 4,
+        "refrigerated": 48,
+        "room_temp": 8,
+        "frozen": 168
+      }
+    },
+    "non_veg_cooked_time_factor": 0.75,
+    "high_risk_categories": [
+      "dairy"
+    ],
+    "temperature": {
+      "refrigerated_ok_max_c": 5,
+      "refrigerated_fail_c": 8,
+      "hot_held_ok_min_c": 60,
+      "hot_held_min_c": 57,
+      "frozen_ok_max_c": -15,
+      "frozen_warn_max_c": -10,
+      "room_temp_hot_c": 32
+    },
+    "risk_weights": {
+      "age_fraction": 40,
+      "temp_warning": 15,
+      "high_risk_category": 10,
+      "non_veg_cooked": 5,
+      "vision_questionable": 25,
+      "vision_acceptable": 5,
+      "vision_unverified": 10,
+      "open_packaging": 5,
+      "low_confidence": 10,
+      "description_partial": 5,
+      "llm_minor_concern": 10,
+      "llm_minor_cap": 20
+    },
+    "vision": {
+      "min_confidence": 0.6,
+      "hard_spoilage_words": [
+        "mold",
+        "mould",
+        "slime",
+        "rot",
+        "rotten",
+        "putrid",
+        "maggot",
+        "fungus",
+        "fungal",
+        "fuzzy growth"
+      ]
+    },
+    "rescue_score_weights": {
+      "safety": 0.5,
+      "time": 0.2,
+      "quantity": 0.15,
+      "image": 0.15
+    },
+    "rescue_score_refs": {
+      "time_minutes": 240,
+      "quantity": 50
+    },
+    "freshness": {
+      "_comment": "Grades per LUNA-SPEC §8.6: time grade from safe hours left, capped by the photo's quality score (the photo can only lower a grade), severe signs or a failed safety rule force D. 'score' is the 0-100 freshness score shown with the grade.",
+      "grade_a_min_hours": 6,
+      "grade_b_min_hours": 3,
+      "quality_cap": [
+        [
+          "A",
+          80
+        ],
+        [
+          "B",
+          60
+        ],
+        [
+          "C",
+          40
+        ],
+        [
+          "D",
+          0
+        ]
+      ],
+      "quality_points": {
+        "fresh": 95,
+        "acceptable": 75,
+        "questionable": 45,
+        "spoiled": 0
+      },
+      "unsure_below_confidence": 0.6,
+      "time_weight": 0.6,
+      "temperature_warning_penalty": 10,
+      "labels": {
+        "A": "Premium",
+        "B": "Good",
+        "C": "Serve now",
+        "D": "Not for people"
+      },
+      "meaning": {
+        "A": "Very fresh, safe for 6 h or more. Anyone can receive it, including children and the elderly.",
+        "B": "Fresh, safe for 3–6 h. Goes to general NGOs and shelters.",
+        "C": "Safe for under 3 h. Only NGOs that will serve it within an hour.",
+        "D": "Not safe for people."
+      }
+    }
+  }
+}

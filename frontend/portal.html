@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUNA · NGO Portal</title>
+<link rel="stylesheet" href="/static/styles.css">
+<style>
+  .wrap { max-width: 760px; margin: 0 auto; padding: 20px 16px; }
+  .req { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 12px 0; }
+  .req h3 { margin: 0 0 4px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .row input { flex: 1; min-width: 160px; background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+  .accept { background: var(--green); color: #05230f; border: none; font-weight: 700; }
+  .reject { background: var(--red); color: #2a0606; border: none; font-weight: 700; }
+</style>
+</head>
+<body>
+<header class="topbar"><div class="brand"><span class="moon">🌙</span><div><div class="brand-title">LUNA <span>NGO PORTAL</span></div><div class="brand-sub">Confirm or decline food donations</div></div></div></header>
+<div class="wrap">
+  <div class="row">
+    <select id="mode"><option value="LIVE">Live requests</option><option value="DEMO">Demo requests (answer as a simulated NGO)</option></select>
+    <input id="ngo" placeholder="Your NGO ID (optional filter, e.g. NGO-0042)">
+  </div>
+  <p class="muted small" id="note">Requests appear here when the NGO Matching Agent asks your NGO to confirm a donation. The agent waits for your answer and re-plans automatically if you decline.</p>
+  <div id="list"><div class="empty">No pending requests.</div></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let busy = false;
+async function load() {
+  if (busy) return;
+  const q = new URLSearchParams({ mode: $("mode").value });
+  if ($("ngo").value.trim()) q.set("ngo_id", $("ngo").value.trim());
+  const rows = await (await fetch("/api/portal/pending?" + q)).json();
+  if (!rows.length) { $("list").innerHTML = `<div class="empty">No pending requests.</div>`; return; }
+  if (document.activeElement && document.activeElement.tagName === "INPUT" && document.activeElement.id !== "ngo") return;
+  $("list").innerHTML = rows.map((r) => `<div class="req">
+    <h3>${esc(r.ngo_name)} — ${r.quantity} meals of ${esc(r.food_name || r.food_category)}</h3>
+    <div class="muted small">From ${esc(r.restaurant || "restaurant")} · match ${esc(r.match_id)} · requested ${new Date(r.requested_at).toLocaleTimeString()}</div>
+    <div class="row"><input id="reason-${r.confirmation_id}" placeholder="Reason (optional)">
+      <button class="accept" data-m="${esc(r.match_id)}" data-n="${esc(r.ngo_id)}" data-c="${r.confirmation_id}" data-r="ACCEPTED">Accept</button>
+      <button class="reject" data-m="${esc(r.match_id)}" data-n="${esc(r.ngo_id)}" data-c="${r.confirmation_id}" data-r="REJECTED">Decline</button></div></div>`).join("");
+  document.querySelectorAll("[data-r]").forEach((b) => b.onclick = async () => {
+    busy = true;
+    await fetch(`/api/ngo-agent/${encodeURIComponent(b.dataset.m)}/confirmation`, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ngo_id: b.dataset.n, response: b.dataset.r, reason: $("reason-" + b.dataset.c).value || null }) });
+    busy = false; load();
+  });
+}
+setInterval(load, 1200); load();
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUNA · NGO Matching Agent</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="moon">🌙</span>
+    <div>
+      <div class="brand-title">LUNA <span>NGO MATCHING AGENT</span></div>
+      <div class="brand-sub">Autonomous Food Rescue Network</div>
+    </div>
+  </div>
+  <div class="top-controls">
+    <div class="mode-switch" role="tablist">
+      <button id="modeDemo" class="mode-btn active" data-mode="DEMO">Demo mode</button>
+      <button id="modeLive" class="mode-btn" data-mode="LIVE">Live mode</button>
+    </div>
+    <span id="brainBadge" class="badge brain">…</span>
+  </div>
+</header>
+
+<div id="modeBanner" class="mode-banner demo">
+  <strong>DEMO MODE</strong> — synthetic NGO database, simulated NGO responses and controlled failures. Nothing on this screen is a real NGO.
+</div>
+
+<section class="launcher" id="demoLauncher">
+  <label for="scenarioSelect">Scenario</label>
+  <select id="scenarioSelect"></select>
+  <span id="scenarioDesc" class="muted"></span>
+  <select id="brainSelect" title="Reasoning engine">
+    <option value="auto">Reasoning: auto (LLM if configured)</option>
+    <option value="llm">Reasoning: LLM only</option>
+    <option value="rules">Reasoning: rule-based fallback</option>
+  </select>
+  <button id="runScenario" class="primary">▶ Send Food Passport</button>
+</section>
+
+<section class="launcher hidden" id="liveLauncher">
+  <span class="muted">Live mode uses the real NGO database, the configured LLM and real NGO confirmations (via the <a href="/portal" target="_blank">NGO portal</a>).</span>
+  <button id="openPassport" class="primary">＋ Submit Food Passport</button>
+  <select id="recentMatches"><option value="">Recent live matches…</option></select>
+</section>
+
+<main id="dashboard" class="grid hidden">
+  <!-- Incoming food -->
+  <article class="card food" id="foodCard">
+    <h2>Incoming Food</h2>
+    <div class="food-name" id="foodName">—</div>
+    <div class="food-qty"><span id="foodQty">—</span> <span id="foodUnit">meals</span></div>
+    <div class="chips" id="foodChips"></div>
+    <div class="countdown-wrap">
+      <div class="countdown-label">Rescue time remaining</div>
+      <div class="countdown" id="countdown">--:--:--</div>
+      <div class="bar"><div id="countdownBar"></div></div>
+    </div>
+    <div class="muted small" id="foodMeta"></div>
+  </article>
+
+  <!-- Agent status -->
+  <article class="card status" id="statusCard">
+    <h2>Agent Status</h2>
+    <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">IDLE</span></div>
+    <ol class="phases" id="phases">
+      <li data-p="VALIDATING">Validate</li>
+      <li data-p="SEARCHING">Search</li>
+      <li data-p="EVALUATING">Evaluate</li>
+      <li data-p="AWAITING_CONFIRMATION">Confirm</li>
+      <li data-p="REPLANNING">Replan</li>
+      <li data-p="FINAL">Finalize</li>
+    </ol>
+    <div class="stats">
+      <div><b id="stFound">0</b><span>NGOs found</span></div>
+      <div><b id="stFeasible">0</b><span>feasible</span></div>
+      <div><b id="stReplans">0</b><span>replans</span></div>
+      <div><b id="stPlaced">0</b><span>meals confirmed</span></div>
+    </div>
+    <div class="muted small" id="brainLine"></div>
+  </article>
+
+  <!-- Map -->
+  <article class="card mapcard">
+    <h2>Rescue Radar</h2>
+    <svg id="radar" viewBox="0 0 300 300" aria-label="Map of restaurant and NGOs"></svg>
+    <div class="legend"><span class="lg rest"></span>Restaurant <span class="lg ok"></span>Feasible <span class="lg sel"></span>Selected <span class="lg bad"></span>Excluded</div>
+  </article>
+
+  <!-- Candidates -->
+  <article class="card candidates">
+    <div class="card-head">
+      <h2>Candidate NGOs</h2>
+      <span class="muted small" id="funnel"></span>
+    </div>
+    <div id="candidateList" class="cand-list"><div class="empty">Waiting for a Food Passport…</div></div>
+    <details id="excludedBox" class="excluded hidden">
+      <summary>Excluded NGOs (<span id="excludedCount">0</span>)</summary>
+      <div id="excludedList"></div>
+    </details>
+  </article>
+
+  <!-- Decision -->
+  <article class="card decision">
+    <h2>Luna Decision</h2>
+    <div id="decision"><div class="empty">No decision yet.</div></div>
+  </article>
+
+  <!-- Feed -->
+  <article class="card feed">
+    <h2>Agent Activity</h2>
+    <ul id="feed" class="feed-list"></ul>
+  </article>
+
+  <!-- Result -->
+  <article class="card result hidden" id="resultCard">
+    <div class="card-head">
+      <h2>Match Result → Luna Orchestrator</h2>
+      <button id="downloadJson" class="ghost">⬇ Download Match Result (JSON)</button>
+    </div>
+    <div id="resultBody"></div>
+  </article>
+</main>
+
+<div id="landing" class="landing">
+  <div class="landing-inner">
+    <div class="landing-moon">🌙</div>
+    <h1>Every surplus meal, to the people who need it — before it's too late.</h1>
+    <p>The NGO Matching Agent receives an eligible Food Passport, evaluates NGOs on demand, capacity, travel time, compatibility, receiving hours and reliability, asks the best NGO to confirm, and re-plans on its own when things go wrong.</p>
+    <p class="muted">Pick a scenario above and press <b>Send Food Passport</b>.</p>
+  </div>
+</div>
+
+<!-- Passport modal (live) -->
+<dialog id="passportDialog">
+  <form method="dialog" class="dialog">
+    <h3>Submit Food Passport (from Food Agent)</h3>
+    <textarea id="passportText" rows="18" spellcheck="false"></textarea>
+    <div class="dialog-actions">
+      <button value="cancel" class="ghost">Cancel</button>
+      <button id="submitPassport" value="default" class="primary">Start matching</button>
+    </div>
+    <div id="passportError" class="error"></div>
+  </form>
+</dialog>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

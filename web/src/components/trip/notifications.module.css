@@ -1,0 +1,6 @@
+.toast { position: fixed; z-index: 100; right: 16px; bottom: 16px; width: min(380px, calc(100vw - 32px)); padding: 18px; background: var(--paper); border: 1.5px solid var(--ink); border-left: 5px solid var(--ink-red); box-shadow: 0 6px 28px #0003; font: 14px/1.5 var(--font-note); }
+.toast strong { font: 11px var(--font-print); text-transform: uppercase; }
+.toast p { margin: 10px 0; }
+.toast div { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.toast a, .toast button { min-height: 44px; display: inline-flex; align-items: center; }
+.toast button { background: transparent; border: 0; text-decoration: underline; padding: 8px; font: inherit; }

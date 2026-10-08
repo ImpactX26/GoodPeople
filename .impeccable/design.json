@@ -1,0 +1,1017 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-08T12:00:00+00:00",
+  "title": "Design System: Luna",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Thermal Paper",
+        "canonical": "oklch(98.5% 0.005 95.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.005 95.1)",
+          "oklch(26.4% 0.005 95.1)",
+          "oklch(37.9% 0.005 95.1)",
+          "oklch(49.3% 0.005 95.1)",
+          "oklch(60.7% 0.005 95.1)",
+          "oklch(72.1% 0.005 95.1)",
+          "oklch(83.6% 0.005 95.1)",
+          "oklch(95.0% 0.005 95.1)"
+        ]
+      },
+      "paper-shade": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "oklch(95.1% 0.011 95.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.011 95.2)",
+          "oklch(26.4% 0.011 95.2)",
+          "oklch(37.9% 0.011 95.2)",
+          "oklch(49.3% 0.011 95.2)",
+          "oklch(60.7% 0.011 95.2)",
+          "oklch(72.1% 0.011 95.2)",
+          "oklch(83.6% 0.011 95.2)",
+          "oklch(95.0% 0.011 95.2)"
+        ]
+      },
+      "print-box": {
+        "role": "neutral",
+        "displayName": "Print Box",
+        "canonical": "oklch(100.0% 0.0 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0 89.9)",
+          "oklch(26.4% 0.0 89.9)",
+          "oklch(37.9% 0.0 89.9)",
+          "oklch(49.3% 0.0 89.9)",
+          "oklch(60.7% 0.0 89.9)",
+          "oklch(72.1% 0.0 89.9)",
+          "oklch(83.6% 0.0 89.9)",
+          "oklch(95.0% 0.0 89.9)"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Thermal Ink",
+        "canonical": "oklch(22.2% 0.0 89.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.0 89.9)",
+          "oklch(26.4% 0.0 89.9)",
+          "oklch(37.9% 0.0 89.9)",
+          "oklch(49.3% 0.0 89.9)",
+          "oklch(60.7% 0.0 89.9)",
+          "oklch(72.1% 0.0 89.9)",
+          "oklch(83.6% 0.0 89.9)",
+          "oklch(95.0% 0.0 89.9)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "oklch(40.5% 0.008 97.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.008 97.5)",
+          "oklch(26.4% 0.008 97.5)",
+          "oklch(37.9% 0.008 97.5)",
+          "oklch(49.3% 0.008 97.5)",
+          "oklch(60.7% 0.008 97.5)",
+          "oklch(72.1% 0.008 97.5)",
+          "oklch(83.6% 0.008 97.5)",
+          "oklch(95.0% 0.008 97.5)"
+        ]
+      },
+      "ink-faded": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "oklch(53.7% 0.009 99.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 99.0)",
+          "oklch(26.4% 0.009 99.0)",
+          "oklch(37.9% 0.009 99.0)",
+          "oklch(49.3% 0.009 99.0)",
+          "oklch(60.7% 0.009 99.0)",
+          "oklch(72.1% 0.009 99.0)",
+          "oklch(83.6% 0.009 99.0)",
+          "oklch(95.0% 0.009 99.0)"
+        ]
+      },
+      "ink-red": {
+        "role": "secondary",
+        "displayName": "Red Ribbon",
+        "canonical": "oklch(56.7% 0.207 28.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.2 28.6)",
+          "oklch(26.4% 0.2 28.6)",
+          "oklch(37.9% 0.2 28.6)",
+          "oklch(49.3% 0.2 28.6)",
+          "oklch(60.7% 0.2 28.6)",
+          "oklch(72.1% 0.2 28.6)",
+          "oklch(83.6% 0.2 28.6)",
+          "oklch(95.0% 0.2 28.6)"
+        ]
+      },
+      "ink-red-deep": {
+        "role": "secondary",
+        "displayName": "Deep Red Ribbon",
+        "canonical": "oklch(41.7% 0.153 28.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.153 28.6)",
+          "oklch(26.4% 0.153 28.6)",
+          "oklch(37.9% 0.153 28.6)",
+          "oklch(49.3% 0.153 28.6)",
+          "oklch(60.7% 0.153 28.6)",
+          "oklch(72.1% 0.153 28.6)",
+          "oklch(83.6% 0.153 28.6)",
+          "oklch(95.0% 0.153 28.6)"
+        ]
+      },
+      "ink-red-soft": {
+        "role": "secondary",
+        "displayName": "Red Wash",
+        "canonical": "oklch(94.8% 0.02 28.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.02 28.9)",
+          "oklch(26.4% 0.02 28.9)",
+          "oklch(37.9% 0.02 28.9)",
+          "oklch(49.3% 0.02 28.9)",
+          "oklch(60.7% 0.02 28.9)",
+          "oklch(72.1% 0.02 28.9)",
+          "oklch(83.6% 0.02 28.9)",
+          "oklch(95.0% 0.02 28.9)"
+        ]
+      },
+      "warn": {
+        "role": "secondary",
+        "displayName": "Warning Yellow",
+        "canonical": "oklch(81.9% 0.168 87.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.168 87.4)",
+          "oklch(26.4% 0.168 87.4)",
+          "oklch(37.9% 0.168 87.4)",
+          "oklch(49.3% 0.168 87.4)",
+          "oklch(60.7% 0.168 87.4)",
+          "oklch(72.1% 0.168 87.4)",
+          "oklch(83.6% 0.168 87.4)",
+          "oklch(95.0% 0.168 87.4)"
+        ],
+        "purpose": "Unsure tag slip only: 2px border and 6px top band. Never text."
+      },
+      "warn-soft": {
+        "role": "secondary",
+        "displayName": "Warning Wash",
+        "canonical": "oklch(96.8% 0.06 95.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.06 95.0)",
+          "oklch(26.4% 0.06 95.0)",
+          "oklch(37.9% 0.06 95.0)",
+          "oklch(49.3% 0.06 95.0)",
+          "oklch(60.7% 0.06 95.0)",
+          "oklch(72.1% 0.06 95.0)",
+          "oklch(83.6% 0.06 95.0)",
+          "oklch(95.0% 0.06 95.0)"
+        ],
+        "purpose": "Unsure tag slip fill only."
+      },
+      "steel": {
+        "role": "neutral",
+        "displayName": "Brushed Steel",
+        "canonical": "oklch(87.6% 0.006 128.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.006 128.5)",
+          "oklch(26.4% 0.006 128.5)",
+          "oklch(37.9% 0.006 128.5)",
+          "oklch(49.3% 0.006 128.5)",
+          "oklch(60.7% 0.006 128.5)",
+          "oklch(72.1% 0.006 128.5)",
+          "oklch(83.6% 0.006 128.5)",
+          "oklch(95.0% 0.006 128.5)"
+        ]
+      },
+      "steel-deep": {
+        "role": "neutral",
+        "displayName": "Steel Shadow",
+        "canonical": "oklch(81.0% 0.008 132.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.008 132.4)",
+          "oklch(26.4% 0.008 132.4)",
+          "oklch(37.9% 0.008 132.4)",
+          "oklch(49.3% 0.008 132.4)",
+          "oklch(60.7% 0.008 132.4)",
+          "oklch(72.1% 0.008 132.4)",
+          "oklch(83.6% 0.008 132.4)",
+          "oklch(95.0% 0.008 132.4)"
+        ]
+      },
+      "slot": {
+        "role": "neutral",
+        "displayName": "Printer Body",
+        "canonical": "oklch(23.4% 0.002 197.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.002 197.1)",
+          "oklch(26.4% 0.002 197.1)",
+          "oklch(37.9% 0.002 197.1)",
+          "oklch(49.3% 0.002 197.1)",
+          "oklch(60.7% 0.002 197.1)",
+          "oklch(72.1% 0.002 197.1)",
+          "oklch(83.6% 0.002 197.1)",
+          "oklch(95.0% 0.002 197.1)"
+        ]
+      },
+      "slot-lip": {
+        "role": "neutral",
+        "displayName": "Slot Lip",
+        "tonalRamp": [
+          "oklch(15.0% 0.004 165)",
+          "oklch(26.4% 0.004 165)",
+          "oklch(37.9% 0.004 165)",
+          "oklch(49.3% 0.004 165)",
+          "oklch(60.7% 0.004 165)",
+          "oklch(72.1% 0.004 165)",
+          "oklch(83.6% 0.004 165)",
+          "oklch(95.0% 0.004 165)"
+        ]
+      },
+      "led-ready": {
+        "role": "tertiary",
+        "displayName": "Ready LED",
+        "canonical": "oklch(76.9% 0.192 149.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.192 149.0)",
+          "oklch(26.4% 0.192 149.0)",
+          "oklch(37.9% 0.192 149.0)",
+          "oklch(49.3% 0.192 149.0)",
+          "oklch(60.7% 0.192 149.0)",
+          "oklch(72.1% 0.192 149.0)",
+          "oklch(83.6% 0.192 149.0)",
+          "oklch(95.0% 0.192 149.0)"
+        ]
+      },
+      "led-busy": {
+        "role": "tertiary",
+        "displayName": "Busy LED",
+        "canonical": "oklch(81.3% 0.165 75.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.165 75.0)",
+          "oklch(26.4% 0.165 75.0)",
+          "oklch(37.9% 0.165 75.0)",
+          "oklch(49.3% 0.165 75.0)",
+          "oklch(60.7% 0.165 75.0)",
+          "oklch(72.1% 0.165 75.0)",
+          "oklch(83.6% 0.165 75.0)",
+          "oklch(95.0% 0.165 75.0)"
+        ]
+      },
+      "bar-print": {
+        "role": "neutral",
+        "displayName": "Bar Print",
+        "canonical": "oklch(88.1% 0.010 100.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 100.0)",
+          "oklch(26.4% 0.010 100.0)",
+          "oklch(37.9% 0.010 100.0)",
+          "oklch(49.3% 0.010 100.0)",
+          "oklch(60.7% 0.010 100.0)",
+          "oklch(72.1% 0.010 100.0)",
+          "oklch(83.6% 0.010 100.0)",
+          "oklch(95.0% 0.010 100.0)"
+        ]
+      },
+      "bar-print-dim": {
+        "role": "neutral",
+        "displayName": "Dim Bar Print",
+        "canonical": "oklch(78.1% 0.010 100.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 100.0)",
+          "oklch(26.4% 0.010 100.0)",
+          "oklch(37.9% 0.010 100.0)",
+          "oklch(49.3% 0.010 100.0)",
+          "oklch(60.7% 0.010 100.0)",
+          "oklch(72.1% 0.010 100.0)",
+          "oklch(83.6% 0.010 100.0)",
+          "oklch(95.0% 0.010 100.0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Wordmark",
+        "purpose": "LUNA masthead, one per ticket."
+      },
+      "headline": {
+        "displayName": "Role Headline",
+        "purpose": "Role name on the role home ticket; 34px at <=380px."
+      },
+      "title": {
+        "displayName": "Item Title",
+        "purpose": "Tap-row item names; welcome line at 22px."
+      },
+      "heading": {
+        "displayName": "Section Heading",
+        "purpose": "Printed h2 per step; receives focus on print-in."
+      },
+      "body": {
+        "displayName": "Printed Body",
+        "purpose": "Page default text."
+      },
+      "data": {
+        "displayName": "Leader Data",
+        "purpose": "Dotted-leader lines and the meta line (12px)."
+      },
+      "label": {
+        "displayName": "Footer / Stamp Label",
+        "purpose": "Footer lines and rotated stamps."
+      },
+      "note": {
+        "displayName": "Helper Note",
+        "purpose": "Hanken Grotesk sentences: taglines, ledes, help, errors."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "Ink bar and outline bar labels."
+      },
+      "area-title": {
+        "displayName": "Area Title",
+        "purpose": "Area or Whole city name at the top of a detail slip."
+      },
+      "readout": {
+        "displayName": "Tape Readout",
+        "purpose": "The single time readout on the receipt tape; 13px normal width on phones."
+      },
+      "map-label": {
+        "displayName": "Map Label",
+        "purpose": "Area names printed on the map as HTML buttons."
+      },
+      "chip": {
+        "displayName": "Chip",
+        "purpose": "Printed chip labels on donor surfaces; optional Hanken 12px hint below."
+      },
+      "count": {
+        "displayName": "Count",
+        "purpose": "Servings readout in the action dock (stepper value uses the cut at 24px)."
+      },
+      "grade": {
+        "displayName": "Grade",
+        "purpose": "Food-check grade letter inside the 64px grade block."
+      },
+      "pickup-code": {
+        "displayName": "Pickup Code",
+        "purpose": "Handover code shown to the delivery partner."
+      },
+      "countdown": {
+        "displayName": "Countdown",
+        "purpose": "Time left to answer an offer (m:ss); red only under 60 s; 28px at <=420px."
+      },
+      "offer-title": {
+        "displayName": "Offer Title",
+        "purpose": "Servings × dish on an NGO offer ticket; 17px on coming tickets, 19px at <=420px."
+      },
+      "verdict-name": {
+        "displayName": "Verdict Name",
+        "purpose": "Grade name on the reversed verdict slip; 23px at <=420px."
+      },
+      "verdict-grade": {
+        "displayName": "Verdict Grade",
+        "purpose": "Grade letter in the 84px paper box on the verdict slip; 46px at <=420px."
+      },
+      "trip-code": {
+        "displayName": "Trip Code",
+        "purpose": "The 4 digits a rider types on the trip slip; 0.4em tracking, centred."
+      },
+      "place-label": {
+        "displayName": "Place Label",
+        "purpose": "Mono label above a places line (Collect from, Address, Bring)."
+      },
+      "place-value": {
+        "displayName": "Place Value",
+        "purpose": "Left-aligned Hanken sentence under a place label; anything read in motion."
+      }
+    },
+    "shadows": [
+      {
+        "name": "printer-housing",
+        "value": "0 10px 18px -8px rgba(0,0,0,0.45), inset 0 -1px 0 #3a3c3b",
+        "purpose": "Printer slot bar casting onto the paper."
+      },
+      {
+        "name": "hanging-paper",
+        "value": "drop-shadow(0 14px 18px rgba(20,22,20,0.2)) drop-shadow(0 2px 3px rgba(20,22,20,0.18))",
+        "purpose": "filter on the ticket wrapper so the shadow follows the zigzag edge."
+      },
+      {
+        "name": "slot-shade",
+        "value": "linear-gradient(180deg, rgba(0,0,0,0.06) 0, transparent 22px)",
+        "purpose": "Top of the paper where it leaves the slot."
+      },
+      {
+        "name": "led-glow",
+        "value": "0 0 6px 1px rgba(63,212,107,0.55)",
+        "purpose": "Status LED glow (amber variant rgba(255,176,32,0.6))."
+      },
+      {
+        "name": "otp-active",
+        "value": "inset 0 -4px 0 #1b1b1b",
+        "purpose": "Cursor underline in the active OTP cell."
+      },
+      {
+        "name": "printer-bar",
+        "value": "0 8px 16px -8px rgba(0,0,0,0.45)",
+        "purpose": "Full-width printer bar on the Pass."
+      },
+      {
+        "name": "steel-rail",
+        "value": "0 3px 6px rgba(0,0,0,0.18)",
+        "purpose": "The order rail bar."
+      },
+      {
+        "name": "rail-ticket",
+        "value": "drop-shadow(0 6px 8px rgba(20,22,20,0.16))",
+        "purpose": "filter on each rail ticket, following its tear edge."
+      },
+      {
+        "name": "detail-slip",
+        "value": "drop-shadow(0 10px 14px rgba(20,22,20,0.18))",
+        "purpose": "filter on the torn detail slip."
+      },
+      {
+        "name": "map-sheet",
+        "value": "0 14px 24px -12px rgba(20,22,20,0.3), 0 2px 3px rgba(20,22,20,0.14)",
+        "purpose": "The printed map lying on the counter."
+      },
+      {
+        "name": "tape",
+        "value": "0 -8px 16px -10px rgba(20,22,20,0.28)",
+        "purpose": "Receipt time tape, casting upward."
+      },
+      {
+        "name": "slip-scroll-shade",
+        "value": "linear-gradient(0deg, rgba(27,27,27,0.16), transparent) 22px, scroll-attached, covered by a local paper gradient at the end",
+        "purpose": "Scroll cue above the slip's tear edge while more content remains."
+      },
+      {
+        "name": "tape-now-cap",
+        "value": "0 -5px 0 #d52a22",
+        "purpose": "Red cap on the current window's bar in the week strip."
+      },
+      {
+        "name": "photo-frame",
+        "value": "0 14px 24px -12px rgba(20,22,20,0.35), 0 2px 3px rgba(20,22,20,0.14)",
+        "purpose": "Black photo frame on the counter (desktop only; none when it bleeds on phones)."
+      },
+      {
+        "name": "coupon-ticket",
+        "value": "drop-shadow(0 12px 14px rgba(20,22,20,0.18))",
+        "purpose": "filter on the donation's coupon strip, following its tear edge."
+      },
+      {
+        "name": "action-dock",
+        "value": "0 -10px 20px -12px rgba(20,22,20,0.35)",
+        "purpose": "Fixed thumb-zone dock at the foot of a phone, casting upward."
+      },
+      {
+        "name": "donation-row",
+        "value": "0 6px 12px -8px rgba(20,22,20,0.3)",
+        "purpose": "Each donation slip on the counter."
+      },
+      {
+        "name": "account-sheet",
+        "value": "0 20px 40px rgba(0,0,0,0.35); backdrop rgba(29,30,30,0.55)",
+        "purpose": "Account dialog / phone bottom sheet."
+      },
+      {
+        "name": "offer-ticket",
+        "value": "drop-shadow(0 12px 14px rgba(20,22,20,0.2))",
+        "purpose": "filter on a waiting NGO offer ticket, following its tear edge."
+      },
+      {
+        "name": "verdict-slip",
+        "value": "0 12px 20px -12px rgba(20,22,20,0.5)",
+        "purpose": "The reversed food-check verdict slip."
+      },
+      {
+        "name": "tag-slip-unsure-band",
+        "value": "inset 0 6px 0 #f2b705",
+        "purpose": "Warning Yellow top band on the unsure tag slip."
+      },
+      {
+        "name": "punch-hole",
+        "value": "inset 0 1px 2px rgba(0,0,0,0.55) on a 12px steel circle",
+        "purpose": "Punched hole showing the counter through a selected punch."
+      },
+      {
+        "name": "trip-slip",
+        "value": "drop-shadow(0 12px 14px rgba(20,22,20,0.2))",
+        "purpose": "The trip slip and pickup request tickets; same as the offer ticket."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "State transitions (120-200ms) and splash exit."
+      },
+      {
+        "name": "ease-in",
+        "value": "cubic-bezier(0.7, 0, 0.84, 0)",
+        "purpose": "Tear-off."
+      },
+      {
+        "name": "print-in",
+        "value": "steps(lines, end); 140ms + 48ms/line, max 620ms; clip-path top-down + 6px drop",
+        "purpose": "Stepped line-feed reveal of each new section."
+      },
+      {
+        "name": "tear-off",
+        "value": "640ms ease-in; dip 6px then translateY(-120vh) rotate(-5deg)",
+        "purpose": "Ticket leaves on sign-in complete or sign-out."
+      },
+      {
+        "name": "led-blink",
+        "value": "0.5s steps(2, jump-none) infinite",
+        "purpose": "Busy printer light."
+      },
+      {
+        "name": "jolt",
+        "value": "280ms ease-out, ±3px",
+        "purpose": "Wrong OTP."
+      },
+      {
+        "name": "splash-lift",
+        "value": "520ms ease-out; fade, blur 6px, scale 1.02",
+        "purpose": "Splash overlay exit (owned by Splash, not the replaceable animation)."
+      },
+      {
+        "name": "ticket-swing",
+        "value": "260ms ease-out; hover translateY(3px) rotate(-0.6deg); pulled translateY(10px) rotate(-1.4deg); origin top centre",
+        "purpose": "Rail ticket hover and pull."
+      },
+      {
+        "name": "hex-reprint",
+        "value": "fill-opacity transition 260ms",
+        "purpose": "Hexes reprint in ink when the window or layer changes."
+      },
+      {
+        "name": "sheet-slide",
+        "value": "360ms ease-out; translateY(110%) to 0",
+        "purpose": "Phone bottom sheet for the detail slip."
+      },
+      {
+        "name": "map-fly",
+        "value": "1100ms flyTo, never zooms out (min 12.4 desktop / 11.8 phone); 0ms under reduced motion",
+        "purpose": "Camera move when an area is picked."
+      },
+      {
+        "name": "tape-play",
+        "value": "750ms per window, loops the week",
+        "purpose": "Play on the time tape."
+      },
+      {
+        "name": "photo-scan",
+        "value": "1.8s cubic-bezier(0.45,0,0.55,1) infinite alternate; 28%-tall paper band translateY(-100%) to 360%; photo grayscale 0.35 contrast 1.05",
+        "purpose": "The food check looking at the photo while it runs."
+      },
+      {
+        "name": "coupon-stamp",
+        "value": "420ms ease-out; scale 1.5 rotate -12deg opacity 0 -> scale 0.94 rotate 2deg -> none",
+        "purpose": "A coupon's mark stamping as its stage completes."
+      },
+      {
+        "name": "working-blink",
+        "value": "1s steps(2, jump-none) infinite, to opacity 0.15 (stage ticks 1.2s)",
+        "purpose": "Working square on the active coupon and the active stage tick."
+      },
+      {
+        "name": "offer-feed",
+        "value": "420ms steps(6, end); clip-path inset(0 0 100% 0) + translateY(-6px) to none",
+        "purpose": "A new NGO offer ticket feeding out of the printer."
+      },
+      {
+        "name": "accept-stamp",
+        "value": "420ms ease-out; scale 1.6 rotate -14deg opacity 0 -> scale 0.95 rotate -4deg -> rotate -6deg",
+        "purpose": "ACCEPTED stamp landing on an offer ticket."
+      },
+      {
+        "name": "trip-stamp",
+        "value": "420ms ease-out stampIn (as accept-stamp); held 650-900ms before reprint",
+        "purpose": "ACCEPTED / PASSED ON on a pickup request; COLLECTED / DELIVERED on the trip slip."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "narrow",
+        "value": "380px"
+      },
+      {
+        "name": "ticket-max",
+        "value": "440px"
+      },
+      {
+        "name": "pass-tablet",
+        "value": "1100px"
+      },
+      {
+        "name": "pass-phone",
+        "value": "860px"
+      },
+      {
+        "name": "donor-wide",
+        "value": "900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Ink Bar",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one primary action per step (Send code, Finish sign-up): a solid bar of ink.",
+      "html": "<button class=\"ds-inkbar\">Send code <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button>",
+      "css": ".ds-inkbar { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; border: 0; border-radius: 0; background: var(--ink, #1b1b1b); color: var(--paper, #fbfaf6); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 15px; font-weight: 700; font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background-color 160ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1); } .ds-inkbar svg { transition: transform 200ms cubic-bezier(0.16,1,0.3,1); } .ds-inkbar:hover { background: #000; } .ds-inkbar:hover svg { transform: translateX(3px); } .ds-inkbar:active { transform: translateY(1px); } .ds-inkbar:focus-visible { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; }"
+    },
+    {
+      "name": "Outline Bar",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary full-width action (Sign out); inverts to ink on hover.",
+      "html": "<button class=\"ds-outbar\">Sign out</button>",
+      "css": ".ds-outbar { width: 100%; min-height: 52px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid var(--ink, #1b1b1b); border-radius: 0; background: transparent; color: var(--ink, #1b1b1b); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 14px; font-weight: 700; font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background-color 160ms cubic-bezier(0.16,1,0.3,1), color 160ms cubic-bezier(0.16,1,0.3,1); } .ds-outbar:hover { background: var(--ink, #1b1b1b); color: var(--paper, #fbfaf6); } .ds-outbar:focus-visible { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; }"
+    },
+    {
+      "name": "Role Tap Row",
+      "kind": "custom",
+      "refersTo": "role-row",
+      "description": "A ticket item that is itself the action: one tap prints the choice and advances.",
+      "html": "<button class=\"ds-row\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span class=\"ds-row-text\"><span class=\"ds-row-name\">NGO</span><span class=\"ds-row-who\">Shelters, orphanages, old-age homes, fridges</span></span><span class=\"ds-row-arrow\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></span></button>",
+      "css": ".ds-row { width: 100%; min-height: 68px; display: grid; grid-template-columns: 28px 1fr 20px; align-items: center; gap: 14px; padding: 12px 10px; border: 0; background: var(--paper, #fbfaf6); color: var(--ink, #1b1b1b); text-align: left; cursor: pointer; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); transition: background-color 160ms cubic-bezier(0.16,1,0.3,1), color 160ms cubic-bezier(0.16,1,0.3,1); } .ds-row > svg { justify-self: center; } .ds-row-text { display: flex; flex-direction: column; gap: 3px; } .ds-row-name { font-size: 17px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.15; } .ds-row-who { font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 13.5px; line-height: 1.3; color: var(--ink-soft, #4a4944); } .ds-row-arrow { opacity: 0.35; transition: transform 200ms cubic-bezier(0.16,1,0.3,1), opacity 200ms; } .ds-row:hover, .ds-row:active { background: var(--ink, #1b1b1b); color: var(--paper, #fbfaf6); } .ds-row:hover .ds-row-who { color: rgba(251,250,246,0.72); } .ds-row:hover .ds-row-arrow { opacity: 1; transform: translateX(3px); } .ds-row:focus-visible { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: -3px; }"
+    },
+    {
+      "name": "Printed Text Field",
+      "kind": "input",
+      "refersTo": "input-box",
+      "description": "A printed box with a mono label; red stroke and label when missing.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Your name</span><input class=\"ds-input\" placeholder=\"As people will see it\"></label>",
+      "css": ".ds-field { display: block; } .ds-field-label { display: block; margin-bottom: 8px; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink, #1b1b1b); } .ds-input { width: 100%; min-height: 50px; padding: 0 12px; border: 2px solid var(--ink, #1b1b1b); border-radius: 0; background: #fff; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 16px; color: var(--ink, #1b1b1b); } .ds-input::placeholder { color: #9a9992; } .ds-input:hover { background: #fff; } .ds-input:focus { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; }"
+    },
+    {
+      "name": "Phone Box",
+      "kind": "input",
+      "refersTo": "input-phone",
+      "description": "+91 prefix block and tabular number entry in one printed box.",
+      "html": "<div class=\"ds-phone\"><span class=\"ds-phone-prefix\">+91</span><input class=\"ds-phone-input\" inputmode=\"numeric\" placeholder=\"98450 12345\"></div>",
+      "css": ".ds-phone { display: flex; align-items: stretch; min-height: 58px; border: 2px solid var(--ink, #1b1b1b); background: #fff; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-phone:focus-within { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; } .ds-phone-prefix { display: grid; place-items: center; padding: 0 14px; font-size: 18px; font-weight: 700; border-right: 2px solid var(--ink, #1b1b1b); background: var(--paper-shade, #f1efe7); } .ds-phone-input { flex: 1; min-width: 0; padding: 0 14px; border: 0; background: transparent; font: inherit; font-size: 20px; font-weight: 600; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; } .ds-phone-input:focus { outline: none; } .ds-phone-input::placeholder { color: #a3a29b; font-weight: 400; }"
+    },
+    {
+      "name": "OTP Cells",
+      "kind": "input",
+      "refersTo": "otp-cell",
+      "description": "Six printed cells; empty dashed, active underlined, error red.",
+      "html": "<div class=\"ds-otp\"><span class=\"ds-cell\" data-filled=\"true\">4</span><span class=\"ds-cell\" data-filled=\"true\">8</span><span class=\"ds-cell\" data-active=\"true\"></span><span class=\"ds-cell\"></span><span class=\"ds-cell\"></span><span class=\"ds-cell\"></span></div>",
+      "css": ".ds-otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; max-width: 392px; } .ds-cell { aspect-ratio: 5 / 6; max-height: 64px; display: grid; place-items: center; border: 2px dashed #8c8b85; background: #fff; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 26px; font-weight: 700; transition: border-color 160ms cubic-bezier(0.16,1,0.3,1); } .ds-cell[data-filled=\"true\"] { border-style: solid; border-color: var(--ink, #1b1b1b); } .ds-cell[data-active=\"true\"] { border-style: solid; border-color: var(--ink, #1b1b1b); box-shadow: inset 0 -4px 0 var(--ink, #1b1b1b); } .ds-otp:hover .ds-cell[data-active=\"true\"] { border-color: #000; }"
+    },
+    {
+      "name": "Choice",
+      "kind": "chip",
+      "refersTo": "choice",
+      "description": "Square single-choice option with a tick box; inverts when selected.",
+      "html": "<div class=\"ds-choices\"><label class=\"ds-choice\" data-on=\"true\"><input type=\"radio\" name=\"k\" checked><span class=\"ds-tick\">&#10003;</span>Restaurant</label><label class=\"ds-choice\"><input type=\"radio\" name=\"k\"><span class=\"ds-tick\"></span>Caterer</label></div>",
+      "css": ".ds-choices { display: flex; flex-wrap: wrap; gap: 8px; } .ds-choice { position: relative; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px 0 10px; border: 1.5px solid var(--ink, #1b1b1b); background: #fff; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 15px; cursor: pointer; transition: background-color 140ms cubic-bezier(0.16,1,0.3,1); } .ds-choice input { position: absolute; opacity: 0; pointer-events: none; } .ds-choice[data-on=\"true\"] { background: var(--ink, #1b1b1b); color: var(--paper, #fbfaf6); } .ds-choice:hover { background: var(--paper-shade, #f1efe7); } .ds-choice[data-on=\"true\"]:hover { background: #000; } .ds-choice:has(:focus-visible) { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; } .ds-tick { width: 16px; height: 16px; display: grid; place-items: center; border: 1.5px solid currentColor; font-size: 11px; line-height: 1; }"
+    },
+    {
+      "name": "Dotted Leader",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "LABEL ........ VALUE: the printed record of each completed step, with an optional Change link.",
+      "html": "<div class=\"ds-leader\"><span class=\"ds-l-label\">Signing in as</span><span class=\"ds-l-dots\"></span><span class=\"ds-l-value\">NGO</span><button class=\"ds-l-action\">Change</button></div>",
+      "css": ".ds-leader { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink, #1b1b1b); max-width: 392px; } .ds-l-label { color: var(--ink-soft, #4a4944); } .ds-l-dots { flex: 1; min-width: 16px; height: 1em; background: radial-gradient(circle, var(--ink-faded, #6f6e68) 0.9px, transparent 1.2px) left bottom 3px / 6px 4px repeat-x; } .ds-l-value { margin-left: auto; font-weight: 700; text-align: right; } .ds-l-action { padding: 6px 2px; margin: -6px 0; border: 0; background: none; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 13px; text-transform: none; letter-spacing: 0; text-decoration: underline; text-underline-offset: 0.22em; color: var(--ink-soft, #4a4944); cursor: pointer; } .ds-l-action:hover { color: var(--ink, #1b1b1b); } .ds-l-action:focus-visible { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; }"
+    },
+    {
+      "name": "Problem Line",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "A red-ink error printed under the field, with a plain next step.",
+      "html": "<p class=\"ds-problem\" role=\"alert\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"/><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"/></svg>That code didn’t match. 2 tries left.</p>",
+      "css": ".ds-problem { display: flex; align-items: flex-start; gap: 8px; margin: 0; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--ink-red, #d52a22); } .ds-problem svg { flex: none; margin-top: 2px; }"
+    },
+    {
+      "name": "Dev Chit",
+      "kind": "card",
+      "refersTo": "dev-chit",
+      "description": "Dev-only red stub with a rotated DEV MODE stamp and the test code.",
+      "html": "<aside class=\"ds-chit\"><span class=\"ds-stamp\">Dev mode</span><p class=\"ds-chit-text\">No SMS is sent. Use <b class=\"ds-chit-code\">123456</b></p><button class=\"ds-chit-fill\">Fill it in</button></aside>",
+      "css": ".ds-chit { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px; padding: 14px 14px 14px 16px; border: 1.5px dashed var(--ink-red, #d52a22); background: var(--ink-red-soft, #fbe9e6); color: #8d1712; max-width: 392px; } .ds-stamp { grid-column: 1 / -1; justify-self: start; padding: 2px 6px; border: 1.5px solid var(--ink-red, #d52a22); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 11px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.14em; text-transform: uppercase; transform: rotate(-2deg); color: var(--ink-red, #d52a22); } .ds-chit-text { margin: 4px 0 0; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; } .ds-chit-code { display: block; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 16px; letter-spacing: 0.12em; } .ds-chit-fill { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--ink-red, #d52a22); background: var(--paper, #fbfaf6); color: #8d1712; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; font-weight: 700; cursor: pointer; } .ds-chit-fill:hover { background: var(--ink-red, #d52a22); color: #fff; } .ds-chit-fill:focus-visible { outline: 2px dashed var(--ink, #1b1b1b); outline-offset: 3px; }"
+    },
+    {
+      "name": "Hanging Ticket",
+      "kind": "card",
+      "refersTo": "ticket",
+      "description": "The printer slot and the paper ticket with masthead, meta line and zigzag tear edge.",
+      "html": "<div class=\"ds-counter\"><div class=\"ds-printer\"><span class=\"ds-led\"></span></div><div class=\"ds-shadow\"><section class=\"ds-ticket\"><p class=\"ds-word\">LUNA</p><p class=\"ds-tag\">Surplus food to people who need it, before it goes bad.</p><hr class=\"ds-rule\"><div class=\"ds-meta\"><span>KOT 4874 · BLR</span><span>29 SEP 26 15:57</span></div><hr class=\"ds-rule-solid\"></section></div></div>",
+      "css": ".ds-counter { display: flex; flex-direction: column; align-items: center; padding: 0 16px 24px; background: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255,255,255,0.35) 3px 4px, transparent 4px 9px), linear-gradient(180deg, #d5d7d3, #bfc2bd); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: var(--ink, #1b1b1b); } .ds-printer { position: relative; width: min(480px, 100%); height: 30px; background: linear-gradient(180deg, #2b2c2c 0%, #1d1e1e 70%); border-radius: 0 0 10px 10px; box-shadow: 0 10px 18px -8px rgba(0,0,0,0.45), inset 0 -1px 0 #3a3c3b; z-index: 2; } .ds-printer::after { content: \"\"; position: absolute; left: 14px; right: 14px; bottom: 6px; height: 4px; border-radius: 2px; background: #050505; } .ds-led { position: absolute; top: 9px; right: 22px; width: 6px; height: 6px; border-radius: 50%; background: #3fd46b; box-shadow: 0 0 6px 1px rgba(63,212,107,0.55); } .ds-shadow { width: 100%; max-width: 440px; margin-top: -8px; filter: drop-shadow(0 14px 18px rgba(20,22,20,0.2)) drop-shadow(0 2px 3px rgba(20,22,20,0.18)); } .ds-ticket { --tooth: 9px; background: linear-gradient(180deg, rgba(0,0,0,0.06) 0, transparent 22px), #fbfaf6; padding: 30px 24px calc(28px + var(--tooth)); -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; } .ds-word { margin: 0; text-align: center; font-size: 44px; line-height: 1; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.02em; } .ds-tag { margin: 10px 0 0; text-align: center; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; color: #4a4944; } .ds-rule { border: 0; border-top: 1.5px dashed #1b1b1b; opacity: 0.55; margin: 18px 0; } .ds-rule-solid { border: 0; border-top: 2px solid #1b1b1b; margin: 18px 0 0; } .ds-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; letter-spacing: 0.02em; color: #4a4944; font-variant-numeric: tabular-nums; text-transform: uppercase; } .ds-ticket:hover .ds-word { letter-spacing: 0.02em; }"
+    },
+    {
+      "name": "Printer Bar",
+      "kind": "nav",
+      "refersTo": "printer-bar",
+      "description": "Dark app header of an operate surface: mark, printed title, SAMPLE DATA stamp, segmented view controls, account button.",
+      "html": "<header class=\"ds-pbar\"><div class=\"ds-pbar-brand\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 200 200\" aria-hidden=\"true\"><path d=\"M100 0a100 100 0 0 0 0 200z\" fill=\"currentColor\"/><path d=\"M110 4a96 96 0 0 1 0 192\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\"/></svg><h1 class=\"ds-pbar-title\">Food map <span class=\"ds-pbar-city\">Bengaluru</span></h1><span class=\"ds-pbar-stamp\">Sample data</span></div><div class=\"ds-seg\" role=\"radiogroup\" aria-label=\"Layer\"><button class=\"ds-seg-b\" role=\"radio\" aria-checked=\"true\">Need</button><button class=\"ds-seg-b\" role=\"radio\" aria-checked=\"false\">Surplus</button></div><button class=\"ds-pbar-btn\">Sign out</button></header>",
+      "css": ".ds-pbar { display: flex; align-items: center; gap: 16px; padding: 10px 20px; background: linear-gradient(180deg, #2b2c2c 0%, #1d1e1e 80%); color: #fbfaf6; box-shadow: 0 8px 16px -8px rgba(0,0,0,0.45); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-pbar-brand { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; } .ds-pbar-title { margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; } .ds-pbar-city { font-size: 12px; font-weight: 500; letter-spacing: 0.12em; color: #b9b8b1; } .ds-pbar-stamp { padding: 2px 7px; border: 1.5px solid #b9b8b1; color: #d9d8d1; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; transform: rotate(-2deg); } .ds-seg { display: flex; border: 1.5px solid #6f6e68; } .ds-seg-b { min-height: 34px; padding: 0 12px; border: 0; background: transparent; color: #d9d8d1; font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-seg-b + .ds-seg-b { border-left: 1.5px solid #6f6e68; } .ds-seg-b[aria-checked=\"true\"] { background: #fbfaf6; color: #1b1b1b; } .ds-seg-b:hover:not([aria-checked=\"true\"]) { color: #fff; background: rgba(255,255,255,0.08); } .ds-pbar-btn { min-height: 34px; padding: 0 12px; border: 1.5px solid #6f6e68; background: transparent; color: #fbfaf6; font: inherit; font-size: 12px; font-weight: 700; font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-pbar-btn:hover { border-color: #fbfaf6; } .ds-pbar :focus-visible { outline: 2px dashed #fbfaf6; outline-offset: 3px; }"
+    },
+    {
+      "name": "Order Rail",
+      "kind": "custom",
+      "refersTo": "rail-ticket",
+      "description": "Ranked tickets hanging from a steel rail; the pulled ticket drops, tilts and gains an inset ink box; the right edge fades.",
+      "html": "<div class=\"ds-railwrap\"><p class=\"ds-rail-title\">Hungriest this week</p><div class=\"ds-rail\"><ol class=\"ds-tickets\"><li><button class=\"ds-tk\" data-gap=\"true\"><span class=\"ds-tk-rank\">#1</span><span class=\"ds-tk-name\">Electronic City</span><span class=\"ds-tk-short\">1,163 <small>meals short</small></span><span class=\"ds-tk-worst\">Worst SUN 12–15</span></button></li><li><button class=\"ds-tk\" data-on=\"true\" data-gap=\"true\"><span class=\"ds-tk-rank\">#2</span><span class=\"ds-tk-name\">Jayanagar</span><span class=\"ds-tk-short\">517 <small>meals short</small></span><span class=\"ds-tk-worst\">Worst WED 18–21</span></button></li><li><button class=\"ds-tk\"><span class=\"ds-tk-rank\">#3</span><span class=\"ds-tk-name\">BTM Layout</span><span class=\"ds-tk-short\">367 <small>meals short</small></span><span class=\"ds-tk-worst\">Worst MON 18–21</span></button></li></ol></div></div>",
+      "css": ".ds-railwrap { padding: 12px 20px 0; background: linear-gradient(180deg, #d5d7d3, #bfc2bd); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: #1b1b1b; } .ds-rail-title { margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #4a4944; } .ds-rail { overflow-x: auto; padding-bottom: 14px; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); } .ds-rail::before { content: \"\"; display: block; position: sticky; left: 0; width: 100%; height: 10px; margin-bottom: -4px; background: linear-gradient(180deg, #f2f3f1 0%, #a8aba6 55%, #7d807b 100%); border-radius: 2px; box-shadow: 0 3px 6px rgba(0,0,0,0.18); position: relative; z-index: 2; } .ds-tickets { list-style: none; margin: 0; padding: 0 56px 0 0; display: flex; gap: 10px; min-width: min-content; } .ds-tk { --tooth: 6px; position: relative; width: 176px; min-height: 112px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px 12px calc(12px + var(--tooth)); border: 0; background: #fbfaf6; color: inherit; font: inherit; text-align: left; cursor: pointer; filter: drop-shadow(0 6px 8px rgba(20,22,20,0.16)); -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; transform-origin: 50% 0; transition: transform 260ms cubic-bezier(0.16,1,0.3,1); } .ds-tk:hover { transform: translateY(3px) rotate(-0.6deg); } .ds-tk[data-on=\"true\"] { transform: translateY(10px) rotate(-1.4deg); background: #fff; } .ds-tk[data-on=\"true\"]::after { content: \"\"; position: absolute; inset: 6px 6px calc(6px + var(--tooth)); border: 2px solid #1b1b1b; pointer-events: none; } .ds-tk:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: -4px; } .ds-tk-rank { font-size: 12px; font-weight: 800; color: #4a4944; } .ds-tk[data-gap=\"true\"] .ds-tk-rank { color: #d52a22; } .ds-tk-name { font-size: 14px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.2; } .ds-tk-short { margin-top: 6px; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; } .ds-tk-short small { display: block; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 12px; font-weight: 500; color: #4a4944; } .ds-tk-worst { font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 12px; color: #4a4944; }"
+    },
+    {
+      "name": "Map Label and Legend",
+      "kind": "custom",
+      "refersTo": "map-label",
+      "description": "Printed HTML area labels (collision-hidden by priority) and the three-mark legend: ink ramp, red gap square, dashed no-NGO square.",
+      "html": "<div class=\"ds-mapsheet\"><button class=\"ds-mlabel\">Koramangala</button> <button class=\"ds-mlabel\" aria-pressed=\"true\">Jayanagar</button><div class=\"ds-legend\"><span class=\"ds-lg\"><span class=\"ds-ramp\"></span>Meals short</span><span class=\"ds-lg\"><span class=\"ds-sw-gap\"></span>Gap spot</span><span class=\"ds-lg\"><span class=\"ds-sw-none\"></span>No NGO yet</span></div></div>",
+      "css": ".ds-mapsheet { position: relative; min-height: 120px; padding: 16px; background: #fbfaf6; box-shadow: 0 14px 24px -12px rgba(20,22,20,0.3), 0 2px 3px rgba(20,22,20,0.14); } .ds-mlabel { padding: 3px 6px; border: 0; background: rgba(251,250,246,0.9); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #1b1b1b; cursor: pointer; white-space: nowrap; } .ds-mlabel:hover, .ds-mlabel[aria-pressed=\"true\"] { background: #1b1b1b; color: #fbfaf6; } .ds-mlabel:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; } .ds-legend { position: absolute; left: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 10px; background: rgba(251,250,246,0.94); border: 1.5px solid #1b1b1b; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 12px; color: #4a4944; } .ds-lg { display: inline-flex; align-items: center; gap: 6px; } .ds-ramp { width: 56px; height: 10px; background: linear-gradient(90deg, rgba(27,27,27,0.06), rgba(27,27,27,0.86)); } .ds-sw-gap, .ds-sw-none { width: 12px; height: 12px; display: inline-block; } .ds-sw-gap { background: #d52a22; } .ds-sw-none { border: 1.5px dashed #1b1b1b; }"
+    },
+    {
+      "name": "Detail Slip",
+      "kind": "card",
+      "refersTo": "detail-slip",
+      "description": "Torn slip beside the map: area title, window, gap stamp, leaders grouped under 'Meals, …' headings, trend bars, scroll-shade cue. Becomes a 55dvh bottom sheet on phones.",
+      "html": "<aside class=\"ds-slip\"><h2 class=\"ds-slip-title\">Jayanagar</h2><p class=\"ds-slip-when\">WED 18:00–21:00</p><p class=\"ds-gapstamp\">Gap spot · 87% short</p><hr class=\"ds-slip-rule\"><h3 class=\"ds-slip-h\">Meals, this window</h3><div class=\"ds-ld\"><span class=\"ds-ld-l\">Needed</span><span class=\"ds-ld-d\"></span><b>86</b></div><div class=\"ds-ld\"><span class=\"ds-ld-l\">Reached</span><span class=\"ds-ld-d\"></span><b>12</b></div><div class=\"ds-ld\"><span class=\"ds-ld-l\">Short</span><span class=\"ds-ld-d\"></span><b class=\"ds-red\">74</b></div><h3 class=\"ds-slip-h\">Need reached, last 4 weeks</h3><div class=\"ds-trend\"><span>This wk</span><span class=\"ds-trend-bar\"><span style=\"width:29%\" data-low=\"true\"></span></span><b>29%</b></div></aside>",
+      "css": ".ds-slip { --tooth: 8px; max-width: 360px; max-height: 320px; overflow-y: auto; padding: 20px 20px calc(20px + var(--tooth)); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: #1b1b1b; filter: drop-shadow(0 10px 14px rgba(20,22,20,0.18)); -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; background: linear-gradient(0deg, #fbfaf6 35%, rgba(251,250,246,0)) center bottom var(--tooth) / 100% 48px no-repeat local, linear-gradient(0deg, rgba(27,27,27,0.16), rgba(27,27,27,0)) center bottom var(--tooth) / 100% 22px no-repeat scroll, #fbfaf6; } .ds-slip-title { margin: 0; font-size: 26px; line-height: 1.1; font-weight: 800; font-stretch: 112.5%; text-transform: uppercase; } .ds-slip-when { margin: 6px 0 0; font-size: 12px; letter-spacing: 0.06em; color: #4a4944; } .ds-gapstamp { display: inline-block; margin: 12px 0 0; padding: 3px 8px; border: 2px solid #d52a22; color: #d52a22; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; transform: rotate(-1.5deg); } .ds-slip-rule { border: 0; border-top: 1.5px dashed #1b1b1b; opacity: 0.5; margin: 16px 0; } .ds-slip-h { margin: 18px 0 8px; font-size: 12px; font-weight: 700; font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; } .ds-slip-rule + .ds-slip-h { margin-top: 0; } .ds-ld { display: flex; align-items: baseline; gap: 8px; font-size: 13px; letter-spacing: 0.03em; text-transform: uppercase; margin-bottom: 6px; } .ds-ld-l { color: #4a4944; } .ds-ld-d { flex: 1; height: 1em; background: radial-gradient(circle, #6f6e68 0.9px, transparent 1.2px) left bottom 3px / 6px 4px repeat-x; } .ds-red { color: #d52a22; } .ds-trend { display: grid; grid-template-columns: 76px 1fr 44px; align-items: center; gap: 8px; font-size: 12px; text-transform: uppercase; } .ds-trend > span:first-child { color: #4a4944; } .ds-trend b { text-align: right; font-variant-numeric: tabular-nums; } .ds-trend-bar { display: block; height: 10px; background: repeating-linear-gradient(90deg, rgba(27,27,27,0.14) 0 2px, transparent 2px 4px); } .ds-trend-bar span { display: block; height: 100%; background: #1b1b1b; } .ds-trend-bar span[data-low=\"true\"] { background: #d52a22; }"
+    },
+    {
+      "name": "Receipt Time Tape",
+      "kind": "custom",
+      "refersTo": "time-tape",
+      "description": "Paper strip at the foot: prev/next around one readout, play and Now, and a week of shortfall bars with a red-capped current window over an invisible stepped range.",
+      "html": "<div class=\"ds-tape\"><div class=\"ds-tape-c\"><button class=\"ds-tb\" aria-label=\"Previous window\">&lsaquo;</button><output class=\"ds-readout\">WED 18:00–21:00</output><button class=\"ds-tb\" aria-label=\"Next window\">&rsaquo;</button><button class=\"ds-tb\" aria-label=\"Play the week\">&#9655;</button><button class=\"ds-tb ds-now\">Now</button></div><div class=\"ds-strip\"><div class=\"ds-bars\"><span style=\"height:20%\"></span><span style=\"height:45%\"></span><span style=\"height:70%\" data-on=\"true\"></span><span style=\"height:35%\"></span><span style=\"height:15%\" data-daystart=\"true\"></span><span style=\"height:55%\"></span><span style=\"height:80%\"></span><span style=\"height:30%\"></span></div><div class=\"ds-days\"><span data-on=\"true\">WED</span><span>THU</span></div></div></div>",
+      "css": ".ds-tape { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: center; gap: 20px; padding: 12px 20px 16px; background: #fbfaf6; box-shadow: 0 -8px 16px -10px rgba(20,22,20,0.28); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: #1b1b1b; } .ds-tape-c { display: flex; align-items: center; gap: 6px; } .ds-readout { min-width: 190px; text-align: center; font-size: 15px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; } .ds-tb { min-width: 44px; min-height: 44px; display: grid; place-items: center; border: 1.5px solid #1b1b1b; background: #fbfaf6; color: inherit; font: inherit; font-size: 18px; cursor: pointer; } .ds-now { padding: 0 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; } .ds-tb:hover, .ds-tb[data-on=\"true\"] { background: #1b1b1b; color: #fbfaf6; } .ds-tb:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; } .ds-strip { display: grid; grid-template-rows: 44px auto; gap: 4px; } .ds-bars { display: flex; align-items: flex-end; gap: 2px; height: 44px; } .ds-bars span { flex: 1; min-width: 2px; background: rgba(27,27,27,0.28); } .ds-bars span[data-daystart=\"true\"] { margin-left: 4px; } .ds-bars span[data-on=\"true\"] { background: #1b1b1b; box-shadow: 0 -5px 0 #d52a22; } .ds-days { display: grid; grid-template-columns: repeat(2, 1fr); font-size: 11px; letter-spacing: 0.1em; color: #6f6e68; } .ds-days span { padding-left: 4px; } .ds-days span[data-on=\"true\"] { color: #1b1b1b; font-weight: 800; }"
+    },
+    {
+      "name": "Stub Box",
+      "kind": "card",
+      "refersTo": "agent-stub",
+      "description": "Dashed placeholder for a designed-but-unconnected feature (agent feed & flags), with a plain sentence and three dotted lines.",
+      "html": "<div class=\"ds-stub\"><h3 class=\"ds-stub-h\">Agent feed &amp; flags</h3><p class=\"ds-stub-p\">Every matching decision and its reason will print here once the Matching Agent is connected.</p><div class=\"ds-stub-lines\"><span></span><span></span><span></span></div></div>",
+      "css": ".ds-stub { max-width: 360px; padding: 16px 18px; border: 1.5px dashed #6f6e68; background: rgba(251,250,246,0.55); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: #1b1b1b; } .ds-stub-h { margin: 0 0 8px; font-size: 12px; font-weight: 700; font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; } .ds-stub-p { margin: 10px 0 0; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; line-height: 1.45; color: #4a4944; } .ds-stub-lines { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; } .ds-stub-lines span { height: 8px; background: radial-gradient(circle, #6f6e68 0.9px, transparent 1.2px) left center / 6px 4px repeat-x; } .ds-stub-lines span:nth-child(2) { width: 70%; } .ds-stub-lines span:nth-child(3) { width: 45%; } .ds-stub:hover { border-color: #4a4944; }"
+    },
+    {
+      "name": "Donor Shell Bar",
+      "kind": "nav",
+      "refersTo": "donor-bar",
+      "description": "Sticky 56px printer bar for donor screens: back control, LUNA lockup, title in Bar Print, one icon slot.",
+      "html": "<header class=\"ds-dbar\"><a class=\"ds-dbar-back\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 19-7-7 7-7\"/><path d=\"M19 12H5\"/></svg>Home</a><span class=\"ds-dbar-brand\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 200 200\" aria-hidden=\"true\"><path d=\"M100 0a100 100 0 0 0 0 200z\" fill=\"currentColor\"/><path d=\"M110 4a96 96 0 0 1 0 192\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"8\"/></svg><b>LUNA</b></span><h1 class=\"ds-dbar-title\">List food</h1><button class=\"ds-dbar-icon\" aria-label=\"Account\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/><path d=\"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662\"/></svg></button></header>",
+      "css": ".ds-dbar { height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: linear-gradient(180deg, #2b2c2c 0%, #1d1e1e 80%); color: #fbfaf6; box-shadow: 0 8px 16px -8px rgba(0,0,0,0.45); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-dbar-back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-left: -6px; padding: 0 6px; color: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; } .ds-dbar-brand { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.04em; } .ds-dbar-title { flex: 1; min-width: 0; margin: 0; overflow: hidden; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; color: #d9d8d1; } .ds-dbar-icon { width: 44px; height: 44px; margin-right: -10px; display: grid; place-items: center; border: 0; background: none; color: inherit; cursor: pointer; } .ds-dbar :focus-visible { outline: 2px dashed #fbfaf6; outline-offset: 3px; }"
+    },
+    {
+      "name": "Photo Canvas",
+      "kind": "custom",
+      "refersTo": "photo-canvas",
+      "description": "Black frame with registration corners; empty it is the camera button plus Choose from gallery; filled it shows Retake; scanning sweeps a paper band while the food check runs.",
+      "html": "<div class=\"ds-canvas\"><span class=\"ds-corners\" aria-hidden=\"true\"></span><label class=\"ds-shoot\"><svg width=\"40\" height=\"40\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z\"/><circle cx=\"12\" cy=\"13\" r=\"3\"/></svg><strong>Photograph the food</strong><span>One clear photo of what you’re giving</span></label><label class=\"ds-upload\">Choose from gallery</label><span class=\"ds-scan\" aria-hidden=\"true\"></span></div>",
+      "css": ".ds-canvas { --corner: 22px; position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: #1d1e1e; color: #fbfaf6; box-shadow: 0 14px 24px -12px rgba(20,22,20,0.35), 0 2px 3px rgba(20,22,20,0.14); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-corners { position: absolute; inset: 14px; pointer-events: none; opacity: 0.9; z-index: 1; background: linear-gradient(#fbfaf6,#fbfaf6) top left / var(--corner) 2px no-repeat, linear-gradient(#fbfaf6,#fbfaf6) top left / 2px var(--corner) no-repeat, linear-gradient(#fbfaf6,#fbfaf6) top right / var(--corner) 2px no-repeat, linear-gradient(#fbfaf6,#fbfaf6) top right / 2px var(--corner) no-repeat, linear-gradient(#fbfaf6,#fbfaf6) bottom left / var(--corner) 2px no-repeat, linear-gradient(#fbfaf6,#fbfaf6) bottom left / 2px var(--corner) no-repeat, linear-gradient(#fbfaf6,#fbfaf6) bottom right / var(--corner) 2px no-repeat, linear-gradient(#fbfaf6,#fbfaf6) bottom right / 2px var(--corner) no-repeat; } .ds-shoot { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px 24px 72px; text-align: center; cursor: pointer; transition: background-color 200ms cubic-bezier(0.16,1,0.3,1); } .ds-shoot strong { font-size: 22px; line-height: 1.15; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.02em; text-transform: uppercase; } .ds-shoot span { font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 15px; color: #bdbcb5; } .ds-shoot:hover { background: #262727; } .ds-upload { position: absolute; z-index: 2; left: 50%; bottom: 22px; transform: translateX(-50%); display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1.5px solid #6f6e68; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; cursor: pointer; } .ds-upload:hover { border-color: #fbfaf6; } .ds-scan { position: absolute; left: 0; right: 0; top: 0; height: 28%; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(251,250,246,0) 0%, rgba(251,250,246,0.28) 85%, rgba(251,250,246,0.9) 100%); animation: ds-scan 1.8s cubic-bezier(0.45,0,0.55,1) infinite alternate; } @keyframes ds-scan { from { transform: translateY(-100%); } to { transform: translateY(360%); } } @media (prefers-reduced-motion: reduce) { .ds-scan { animation: none; } }"
+    },
+    {
+      "name": "Printed Chips",
+      "kind": "chip",
+      "refersTo": "printed-chip",
+      "description": "Square tap-chips: single choice is a native radio in a label with data-on reversal; multi choice is aria-pressed buttons; focus ring via :has(:focus-visible).",
+      "html": "<div class=\"ds-chips\" role=\"radiogroup\" aria-label=\"Kind of food\"><label class=\"ds-chip\" data-on=\"true\"><input type=\"radio\" name=\"k\" checked><span>Cooked meal</span></label><label class=\"ds-chip\"><input type=\"radio\" name=\"k\"><span>Bakery</span></label><label class=\"ds-chip\"><input type=\"radio\" name=\"k\"><span>Kept hot</span><small>60°C or more</small></label></div><div class=\"ds-chips\" role=\"group\" aria-label=\"Contains\"><button class=\"ds-chip\" aria-pressed=\"true\"><span>Dairy</span></button><button class=\"ds-chip\" aria-pressed=\"false\"><span>Nuts</span></button></div>",
+      "css": ".ds-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; } .ds-chip { position: relative; min-height: 44px; display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 6px 14px; border: 1.5px solid #1b1b1b; border-radius: 0; background: #fbfaf6; color: #1b1b1b; text-align: left; cursor: pointer; transition: background-color 140ms cubic-bezier(0.16,1,0.3,1), color 140ms cubic-bezier(0.16,1,0.3,1); } .ds-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; } .ds-chip span { font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 12px; line-height: 1.2; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; } .ds-chip small { font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 12px; color: #4a4944; } .ds-chip[data-on=\"true\"], .ds-chip[aria-pressed=\"true\"] { background: #1b1b1b; color: #fbfaf6; } .ds-chip[data-on=\"true\"] small, .ds-chip[aria-pressed=\"true\"] small { color: #cfcec7; } .ds-chip:hover:not([data-on=\"true\"]):not([aria-pressed=\"true\"]) { background: #f1efe7; } .ds-chip:has(:focus-visible), .ds-chip:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Stepper",
+      "kind": "input",
+      "refersTo": "stepper",
+      "description": "− value + count control: one 2px ink box, 52px buttons, numeric input with a unit label.",
+      "html": "<div class=\"ds-stepper\"><button aria-label=\"Fewer boxes\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/></svg></button><label><input type=\"number\" value=\"11\" aria-label=\"Number of boxes\"><span>boxes</span></label><button aria-label=\"More boxes\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg></button></div>",
+      "css": ".ds-stepper { display: inline-flex; align-items: stretch; border: 2px solid #1b1b1b; background: #fbfaf6; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-stepper button { width: 52px; min-height: 52px; display: grid; place-items: center; border: 0; background: none; color: #1b1b1b; cursor: pointer; } .ds-stepper button:active:not(:disabled) { background: #1b1b1b; color: #fbfaf6; } .ds-stepper button:disabled { color: #6f6e68; opacity: 0.5; } .ds-stepper button:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; } .ds-stepper label { min-width: 84px; padding: 0 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-inline: 1.5px solid #1b1b1b; } .ds-stepper input { width: 72px; border: 0; background: none; text-align: center; font: 800 24px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums; color: #1b1b1b; appearance: textfield; -moz-appearance: textfield; } .ds-stepper input::-webkit-inner-spin-button, .ds-stepper input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; } .ds-stepper label span { font-size: 10px; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase; color: #4a4944; }"
+    },
+    {
+      "name": "Action Dock",
+      "kind": "button",
+      "refersTo": "action-dock",
+      "description": "Thumb-zone dock: servings readout plus the one ink-bar action; fixed on phones, sticky and boxed in the form column on desktop.",
+      "html": "<div class=\"ds-dock\"><div class=\"ds-dock-row\"><p class=\"ds-servings\" aria-live=\"polite\"><b>44</b><span>servings</span></p><button class=\"ds-dock-primary\">Review <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></button></div></div>",
+      "css": ".ds-dock { padding: 10px 16px; background: #fbfaf6; border-top: 2px solid #1b1b1b; box-shadow: 0 -10px 20px -12px rgba(20,22,20,0.35); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-dock-row { display: flex; align-items: center; gap: 10px; } .ds-servings { display: flex; flex-direction: column; margin: 0 auto 0 0; line-height: 1; } .ds-servings b { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; } .ds-servings span { margin-top: 4px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #4a4944; } .ds-dock-primary { flex: 1 1 auto; max-width: 340px; min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 22px; border: 2px solid #1b1b1b; border-radius: 0; background: #1b1b1b; color: #fbfaf6; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 14px; font-weight: 700; font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: background-color 160ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1); } .ds-dock-primary:hover { background: #000; } .ds-dock-primary:active { transform: translateY(1px); } .ds-dock-primary:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Coupon Ticket",
+      "kind": "card",
+      "refersTo": "coupon-ticket",
+      "description": "One ticket, a coupon per stage, dotted perforations; done stamps, active mark inverts, red only for failed; grade block, model line, pickup code.",
+      "html": "<ol class=\"ds-coupons\"><li class=\"ds-coupon\" data-state=\"done\"><span class=\"ds-mark\">&#10003;</span><div><h3>Food check<span class=\"ds-sw\">Done</span></h3><div class=\"ds-grade\"><b>B</b><span><strong>Good</strong>Safe until 12:52 am</span><em>86<small>/100</small></em></div><p class=\"ds-model\">Photo checked by <b>Gemini 2.5 Flash</b></p></div></li><li class=\"ds-coupon\" data-state=\"active\" aria-current=\"step\"><span class=\"ds-mark\">3</span><div><h3>Pickup<span class=\"ds-sw\">Now</span></h3><div class=\"ds-code\"><span>Show this code when you hand over the food</span><b>4821</b></div></div></li><li class=\"ds-coupon\" data-state=\"waiting\"><span class=\"ds-mark\">4</span><div><h3>Delivered<span class=\"ds-sw\">Next</span></h3><p>You’ll get a receipt here.</p></div></li><li class=\"ds-coupon\" data-state=\"failed\"><span class=\"ds-mark\">&#10005;</span><div><h3>NGO<span class=\"ds-sw\">Stopped</span></h3><p>No NGO could safely take it in time.</p></div></li></ol>",
+      "css": ".ds-coupons { --tooth: 8px; list-style: none; margin: 0; padding: 4px 0 calc(var(--tooth) + 4px); max-width: 480px; background: #fbfaf6; color: #1b1b1b; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); filter: drop-shadow(0 12px 14px rgba(20,22,20,0.18)); -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; } .ds-coupon { position: relative; display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 18px 20px; transition: opacity 300ms cubic-bezier(0.16,1,0.3,1); } .ds-coupon + .ds-coupon::before { content: \"\"; position: absolute; left: 14px; right: 14px; top: 0; border-top: 2px dotted rgba(27,27,27,0.45); } .ds-coupon[data-state=\"waiting\"] { opacity: 0.55; } .ds-coupon[data-state=\"active\"] { background: #fff; } .ds-mark { width: 40px; height: 40px; display: grid; place-items: center; border: 2px solid #1b1b1b; font-size: 16px; font-weight: 800; } .ds-coupon[data-state=\"active\"] .ds-mark, .ds-coupon[data-state=\"done\"] .ds-mark { background: #1b1b1b; color: #fbfaf6; } .ds-coupon[data-state=\"done\"] .ds-mark { animation: ds-stamp 420ms cubic-bezier(0.16,1,0.3,1); } .ds-coupon[data-state=\"failed\"] .ds-mark { border-color: #d52a22; background: #d52a22; color: #fff; } @keyframes ds-stamp { 0% { transform: scale(1.5) rotate(-12deg); opacity: 0; } 60% { transform: scale(0.94) rotate(2deg); opacity: 1; } 100% { transform: none; } } .ds-coupon h3 { margin: 0 0 6px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 15px; line-height: 1.2; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.05em; text-transform: uppercase; } .ds-sw { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: #4a4944; } .ds-coupon[data-state=\"failed\"] .ds-sw { color: #d52a22; } .ds-coupon p { margin: 6px 0 0; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 15px; line-height: 1.45; } .ds-grade { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; margin: 8px 0 4px; } .ds-grade > b { width: 64px; height: 64px; display: grid; place-items: center; border: 3px solid #1b1b1b; font-size: 40px; line-height: 1; font-weight: 800; font-stretch: 112.5%; } .ds-grade > span { display: flex; flex-direction: column; gap: 2px; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 15px; } .ds-grade strong { font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 16px; font-weight: 800; font-stretch: 112.5%; text-transform: uppercase; } .ds-grade em { font-style: normal; font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; } .ds-grade em small { font-size: 11px; color: #4a4944; } .ds-coupon p.ds-model { margin-top: 10px; padding-top: 10px; border-top: 1.5px dashed rgba(27,27,27,0.3); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-size: 12px; letter-spacing: 0.02em; color: #4a4944; } .ds-model b { color: #1b1b1b; } .ds-code { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding: 14px; border: 2px dashed #1b1b1b; background: #fbfaf6; } .ds-code span { font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; } .ds-code b { font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: 0.24em; font-variant-numeric: tabular-nums; } @media (prefers-reduced-motion: reduce) { .ds-coupon[data-state=\"done\"] .ds-mark { animation: none; } }"
+    },
+    {
+      "name": "Donation Row",
+      "kind": "card",
+      "refersTo": "donation-row",
+      "description": "A donation as a slip: photo thumb, dish, meta, a Hanken 'now' line, and four stage ticks.",
+      "html": "<a class=\"ds-donation\" href=\"#\"><span class=\"ds-thumb\"></span><span class=\"ds-dtext\"><b>Veg biryani</b><span>44 servings · 7:40 pm · Grade B</span><span class=\"ds-now\">Offered to Asha Shelter</span></span><span class=\"ds-ticks\" aria-hidden=\"true\"><i data-state=\"done\"></i><i data-state=\"active\"></i><i></i><i></i></span></a>",
+      "css": ".ds-donation { display: grid; grid-template-columns: 64px minmax(0,1fr) auto; align-items: center; gap: 14px; min-height: 84px; max-width: 480px; padding: 10px 14px 10px 10px; background: #fbfaf6; color: #1b1b1b; text-decoration: none; box-shadow: 0 6px 12px -8px rgba(20,22,20,0.3); font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-donation:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; } .ds-thumb { width: 64px; height: 64px; background: #1d1e1e; } .ds-dtext { display: flex; flex-direction: column; gap: 3px; min-width: 0; } .ds-dtext b { overflow: hidden; font-size: 14px; line-height: 1.2; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.03em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; } .ds-dtext > span { font-size: 12px; line-height: 1.3; color: #4a4944; } .ds-dtext .ds-now { font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 14px; color: #1b1b1b; } .ds-ticks { display: flex; gap: 4px; } .ds-ticks i { width: 10px; height: 10px; border: 1.5px solid #6f6e68; } .ds-ticks i[data-state=\"done\"] { background: #1b1b1b; border-color: #1b1b1b; } .ds-ticks i[data-state=\"active\"] { border-color: #1b1b1b; animation: ds-blink 1.2s steps(2, jump-none) infinite; } .ds-ticks i[data-state=\"failed\"] { background: #d52a22; border-color: #d52a22; } @keyframes ds-blink { 50% { opacity: 0.15; } }"
+    },
+    {
+      "name": "Offer Ticket",
+      "kind": "card",
+      "refersTo": "offer-ticket",
+      "description": "A waiting NGO offer: white torn ticket, big tabular countdown (red only under 60 s), full-width 64px ink Accept bar and a Can't take it ghost.",
+      "html": "<article class=\"ds-offer\"><header><div><h3>20 × Veg biryani</h3><p>from Meghana Foods · Koramangala</p></div><span class=\"ds-timer\" role=\"timer\"><b>4:12</b><span>left</span></span></header><div class=\"ds-answer\"><button class=\"ds-accept\">&#10003; Accept food</button><button class=\"ds-pass\">&#10005; Can’t take it</button></div></article>",
+      "css": ".ds-offer { --tooth: 8px; display: flex; flex-direction: column; gap: 14px; max-width: 520px; padding: 20px 20px calc(20px + var(--tooth)); background: #fff; color: #1b1b1b; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); filter: drop-shadow(0 12px 14px rgba(20,22,20,0.2)); -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; } .ds-offer header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; } .ds-offer h3 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 800; font-stretch: 112.5%; text-transform: uppercase; } .ds-offer header p { margin: 6px 0 0; font-family: var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); font-size: 16px; color: #4a4944; } .ds-timer { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; } .ds-timer b { font-size: 34px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; } .ds-timer span { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #4a4944; } .ds-timer[data-low] b, .ds-timer[data-low] span { color: #d52a22; } .ds-answer { display: flex; flex-wrap: wrap; gap: 10px; } .ds-accept { flex: 1 1 220px; min-height: 64px; border: 2px solid #1b1b1b; border-radius: 0; background: #1b1b1b; color: #fbfaf6; font: 800 16px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-accept:hover { background: #000; } .ds-pass { min-height: 56px; padding: 0 18px; border: 2px solid #1b1b1b; border-radius: 0; background: transparent; color: #1b1b1b; font: 700 13px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-pass:hover { background: #1b1b1b; color: #fbfaf6; } .ds-accept:focus-visible, .ds-pass:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Punch Row",
+      "kind": "input",
+      "refersTo": "punch",
+      "description": "Open / Full / Closed as three radio punches; selected inverts to ink with a punched steel hole.",
+      "html": "<div class=\"ds-punches\" role=\"radiogroup\" aria-label=\"Right now we are\"><label class=\"ds-punch\" data-on=\"true\"><input type=\"radio\" name=\"st\" checked><b>Open</b><span>Send us food</span></label><label class=\"ds-punch\"><input type=\"radio\" name=\"st\"><b>Full</b><span>No room today</span></label><label class=\"ds-punch\"><input type=\"radio\" name=\"st\"><b>Closed</b><span>Not receiving</span></label></div>",
+      "css": ".ds-punches { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; max-width: 440px; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-punch { position: relative; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 28px 10px 10px; border: 2px solid #1b1b1b; background: #fbfaf6; color: #1b1b1b; cursor: pointer; transition: background-color 140ms cubic-bezier(0.16,1,0.3,1); } .ds-punch input { position: absolute; opacity: 0; width: 1px; height: 1px; } .ds-punch b { font-size: 13px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.03em; text-transform: uppercase; } .ds-punch span { font: 12px/1.3 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; } .ds-punch[data-on=\"true\"] { background: #1b1b1b; color: #fbfaf6; } .ds-punch[data-on=\"true\"] span { color: #cfcec7; } .ds-punch[data-on=\"true\"]::after { content: \"\"; position: absolute; top: 8px; left: 10px; width: 12px; height: 12px; border-radius: 50%; background: #d5d7d3; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); } .ds-punch:has(:focus-visible) { outline: 2px dashed #1b1b1b; outline-offset: 3px; } @media (hover: hover) { .ds-punch:not([data-on=\"true\"]):hover { background: #f1efe7; } }"
+    },
+    {
+      "name": "Hour Strip",
+      "kind": "custom",
+      "description": "The day from 6 am to 12 am: hatched receiving hours, filled square received, hollow square on the way, a NOW line.",
+      "html": "<div class=\"ds-strip\" aria-hidden=\"true\"><div class=\"ds-track\"><i class=\"ds-band\" style=\"left:22%;width:50%\"></i><i class=\"ds-dot\" style=\"left:40%\"></i><i class=\"ds-dot\" data-kind=\"coming\" style=\"left:62%\"></i><i class=\"ds-now\" style=\"left:55%\"><span>Now</span></i></div></div>",
+      "css": ".ds-strip { max-width: 440px; margin-top: 24px; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-track { position: relative; height: 30px; border: 1.5px solid #1b1b1b; background: repeating-linear-gradient(90deg, transparent 0 calc(100% / 18 - 1px), rgba(27,27,27,0.18) calc(100% / 18 - 1px) calc(100% / 18)); } .ds-band { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(-45deg, rgba(27,27,27,0.16) 0 2px, transparent 2px 6px); } .ds-dot { position: absolute; top: 50%; width: 12px; height: 12px; border: 2px solid #1b1b1b; background: #1b1b1b; transform: translate(-50%,-50%); } .ds-dot[data-kind=\"coming\"] { background: #fff; } .ds-now { position: absolute; top: -8px; bottom: -4px; width: 2px; background: #1b1b1b; } .ds-now span { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 9px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Verdict Slip",
+      "kind": "card",
+      "refersTo": "verdict-slip",
+      "description": "Food-check verdict printed reversed: paper grade box, grade name, safe-until, meaning, ten-cell safety score, paper footer with the model line. Grade D is a red slip.",
+      "html": "<section class=\"ds-verdict\"><div class=\"ds-vmain\"><b>B</b><div><h2>Good</h2><p>Safe until <strong>12:52 am</strong></p></div></div><p class=\"ds-vmean\">Fine for people today. Keep it covered.</p><div class=\"ds-score\"><span>Safety score</span><b>82<small>/100</small></b><i class=\"ds-cells\" role=\"img\" aria-label=\"Safety score 82 out of 100\"><i data-on=\"true\"></i><i data-on=\"true\"></i><i data-on=\"true\"></i><i data-on=\"true\"></i><i data-on=\"true\"></i><i data-on=\"true\"></i><i data-on=\"true\"></i><i data-on=\"true\"></i><i></i><i></i></i></div><footer><p>The photo shows: rice with vegetables in a steel tray.</p><p>Photo checked by <b>Gemini 2.5 Flash</b></p></footer></section>",
+      "css": ".ds-verdict { display: flex; flex-direction: column; gap: 14px; max-width: 480px; padding: 20px; background: #1b1b1b; color: #fbfaf6; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); box-shadow: 0 12px 20px -12px rgba(20,22,20,0.5); } .ds-verdict[data-grade=\"D\"] { background: #d52a22; } .ds-vmain { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 16px; } .ds-vmain > b { width: 84px; height: 84px; display: grid; place-items: center; background: #fbfaf6; color: #1b1b1b; font-size: 56px; line-height: 1; font-weight: 800; font-stretch: 112.5%; } .ds-vmain h2 { margin: 0; font-size: 28px; line-height: 1.05; font-weight: 800; font-stretch: 112.5%; text-transform: uppercase; } .ds-vmain p { margin: 6px 0 0; font: 17px/1.35 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); } .ds-vmain strong { font: 800 18px var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-variant-numeric: tabular-nums; } .ds-vmean { margin: 0; font: 600 16px/1.45 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); } .ds-score { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 8px 12px; padding-top: 14px; border-top: 1.5px dashed rgba(251,250,246,0.35); } .ds-score > span { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; } .ds-score > b { font-size: 36px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; } .ds-score small { font-size: 14px; opacity: 0.75; } .ds-cells { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; } .ds-cells i { height: 14px; border: 1.5px solid #fbfaf6; } .ds-cells i[data-on=\"true\"] { background: #fbfaf6; } .ds-verdict footer { display: flex; flex-direction: column; gap: 4px; margin: 0 -20px -20px; padding: 12px 20px 14px; background: #fbfaf6; color: #4a4944; font: 14px/1.45 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); } .ds-verdict footer p { margin: 0; } .ds-verdict footer p:last-child { font: 12px/1.5 var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-verdict footer b { color: #1b1b1b; }"
+    },
+    {
+      "name": "Tag Slip",
+      "kind": "card",
+      "refersTo": "tag-slip-unsure",
+      "description": "Tag check slip: red (Red Ribbon on Red Wash) when sure a tag is wrong, relist only; yellow (Warning Yellow border and top band on Warning Wash) when unsure, relist or keep; dashed quiet slip once settled.",
+      "html": "<section class=\"ds-tags\" data-tone=\"maybe\"><h2>&#9888; Please double-check your tags</h2><p>The photo check isn’t sure about these. If your tags are right, keep them.</p><ul><li><b>No onion or garlic</b><span>Might contain garlic in the gravy.</span></li></ul><div class=\"ds-tagact\"><button class=\"ds-tprimary\">Relist with these fixes</button><button class=\"ds-tghost\">My tags are right</button></div></section>",
+      "css": ".ds-tags { display: flex; flex-direction: column; gap: 10px; max-width: 480px; padding: 18px 20px; border: 2px solid #1b1b1b; background: #fbfaf6; color: #1b1b1b; font: 15px/1.45 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); } .ds-tags[data-tone=\"wrong\"] { border-color: #d52a22; background: #fbe9e6; } .ds-tags[data-tone=\"wrong\"] h2 { color: #8d1712; } .ds-tags[data-tone=\"maybe\"] { border-color: #f2b705; background: #fff3c2; box-shadow: inset 0 6px 0 #f2b705; padding-top: 24px; } .ds-tags[data-tone=\"done\"] { border: 1.5px dashed #1b1b1b; color: #4a4944; } .ds-tags h2 { margin: 0; font: 800 17px/1.2 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-stretch: 112.5%; text-transform: uppercase; } .ds-tags p { margin: 0; } .ds-tags ul { list-style: none; margin: 0; padding: 0; } .ds-tags li { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-top: 1.5px dotted rgba(27,27,27,0.35); } .ds-tags li b { font: 800 15px/1.3 var(--font-print, \"Martian Mono\", ui-monospace, monospace); text-transform: uppercase; } .ds-tags li span { color: #4a4944; } .ds-tagact { display: flex; flex-wrap: wrap; gap: 10px; } .ds-tprimary { min-height: 56px; padding: 0 20px; border: 0; border-radius: 0; background: #1b1b1b; color: #fbfaf6; font: 700 14px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-tghost { min-height: 56px; padding: 0 18px; border: 2px solid #1b1b1b; border-radius: 0; background: transparent; color: #1b1b1b; font: 700 13px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-tprimary:focus-visible, .ds-tghost:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Bar State Chip",
+      "kind": "chip",
+      "refersTo": "bar-state",
+      "description": "Online / Offline readout in the printer bar's right slot on the partner home; Online fills paper.",
+      "html": "<div class=\"ds-bar\"><span class=\"ds-state\">Offline</span><span class=\"ds-state\" data-on=\"true\">Online</span></div>",
+      "css": ".ds-bar { display: flex; gap: 12px; align-items: center; height: 56px; padding: 0 16px; background: linear-gradient(#2b2c2c, #1d1e1e); } .ds-state { min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; border: 1.5px solid #fbfaf6; color: #fbfaf6; font: 700 11px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; } .ds-state[data-on=\"true\"] { background: #fbfaf6; color: #1b1b1b; }"
+    },
+    {
+      "name": "Availability Punches",
+      "kind": "input",
+      "refersTo": "punch",
+      "description": "Two-punch Online / Offline row; Offline is disabled with a note while a trip is live.",
+      "html": "<div class=\"ds-punches\" role=\"radiogroup\" aria-label=\"Right now I am\"><label class=\"ds-punch\" data-on=\"true\"><input type=\"radio\" name=\"av\" checked><b>Online</b><span>Send me pickups</span></label><label class=\"ds-punch\" data-disabled=\"true\"><input type=\"radio\" name=\"av\" disabled><b>Offline</b><span>No pickups for now</span></label></div><p class=\"ds-note\">Finish your trip before going offline.</p>",
+      "css": ".ds-punches { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; max-width: 440px; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-punch { position: relative; min-height: 84px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding: 28px 10px 10px; border: 2px solid #1b1b1b; background: #fbfaf6; color: #1b1b1b; cursor: pointer; } .ds-punch input { position: absolute; opacity: 0; width: 1px; height: 1px; } .ds-punch b { font-size: 13px; font-weight: 800; font-stretch: 112.5%; letter-spacing: 0.03em; text-transform: uppercase; } .ds-punch span { font: 12px/1.3 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; } .ds-punch[data-on=\"true\"] { background: #1b1b1b; color: #fbfaf6; } .ds-punch[data-on=\"true\"] span { color: #cfcec7; } .ds-punch[data-on=\"true\"]::after { content: \"\"; position: absolute; top: 8px; left: 10px; width: 12px; height: 12px; border-radius: 50%; background: #d5d7d3; box-shadow: inset 0 1px 2px rgba(0,0,0,0.55); } .ds-punch[data-disabled=\"true\"]:not([data-on=\"true\"]) { opacity: 0.5; cursor: not-allowed; } .ds-note { max-width: 440px; font: 14px/1.45 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; }"
+    },
+    {
+      "name": "Places List",
+      "kind": "custom",
+      "refersTo": "places-value",
+      "description": "Read-in-motion data: 11px mono label above a left-aligned 17px Hanken sentence. Never right-aligned leaders for addresses.",
+      "html": "<dl class=\"ds-places\"><div><dt>Collect from</dt><dd>Meghana Foods, 80 Feet Road, Koramangala 4th Block</dd></div><div><dt>Drop at</dt><dd>Akshaya Trust, about 7:40 pm</dd></div><div><dt>Bring</dt><dd>2 steel boxes, 1 bag</dd></div></dl>",
+      "css": ".ds-places { display: flex; flex-direction: column; gap: 10px; margin: 0; } .ds-places div { display: flex; flex-direction: column; gap: 2px; } .ds-places dt { font: 700 11px/1.3 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; color: #4a4944; } .ds-places dd { margin: 0; font: 600 17px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #1b1b1b; } .ds-places { max-width: 420px; }"
+    },
+    {
+      "name": "Pickup Request Ticket",
+      "kind": "card",
+      "refersTo": "offer-ticket",
+      "description": "A pickup request to a rider: the offer ticket with a places list and an Accept pickup bar beside Can't.",
+      "html": "<article class=\"ds-offer\"><header><h3>20 × Veg biryani</h3><span class=\"ds-timer\" role=\"timer\"><b>1:42</b><span>left to accept</span></span></header><dl class=\"ds-places\"><div><dt>Collect from</dt><dd>Meghana Foods</dd></div><div><dt>Drop at</dt><dd>Akshaya Trust, about 7:40 pm</dd></div></dl><div class=\"ds-answer\"><button class=\"ds-accept\" style=\"flex:1 1 220px\">&#10003; Accept pickup</button><button class=\"ds-pass\" style=\"flex:0 1 auto\">&#10005; Can’t</button></div></article>",
+      "css": ".ds-offer { --tooth: 8px; -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; display: flex; flex-direction: column; gap: 14px; max-width: 520px; padding: 20px 20px calc(20px + var(--tooth)); background: #fff; color: #1b1b1b; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); filter: drop-shadow(0 12px 14px rgba(20,22,20,0.2)); } .ds-offer header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; } .ds-offer h3 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 800; font-stretch: 112.5%; text-transform: uppercase; } .ds-timer { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; } .ds-timer b { font-size: 34px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; } .ds-timer span { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #4a4944; } .ds-answer { display: flex; flex-wrap: wrap; gap: 10px; } .ds-places { display: flex; flex-direction: column; gap: 10px; margin: 0; } .ds-places div { display: flex; flex-direction: column; gap: 2px; } .ds-places dt { font: 700 11px/1.3 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; color: #4a4944; } .ds-places dd { margin: 0; font: 600 17px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #1b1b1b; } .ds-accept { flex: none; min-height: 64px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 22px; border: 2px solid #1b1b1b; border-radius: 0; background: #1b1b1b; color: #fbfaf6; font: 800 16px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-accept:hover:not(:disabled) { background: #000; } .ds-accept:disabled { border: 2px dashed rgba(27,27,27,0.4); background: transparent; color: #6f6e68; font-size: 13px; cursor: not-allowed; } .ds-pass { flex: 1 1 140px; min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; border: 2px solid #1b1b1b; border-radius: 0; background: transparent; color: #1b1b1b; font: 700 13px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; cursor: pointer; } .ds-pass:hover { background: #1b1b1b; color: #fbfaf6; } .ds-accept:focus-visible, .ds-pass:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Trip Slip",
+      "kind": "card",
+      "refersTo": "trip-slip",
+      "description": "The live trip one step at a time: Collect/Drop tabs, title, places, Directions/Call, 76px dashed code field, step action locked as a dashed outline until four digits.",
+      "html": "<section class=\"ds-slip\"><ol class=\"ds-steps\"><li data-state=\"now\"><span>1</span>Collect</li><li data-state=\"next\"><span>2</span>Drop</li></ol><h2>Collect from Meghana Foods</h2><p class=\"ds-food\">20 × Veg biryani</p><dl class=\"ds-places\"><div><dt>Address</dt><dd>80 Feet Road, Koramangala 4th Block</dd></div><div><dt>Bring</dt><dd>2 steel boxes</dd></div></dl><div class=\"ds-row\"><a class=\"ds-pass\" href=\"#\">&#10148; Directions</a><a class=\"ds-pass\" href=\"#\">&#9742; Call</a></div><label class=\"ds-code\"><span>Ask Meghana Foods for the pickup code</span><input inputmode=\"numeric\" maxlength=\"4\" placeholder=\"····\"></label><button class=\"ds-accept\" disabled>Enter the 4-digit code first</button><button class=\"ds-late\">Running late</button></section>",
+      "css": ".ds-slip { --tooth: 8px; -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth)) var(--tooth) repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat; position: relative; display: flex; flex-direction: column; gap: 14px; max-width: 520px; padding: 20px 20px calc(20px + var(--tooth)); background: #fff; color: #1b1b1b; font-family: var(--font-print, \"Martian Mono\", ui-monospace, monospace); filter: drop-shadow(0 12px 14px rgba(20,22,20,0.2)); } .ds-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; padding: 0; list-style: none; } .ds-steps li { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px; border: 2px solid #1b1b1b; font: 700 12px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.08em; text-transform: uppercase; } .ds-steps li span { width: 22px; height: 22px; display: grid; place-items: center; border: 1.5px solid currentColor; font: 800 12px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-steps li[data-state=\"now\"] { background: #1b1b1b; color: #fbfaf6; } .ds-steps li[data-state=\"next\"] { opacity: 0.5; } .ds-slip h2 { margin: 0; font: 800 22px/1.15 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-stretch: 112.5%; text-transform: uppercase; overflow-wrap: anywhere; } .ds-food { margin: -6px 0 0; font: 16px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; } .ds-places { display: flex; flex-direction: column; gap: 10px; margin: 0; } .ds-places div { display: flex; flex-direction: column; gap: 2px; } .ds-places dt { font: 700 11px/1.3 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; color: #4a4944; } .ds-places dd { margin: 0; font: 600 17px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #1b1b1b; } .ds-row { display: flex; flex-wrap: wrap; gap: 10px; } .ds-pass { flex: 1 1 140px; min-height: 56px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; border: 2px solid #1b1b1b; border-radius: 0; background: transparent; color: #1b1b1b; font: 700 13px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; cursor: pointer; } .ds-pass:hover { background: #1b1b1b; color: #fbfaf6; } .ds-code { display: flex; flex-direction: column; gap: 8px; font: 15px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); } .ds-code input { box-sizing: border-box; width: 100%; min-height: 76px; padding: 0 16px; border: 2px dashed #1b1b1b; border-radius: 0; background: #fbfaf6; color: #1b1b1b; font: 800 40px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.4em; text-align: center; font-variant-numeric: tabular-nums; } .ds-code input:focus { outline: none; border-style: solid; background: #fff; } .ds-accept { flex: none; min-height: 64px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 0 22px; border: 2px solid #1b1b1b; border-radius: 0; background: #1b1b1b; color: #fbfaf6; font: 800 16px/1 var(--font-print, \"Martian Mono\", ui-monospace, monospace); font-stretch: 112.5%; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; } .ds-accept:hover:not(:disabled) { background: #000; } .ds-accept:disabled { border: 2px dashed rgba(27,27,27,0.4); background: transparent; color: #6f6e68; font-size: 13px; cursor: not-allowed; } .ds-late { align-self: center; min-height: 44px; border: 0; background: none; color: #1b1b1b; font: 700 12px var(--font-print, \"Martian Mono\", ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; text-decoration: underline; text-underline-offset: 0.3em; cursor: pointer; } .ds-accept:focus-visible, .ds-pass:focus-visible { outline: 2px dashed #1b1b1b; outline-offset: 3px; }"
+    },
+    {
+      "name": "Delivered Row",
+      "kind": "custom",
+      "refersTo": "delivered-row",
+      "description": "A finished trip in the day column: check, then one Hanken line with the food in bold mono.",
+      "html": "<ul class=\"ds-done\"><li><i>&#10003;</i><span><b>20 × Veg biryani</b> to Akshaya Trust</span></li><li><i>&#10003;</i><span><b>8 × Chapati and dal</b> to Hope Shelter, Ejipura</span></li></ul>",
+      "css": ".ds-done { max-width: 420px; margin: 0; padding: 0; list-style: none; } .ds-done li { display: grid; grid-template-columns: 16px 1fr; gap: 10px; align-items: start; padding: 10px 0; } .ds-done li + li { border-top: 1.5px dotted #1b1b1b; } .ds-done i { font-style: normal; font: 800 14px/1.4 var(--font-print, \"Martian Mono\", ui-monospace, monospace); } .ds-done span { font: 15px/1.4 var(--font-note, \"Hanken Grotesk\", system-ui, sans-serif); color: #4a4944; } .ds-done b { font: 800 13px/1.4 var(--font-print, \"Martian Mono\", ui-monospace, monospace); color: #1b1b1b; text-transform: uppercase; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Kitchen Ticket",
+    "overview": "Every Luna screen is a kitchen order ticket (KOT) coming out of a thermal printer on a brushed-steel counter. The page background is the counter; a dark printer slot runs across the top; one ticket of thermal paper hangs from it, centred, at most 440px wide and full-width on phones. Everything the person reads or touches is printed on that paper: a masthead, a KOT number with a live timestamp, dashed and solid rules, dotted-leader data lines, printed boxes for input, and one solid ink bar for the primary action. Choices a person has made collapse into printed lines on the same ticket, and the next section prints in with a stepped line-feed reveal.\n\nThe ink is near-black, with a second red ink held back for errors, urgency and the DEV stamp, the way a real kitchen printer uses its red ribbon. Printed data is set in Martian Mono, and the wide (112.5%) heavy cut stands in for the thermal printer's double-width bold header. Short plain-language help, the warm human voice from PRODUCT.md, is set in Hanken Grotesk so it reads as a note written beside the print rather than printed data.\n\nDensity is one ticket, one job: a single column that grows downward as the flow progresses. Depth comes from physical objects only (the printer's shadow and the paper's drop shadow on the counter). Nothing inside the paper is raised.\n\nOperate surfaces (the Food Heat Map is the first) use a second, approved composition on the same counter: the Pass. The printer becomes a full-width dark printer bar; below it a steel order rail carries ranked tickets; the working area is a printed sheet (the map) beside a torn detail slip; a receipt tape of time runs along the foot. Same paper, same two inks, same type; only the arrangement changes, because an operator is watching many orders, not filling in one.\n\nDonor operate surfaces (home, List food, a donation's status, the donation list) use a third approved arrangement: Snap first. The photo is the listing. A black photo frame with registration corners is the first thing on the screen and doubles as the camera button; the details are printed chips and steppers on a paper sheet beside it (below it on phones); one sticky ink action sits in the thumb zone; and a donation's progress is one ticket torn into coupons, one per stage, that stamp themselves as they complete. The single centred 440px hanging ticket remains the composition for sign-in and sign-up.\n\nThe NGO home reuses the donor shell as Today's shift card: the card a kitchen pins to the wall for the day. Waiting food comes first, as white offer tickets torn off the printer with a large countdown and a full-width ink Accept bar; accepted food reprints below as \"coming to you\" tickets carrying the drop code; the day card (an Open / Full / Closed punch row and an hour strip of the day) sits beside them on desktop and below them on phones.\n\nThe delivery partner home is the same shift card turned for a rider: a pickup request prints as an offer ticket, and once accepted the screen becomes the trip slip, one white torn ticket that shows one step at a time (Collect, then Drop) with directions, a call link, a giant 4-digit code field and the step's action bar. Availability is a two-punch Online / Offline row, echoed as a state chip on the printer bar.",
+    "keyCharacteristics": [
+      "Steel counter, printer slot, one hanging ticket with a zigzag tear edge at the bottom.",
+      "Two inks on paper: black for everything, red only for errors, urgency and dev.",
+      "Martian Mono for printed data, Hanken Grotesk for helper notes.",
+      "Square corners everywhere on paper; boxes are 1.5–2px ink strokes.",
+      "Motion is mechanical: stepped print-in, blinking printer LED, tear-off.",
+      "Operate surfaces use the Pass: printer bar, order rail of ranked tickets, printed map plus detail slip, receipt time tape.",
+      "Donor surfaces use Snap first: photo frame first, printed chips, one sticky ink action, a coupon ticket per donation.",
+      "The NGO home is Today's shift card: offer tickets with a countdown and an ink Accept bar first, then the day card.",
+      "The partner home is the rider's shift card: a pickup request or the one-step-at-a-time trip slip first, Online / Offline punches on the day card.",
+      "One approved exception to two inks: a yellow warning slip for a food tag the photo check is unsure about."
+    ],
+    "rules": [
+      {
+        "name": "The Two Inks Rule",
+        "body": "Paper carries black ink and red ink, nothing else. Red means something is wrong, urgent or dev-only; if it is not one of those, it is black. The single exception is the Unsure Tag rule below.",
+        "section": "colors"
+      },
+      {
+        "name": "The LED Stays On The Printer Rule",
+        "body": "Green and amber belong to the printer's status light. They never appear on the paper as success or warning colours. Warning Yellow is a separate, paler token and is not the LED amber.",
+        "section": "colors"
+      },
+      {
+        "name": "The Unsure Tag Rule",
+        "body": "Yellow on paper means exactly one thing: the photo check is not sure a food tag is right, and the donor may keep it. It marks a slip (border, top band, wash), never text, buttons, grades or progress. If the check is sure the tag is wrong, the slip is red; if nothing needs a decision, the slip is black. Do not reach for yellow for any other warning.",
+        "section": "colors"
+      },
+      {
+        "name": "The Printer And The Note Rule",
+        "body": "Data, labels and actions are printed in Martian Mono, and sentences a person reads are written in Hanken Grotesk. If it would appear on a real KOT, it is mono.",
+        "section": "typography"
+      },
+      {
+        "name": "The Double-Width Rule",
+        "body": "Emphasis is made with weight and the wide cut (800, wdth 112.5), the way a thermal printer does double-width bold, not with colour or size jumps between neighbouring lines.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Print Rule",
+        "body": "Nothing printed on the paper has a shadow. Printed elements show state by inverting (ink fill, paper text) or by changing stroke, never by lifting.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Ink Density Rule",
+        "body": "Quantity on a map or chart is shown as more or less black ink, never as a hue ramp. Red is reserved for the gap threshold (and for urgency marks tied to it, such as a rail rank or a trend bar under 60%); a value is either a gap or it is black.",
+        "section": "colors"
+      },
+      {
+        "name": "The Streets Under The Ink Rule",
+        "body": "When a real street base is shown it is fully desaturated (saturation -1, contrast +0.05, opacity 0.55) and the paper hex grid is hidden, so the tiles read as a faint pencil underlay beneath the ink, never as a second colour source.",
+        "section": "colors"
+      },
+      {
+        "name": "The Name The Judge Rule",
+        "body": "When an AI model makes a judgement a person sees, the ticket prints which model made it, and says plainly when no model did.",
+        "section": "components"
+      },
+      {
+        "name": "The Read In Motion Rule",
+        "body": "Anything a person reads on the move (an address, a place name, a note from the kitchen, what to bring) is a places line: a small mono label above, a left-aligned Hanken sentence below. Never set it as a right-aligned, all-caps dotted-leader value.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Clocking Off Mid-Trip Rule",
+        "body": "While a trip is live the Offline punch is disabled, not hidden, with a note saying to finish the trip first.",
+        "section": "components"
+      },
+      {
+        "name": "The One Step Rule",
+        "body": "The trip slip shows only the current stop's place, buttons and code; the other step is a faded tab, not a second set of fields.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** put sign-in and sign-up flows on one centred ticket (max 440px) hanging from the printer slot on the steel counter.",
+      "**Do** build operator surfaces as the Pass: printer bar, order rail of ranked tickets, printed working sheet with a torn detail slip, and a receipt tape for time.",
+      "**Do** build donor surfaces Snap first: the donor shell, the photo frame first (edge to edge on phones, the 7-column side on desktop), printed chips and steppers instead of typed fields, and one primary action in the sticky action dock.",
+      "**Do** show a donation's progress as one coupon ticket, a coupon per stage, stamping each as it completes; invert the active stage's mark and keep red for a stopped stage only.",
+      "**Do** name the AI model on any judgement it makes, and say so plainly when no model judged.",
+      "**Do** show quantity on maps and charts as ink density, with red only past the gap threshold and a dashed outline for “nothing here yet”.",
+      "**Do** stamp SAMPLE DATA on the printer bar whenever the numbers are not real, and stand in for unbuilt features with a dashed stub box that says what will print there.",
+      "**Do** group slip figures under a heading that names the unit and scope, and keep each leader label short.",
+      "**Do** record each completed choice as a dotted-leader line on the same ticket, and print the next section in with the stepped reveal.",
+      "**Do** use one ink bar per step for the primary action, and let a single-tap choice (like a role row) advance by itself.",
+      "**Do** keep red ink for errors, urgency and dev; pair every red message with a plain Hanken sentence that says what to do.",
+      "**Do** use Martian Mono for printed data, labels and actions, and Hanken Grotesk for sentences.",
+      "**Do** show state on paper by inverting to ink or changing stroke, and use the 2px dashed ink focus ring everywhere.",
+      "**Do** keep touch targets at 44px or more.",
+      "**Do** put waiting food first on the NGO home as offer tickets with a countdown and one full-width ink Accept bar; keep the countdown black until the last minute.",
+      "**Do** print the food check's verdict reversed (ink slip, paper grade box) above the coupons, with the safety score as ten printed cells.",
+      "**Do** use the yellow tag slip only when the photo check is unsure about a tag, and always offer \"My tags are right\" with it; use the red slip when it is sure.",
+      "**Do** put a rider's live trip first as the trip slip, one step at a time, with the code field and a step action that stays a dashed outline until four digits are in.",
+      "**Do** set anything read in motion (addresses, place names, notes, what to bring) as a places line: mono label above, left-aligned Hanken sentence below.",
+      "**Do** keep the Offline punch visible but disabled during a trip, with a note saying why."
+    ],
+    "donts": [
+      "**Don't** put a white card with a logo, a segmented role control or a green Continue button on the screen; that is the category default this world replaces. (Segmented controls belong only on the printer bar, for switching a view.)",
+      "**Don't** build an operate surface as a dashboard of stat cards around a coloured choropleth; that is the category default the Pass replaces.",
+      "**Don't** build donor listing as a long web form with dropdowns, a browser file picker and the submit button at the bottom of the page; that is the category default Snap first replaces.",
+      "**Don't** show donation progress as a coloured progress bar or green checkmarks; stages are coupons stamped in ink.",
+      "**Don't** colour a map with a hue ramp, or show a street base in colour under the ink.",
+      "**Don't** round printed boxes, bars or cells; only printer hardware has radius.",
+      "**Don't** use green or amber on paper; those colours belong to the printer LED. The one exception is Warning Yellow on the unsure tag slip, approved for that purpose only; never use it for success, progress, grades, buttons or text.",
+      "**Don't** use red for anything but failure and urgency (errors, a sure tag mismatch, Grade D, the last minute of a countdown, gaps, dev).",
+      "**Don't** lift printed elements with shadows; only the printer and the paper itself cast them.",
+      "**Don't** add a third ink or decorative colour to the ticket beyond the unsure-tag yellow.",
+      "**Don't** bury a waiting offer among equal-weight menu links on the NGO home; that is the category default Today's shift card replaces.",
+      "**Don't** set addresses or place names as right-aligned, all-caps dotted-leader values on a rider's screen.",
+      "**Don't** show a locked step action as a solid or dimmed ink slab; until it can fire it is a dashed outline that says what is missing.",
+      "**Don't** treat the placeholder splash animation's visuals as the system; only its slot contract is fixed."
+    ]
+  }
+}

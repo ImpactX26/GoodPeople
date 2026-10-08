@@ -1,0 +1,13 @@
+# Only the food agent (Python) deploys from the repo root. The API deploys from api/.
+web/
+api/
+docs/
+tests/
+scripts/
+data/
+_to_delete_git_leftover/
+.claude/
+.impeccable/
+.venv/
+*.pdf
+start-luna.*

@@ -1,0 +1,7 @@
+# Deployed manually (`netlify deploy --prod --build`), never from git.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

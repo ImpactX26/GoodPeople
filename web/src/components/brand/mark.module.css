@@ -1,0 +1,68 @@
+.mark {
+  display: block;
+  overflow: visible;
+  color: var(--ink);
+}
+
+.left,
+.right {
+  transition: transform 860ms var(--ease-out);
+}
+
+.fillRise {
+  transform: translateY(200px);
+  transition: transform 0ms;
+}
+
+/* apart: the halves start far from each other */
+.mark[data-state="apart"] .left {
+  transform: translateX(-72px);
+}
+.mark[data-state="apart"] .right {
+  transform: translateX(72px);
+}
+
+/* logo: the resting mark */
+.mark[data-state="logo"] .left {
+  transform: translateX(-6px);
+}
+.mark[data-state="logo"] .right {
+  transform: translateX(6px);
+}
+
+/* joined: they meet, then the empty half prints full, line by line */
+.mark[data-state="joined"] .left,
+.mark[data-state="joined"] .right {
+  transform: translateX(0);
+  transition: transform 340ms var(--ease-in);
+}
+.mark[data-state="joined"] .fillRise {
+  transform: translateY(0);
+  transition: transform 560ms steps(9, end) 360ms;
+}
+
+.seam {
+  stroke: var(--paper);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+}
+
+/* full: one solid moon; the seam shows it turning as it rolls */
+.mark[data-state="full"] .left,
+.mark[data-state="full"] .right {
+  transform: translateX(0);
+}
+.mark[data-state="full"] .fillRise {
+  transform: translateY(0);
+}
+.mark[data-state="full"] .seam {
+  opacity: 1;
+}
+
+/* full -> logo: the right half's ink drains away, revealing the lighter half */
+.mark[data-state="logo"] .fillRise {
+  transition: transform 460ms steps(8, end) 80ms;
+}
+.mark[data-state="logo"] .seam {
+  transition-delay: 60ms;
+}

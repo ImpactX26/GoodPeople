@@ -1,0 +1,361 @@
+/* ---------- Counter + printer ---------- */
+
+.counter {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--gutter) 48px;
+}
+
+.printer {
+  position: relative;
+  width: min(calc(var(--ticket-width) + 40px), calc(100% + 2 * var(--gutter)));
+  height: 30px;
+  margin-inline: calc(-1 * var(--gutter));
+  background: linear-gradient(180deg, #2b2c2c 0%, var(--slot) 70%);
+  border-radius: 0 0 10px 10px;
+  box-shadow:
+    0 10px 18px -8px rgba(0, 0, 0, 0.45),
+    inset 0 -1px 0 var(--slot-lip);
+  z-index: 2;
+}
+
+.printer::after {
+  /* The slot the paper comes out of */
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 4px;
+  border-radius: 2px;
+  background: #050505;
+  box-shadow: 0 1px 0 var(--slot-lip);
+}
+
+.printerLight {
+  position: absolute;
+  top: 9px;
+  right: 22px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3fd46b;
+  box-shadow: 0 0 6px 1px rgba(63, 212, 107, 0.55);
+}
+
+.printerLight[data-busy="true"] {
+  background: #ffb020;
+  box-shadow: 0 0 6px 1px rgba(255, 176, 32, 0.6);
+  animation: blink 0.5s steps(2, jump-none) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- Ticket paper ---------- */
+
+.ticketShadow {
+  width: 100%;
+  max-width: var(--ticket-width);
+  margin-top: -8px;
+  filter: drop-shadow(0 14px 18px rgba(20, 22, 20, 0.2)) drop-shadow(0 2px 3px rgba(20, 22, 20, 0.18));
+  position: relative;
+  z-index: 1;
+}
+
+.ticket {
+  --tooth: 9px;
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0, transparent 22px),
+    var(--paper);
+  padding: 30px 24px calc(28px + var(--tooth));
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth))
+      var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+}
+
+@media (max-width: 380px) {
+  .ticket {
+    padding-inline: 18px;
+  }
+}
+
+/* ---------- Printed type ---------- */
+
+.masthead {
+  text-align: center;
+}
+
+.lockup {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.wordmark {
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.02em;
+}
+
+.tagline {
+  margin: 10px 0 0;
+  font-family: var(--font-note);
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-wrap: balance;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.rule {
+  border: 0;
+  border-top: 1.5px dashed var(--ink);
+  opacity: 0.55;
+  margin: 18px 0;
+}
+
+.ruleSolid {
+  border: 0;
+  border-top: 2px solid var(--ink);
+  margin: 18px 0;
+}
+
+.heading {
+  margin: 0 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Leader line: LABEL ...... VALUE ---------- */
+
+.leader {
+  display: flex;
+  flex-wrap: wrap; /* a value too long for the line drops below, right-aligned */
+  align-items: baseline;
+  gap: 2px 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.leader + .leader {
+  margin-top: 6px;
+}
+
+.leaderLabel {
+  flex: none;
+  color: var(--ink-soft);
+}
+
+.leaderDots {
+  flex: 1;
+  min-width: 16px;
+  height: 1em;
+  background: radial-gradient(circle, var(--ink-faded) 0.9px, transparent 1.2px) left bottom 3px / 6px 4px repeat-x;
+}
+
+.leaderValue {
+  flex: 0 1 auto;
+  margin-left: auto;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.leaderAction {
+  flex: none;
+  padding: 6px 2px;
+  margin: -6px 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-note);
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+  color: var(--ink-soft);
+}
+
+.leaderAction:hover {
+  color: var(--ink);
+}
+
+/* ---------- Print-in: a stepped line-feed reveal ---------- */
+
+.printIn {
+  animation: print var(--print-ms, 420ms) steps(var(--print-steps, 7), end) backwards;
+}
+
+@keyframes print {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-6px);
+  }
+  to {
+    clip-path: inset(0 0 -20px 0);
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Tear-off ---------- */
+
+.tearing {
+  animation: tear 640ms var(--ease-in) forwards;
+  transform-origin: 12% 0;
+}
+
+@keyframes tear {
+  0% {
+    transform: translateY(0) rotate(0);
+  }
+  18% {
+    transform: translateY(6px) rotate(0.6deg);
+  }
+  100% {
+    transform: translateY(-120vh) rotate(-5deg);
+    opacity: 0.6;
+  }
+}
+
+/* ---------- Logo intro (sign-in) ----------
+   feed:   the printer feeds out the whole ticket, blank
+   roll:   the moon rolls onto the paper from its edge and stops in place
+   reveal: its right half drains to the lighter half; A, N, U, L roll out one by one, tip on landing and settle
+   done:   the rest of the ticket prints onto the paper */
+
+.counter[data-intro="feed"] .ticketShadow {
+  animation: feedStub 1300ms steps(30, end) 120ms both;
+}
+
+@keyframes feedStub {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.markRoll {
+  display: inline-block;
+  flex: none;
+}
+
+.wordClip {
+  display: inline-block;
+  /* Letters emerge from just right of the moon; room around for tumbling and tipping. */
+  clip-path: inset(-80% -80px -40% 0);
+}
+
+.wordmark {
+  display: inline-block;
+}
+
+.letter,
+.letterTip {
+  display: inline-block;
+}
+
+.letter {
+  /* Parked behind the clip edge: one letter-advance further for each letter out. */
+  --dx: calc(-1 * (var(--i) + 1) * (1ch + 0.02em) - 6px);
+  /* Rolling like a box: a quarter turn per letter-width travelled. */
+  --spin: calc(-90deg * (var(--i) + 1));
+  --start: calc(420ms + var(--order) * 130ms);
+}
+
+.letterTip {
+  /* Tips forward over its bottom-right corner, then rocks back upright. */
+  transform-origin: 100% 100%;
+}
+
+.masthead[data-intro="feed"] .markRoll {
+  transform: translateX(-214px) rotate(-720deg);
+}
+
+.masthead[data-intro="roll"] .markRoll {
+  /* Two full turns: distance = 2 x circumference of the 34px moon. */
+  animation: roll 1050ms cubic-bezier(0.22, 0.75, 0.3, 1) both;
+}
+
+@keyframes roll {
+  from {
+    transform: translateX(-214px) rotate(-720deg);
+  }
+  to {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+.masthead:is([data-intro="feed"], [data-intro="roll"]) .letter {
+  transform: translateX(var(--dx)) rotate(var(--spin));
+}
+
+/* A rolls out first, then N, U, L; each tips on landing and settles. */
+.masthead[data-intro="reveal"] .letter {
+  animation: letterRoll 480ms cubic-bezier(0.25, 0.7, 0.35, 1) var(--start) both;
+}
+
+.masthead[data-intro="reveal"] .letterTip {
+  animation: letterTip 560ms linear calc(var(--start) + 460ms) both;
+}
+
+@keyframes letterRoll {
+  from {
+    transform: translateX(var(--dx)) rotate(var(--spin));
+  }
+  to {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+@keyframes letterTip {
+  0% {
+    transform: rotate(0deg);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  30% {
+    transform: rotate(var(--tip));
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+  }
+  56% {
+    transform: rotate(calc(var(--tip) * -0.4));
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+  }
+  76% {
+    transform: rotate(calc(var(--tip) * 0.15));
+    animation-timing-function: ease-in-out;
+  }
+  90% {
+    transform: rotate(calc(var(--tip) * -0.05));
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+

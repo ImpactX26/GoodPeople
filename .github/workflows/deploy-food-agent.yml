@@ -1,0 +1,60 @@
+# Every push to main that changes the food agent (Python) redeploys it to Railway.
+# Its Gemini keys are Railway variables on the food-agent service, never in the repo.
+name: Deploy food agent to Railway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "luna_ngo/**"
+      - "config/**"
+      - "frontend/**"
+      - "run.py"
+      - "requirements.txt"
+      - "railway.json"
+      - "railpack.json"
+      - ".railwayignore"
+      - ".github/workflows/deploy-food-agent.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-food-agent
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+        env:
+          GEMINI_API_KEY: ""
+
+      - name: Check the Railway token is set
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "::error::Add a Railway project token as the RAILWAY_TOKEN repo secret (Railway > luna > Settings > Tokens)."
+            exit 1
+          fi
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: npx --yes @railway/cli@latest up . --path-as-root --service food-agent --ci -m "${GITHUB_SHA::7}"
+
+      - name: Wait for the new version to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS https://food-agent-production-4c53.up.railway.app/api/health; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::Food agent did not become healthy"; exit 1

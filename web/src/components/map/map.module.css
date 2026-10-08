@@ -1,0 +1,934 @@
+/* Food Heat Map: the kitchen pass. Rail of order tickets above, map below, slip at the side, tape at the foot. */
+
+.screen {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.screen > * {
+  min-width: 0;
+}
+
+/* ---------- Printer bar ---------- */
+
+.bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "brand controls account";
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: linear-gradient(180deg, #2b2c2c 0%, var(--slot) 80%);
+  color: var(--paper);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.45);
+  position: relative;
+  z-index: 3;
+}
+
+.brand {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.barMark {
+  color: var(--paper);
+}
+
+.back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -8px;
+  color: var(--paper);
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.city {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: #b9b8b1;
+}
+
+.sample {
+  flex: none;
+  padding: 2px 7px;
+  border: 1.5px solid #b9b8b1;
+  color: #d9d8d1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.controls {
+  grid-area: controls;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.segmented {
+  display: flex;
+  border: 1.5px solid #6f6e68;
+}
+
+.segment {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: #d9d8d1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.segment + .segment {
+  border-left: 1.5px solid #6f6e68;
+}
+
+.segment[aria-checked="true"] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.segment:hover:not([aria-checked="true"]) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bar :focus-visible {
+  outline-color: var(--paper);
+}
+
+.account {
+  grid-area: account;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.barButton {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1.5px solid #6f6e68;
+  background: transparent;
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.barButton:hover {
+  border-color: var(--paper);
+}
+
+/* ---------- Order rail ---------- */
+
+.railWrap {
+  position: relative;
+  padding: 12px 20px 0;
+}
+
+.railTitle {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.rail {
+  position: relative;
+  overflow-x: auto;
+  /* fade the right edge so a cut-off ticket reads as "more on the rail" */
+  mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent);
+  scrollbar-width: thin;
+  padding-bottom: 14px;
+}
+
+.rail::before {
+  /* the steel rail itself */
+  content: "";
+  position: sticky;
+  display: block;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  margin-bottom: -4px;
+  background: linear-gradient(180deg, #f2f3f1 0%, #a8aba6 55%, #7d807b 100%);
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.18);
+  z-index: 2;
+}
+
+.tickets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 10px;
+  min-width: min-content;
+  padding-right: 56px;
+}
+
+.ticket {
+  --tooth: 6px;
+  position: relative;
+  width: 176px;
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 12px calc(12px + var(--tooth));
+  border: 0;
+  background: var(--paper);
+  text-align: left;
+  filter: drop-shadow(0 6px 8px rgba(20, 22, 20, 0.16));
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth))
+      var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+  transform-origin: 50% 0;
+  transition: transform 260ms var(--ease-out);
+}
+
+button.ticket:hover {
+  transform: translateY(3px) rotate(-0.6deg);
+}
+
+/* Pulled: lifted off the rail and hanging lower */
+.ticket[data-on="true"] {
+  transform: translateY(10px) rotate(-1.4deg);
+  background: #fff;
+}
+
+.ticket[data-on="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 6px 6px calc(6px + var(--tooth));
+  border: 2px solid var(--ink);
+  pointer-events: none;
+}
+
+.ticketBlank {
+  opacity: 0.55;
+}
+
+.ticketFed {
+  width: 240px;
+}
+
+.tRank {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+.ticket[data-gap="true"] .tRank {
+  color: var(--ink-red);
+}
+
+.tName {
+  font-size: 14px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.tShort {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tShort small {
+  display: block;
+  font-family: var(--font-note);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.tWorst,
+.tNote {
+  font-family: var(--font-note);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* ---------- Body: map + slip ---------- */
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  padding: 8px 20px 16px;
+  min-height: 0;
+}
+
+.mapPanel {
+  position: relative;
+  min-height: 0;
+  background: var(--paper);
+  box-shadow:
+    0 14px 24px -12px rgba(20, 22, 20, 0.3),
+    0 2px 3px rgba(20, 22, 20, 0.14);
+  overflow: hidden;
+}
+
+/* Beats maplibre's own `.maplibregl-map { position: relative }`. */
+.mapPanel > .canvas,
+.mapPanel > .canvasLoading {
+  position: absolute;
+  inset: 0;
+}
+
+.mapError {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  font-family: var(--font-note);
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.mapError p {
+  margin: 0;
+  max-width: 34ch;
+}
+
+.canvasLoading {
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faded);
+}
+
+.canvas :global(.maplibregl-ctrl-group) {
+  border-radius: 0;
+  border: 1.5px solid var(--ink);
+  box-shadow: none;
+  background: var(--paper);
+}
+
+.canvas :global(.maplibregl-ctrl-group button + button) {
+  border-top: 1.5px solid var(--ink);
+}
+
+.canvas :global(.maplibregl-ctrl-attrib) {
+  font-family: var(--font-note);
+  font-size: 11px;
+  background: rgba(251, 250, 246, 0.85);
+}
+
+.label {
+  padding: 3px 6px;
+  border: 0;
+  background: rgba(251, 250, 246, 0.9);
+  font-family: var(--font-print);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.label:hover,
+.label[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 8px 10px;
+  background: rgba(251, 250, 246, 0.94);
+  border: 1.5px solid var(--ink);
+  font-family: var(--font-note);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.legendScale,
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendRamp {
+  width: 56px;
+  height: 10px;
+  background: linear-gradient(90deg, rgba(27, 27, 27, 0.06), rgba(27, 27, 27, 0.86));
+}
+
+.swatchGap,
+.swatchNone {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+}
+
+.swatchGap {
+  background: var(--ink-red);
+}
+
+.swatchNone {
+  border: 1.5px dashed var(--ink);
+}
+
+/* ---------- Slip column ---------- */
+
+.slipCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.slipCol > .slip {
+  flex: 1 1 auto;
+}
+
+.slip {
+  --tooth: 8px;
+  position: relative;
+  padding: 20px 20px calc(20px + var(--tooth));
+  background: var(--paper);
+  filter: drop-shadow(0 10px 14px rgba(20, 22, 20, 0.18));
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tooth))
+      var(--tooth) repeat-x,
+    linear-gradient(#000 0 0) top / 100% calc(100% - var(--tooth)) no-repeat;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  /* scroll cue: a shade above the torn edge while there is more to read */
+  background:
+    linear-gradient(0deg, var(--paper) 35%, rgba(251, 250, 246, 0)) center bottom var(--tooth) / 100% 48px no-repeat local,
+    linear-gradient(0deg, rgba(27, 27, 27, 0.16), rgba(27, 27, 27, 0)) center bottom var(--tooth) / 100% 22px no-repeat scroll,
+    var(--paper);
+}
+
+.sheetClose {
+  display: none;
+}
+
+.slipTitle {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.1;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  text-transform: uppercase;
+}
+
+.slipWhen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+}
+
+.homeTag {
+  padding: 1px 6px;
+  border: 1.5px solid var(--ink);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.slipNote,
+.muted {
+  margin: 10px 0 0;
+  font-family: var(--font-note);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.gapStamp {
+  display: inline-block;
+  margin: 12px 0 0;
+  padding: 3px 8px;
+  border: 2px solid var(--ink-red);
+  color: var(--ink-red);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: rotate(-1.5deg);
+}
+
+.rule {
+  border: 0;
+  border-top: 1.5px dashed var(--ink);
+  opacity: 0.5;
+  margin: 16px 0;
+}
+
+.slipHeading {
+  margin: 18px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rule + .slipHeading {
+  margin-top: 0;
+}
+
+.red {
+  color: var(--ink-red);
+}
+
+.dim {
+  color: var(--ink-soft);
+}
+
+.plainList,
+.gapList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.plainList li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 7px 0;
+  font-family: var(--font-note);
+  font-size: 14px;
+}
+
+.plainList li + li {
+  border-top: 1.5px dotted rgba(27, 27, 27, 0.3);
+}
+
+.plainList .dim {
+  font-size: 12.5px;
+}
+
+.gapItem {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  margin: 0 -8px;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-align: left;
+}
+
+.gapItem:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.gapItem:hover .red {
+  color: #ff9b94;
+}
+
+.trend {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.trend th {
+  width: 76px;
+  padding: 4px 8px 4px 0;
+  font-weight: 500;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.trendBar {
+  display: block;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, rgba(27, 27, 27, 0.14) 0 2px, transparent 2px 4px);
+}
+
+.trendBar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.trendBar span[data-low="true"] {
+  background: var(--ink-red);
+}
+
+.trendPct {
+  width: 44px;
+  padding-left: 8px;
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.linkButton {
+  margin-top: 18px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-note);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.stub {
+  padding: 16px 18px;
+  border: 1.5px dashed var(--ink-faded);
+  background: rgba(251, 250, 246, 0.55);
+}
+
+.stub .slipHeading {
+  margin-top: 0;
+}
+
+.stubLines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.stubLines span {
+  height: 8px;
+  background: radial-gradient(circle, var(--ink-faded) 0.9px, transparent 1.2px) left center / 6px 4px repeat-x;
+}
+
+.stubLines span:nth-child(2) {
+  width: 70%;
+}
+
+.stubLines span:nth-child(3) {
+  width: 45%;
+}
+
+/* ---------- Time tape ---------- */
+
+.tape {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 12px 20px 16px;
+  background: var(--paper);
+  box-shadow: 0 -8px 16px -10px rgba(20, 22, 20, 0.28);
+  position: relative;
+  z-index: 2;
+}
+
+.tapeControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.readout {
+  min-width: 190px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  font-stretch: 112.5%;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.iconButton,
+.nowButton {
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--ink);
+  background: var(--paper);
+}
+
+.iconButton:hover,
+.nowButton:hover,
+.iconButton[data-on="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.nowButton {
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.strip {
+  position: relative;
+  display: grid;
+  grid-template-rows: 44px auto;
+  gap: 4px;
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 44px;
+  pointer-events: none;
+}
+
+.barCell {
+  flex: 1;
+  min-width: 2px;
+  background: rgba(27, 27, 27, 0.28);
+  transition: background-color 160ms var(--ease-out);
+}
+
+.barCell[data-daystart="true"] {
+  margin-left: 4px;
+}
+
+.barCell[data-on="true"] {
+  background: var(--ink);
+  box-shadow: 0 -5px 0 var(--ink-red);
+}
+
+.range {
+  position: absolute;
+  inset: 0 0 18px;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  opacity: 0;
+  cursor: grab;
+}
+
+.range:active {
+  cursor: grabbing;
+}
+
+.strip:has(.range:focus-visible) {
+  outline: 2px dashed var(--ink);
+  outline-offset: 4px;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-faded);
+}
+
+.days span {
+  padding-left: 4px;
+}
+
+.days span[data-on="true"] {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+/* ---------- Tablet and phone ---------- */
+
+@media (max-width: 1100px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+@media (max-width: 860px) {
+  .screen {
+    height: auto;
+    min-height: 100dvh;
+  }
+  /* room to scroll the map to the top while the sheet covers the lower half */
+  .screen[data-sheet="true"] {
+    padding-bottom: 55dvh;
+  }
+  .bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand account"
+      "controls controls";
+    gap: 8px 10px;
+    padding: 8px var(--gutter) 10px;
+  }
+  .brand {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .title {
+    font-size: 13px;
+    gap: 6px;
+    white-space: normal;
+  }
+  .sample {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+  .controls {
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .segment {
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+  }
+  .barButton {
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+  .account {
+    max-width: 240px;
+  }
+  .city {
+    display: none;
+  }
+  .railWrap {
+    padding: 10px var(--gutter) 0;
+  }
+  .ticket {
+    width: 150px;
+    min-height: 100px;
+  }
+  .body {
+    display: block;
+    padding: 6px var(--gutter) 12px;
+  }
+  .mapPanel {
+    min-height: 0;
+    height: 52dvh;
+  }
+  .legend {
+    left: 8px;
+    bottom: 8px;
+    right: 8px;
+  }
+  /* The slip becomes a bottom sheet */
+  .slipCol {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    transform: translateY(110%);
+    transition: transform 360ms var(--ease-out);
+  }
+  .slipCol[data-open="true"] {
+    transform: none;
+  }
+  .slip {
+    max-height: 55dvh;
+    min-height: 0;
+    padding: 22px var(--gutter) calc(28px + var(--tooth));
+  }
+  .stub {
+    display: none;
+  }
+  .sheetClose {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+  }
+  .slipTitle {
+    padding-right: 52px;
+  }
+  .tape {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px var(--gutter) max(14px, env(safe-area-inset-bottom));
+    position: sticky;
+    bottom: 0;
+  }
+  .tapeControls {
+    justify-content: space-between;
+  }
+  .readout {
+    min-width: 0;
+    flex: 1;
+    font-size: 13px;
+    font-stretch: 100%;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+}

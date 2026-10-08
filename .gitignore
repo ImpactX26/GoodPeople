@@ -1,0 +1,25 @@
+# --- NGO agent (Python) ---
+.venv/
+__pycache__/
+.pytest_cache/
+data/*.db*
+data/uploads/
+*.sqlite*
+
+# --- web / api (Node) ---
+node_modules/
+.DS_Store
+.env*
+!.env.example
+*.log
+
+# build output
+api/dist/
+.netlify/
+
+# local tooling and review captures
+.claude/
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/questions/
+.impeccable/build/

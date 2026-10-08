@@ -1,0 +1,56 @@
+# Every push to main that changes the backend redeploys it to Railway.
+# The frontend (web/) is NOT deployed from here: Netlify deploys are manual.
+name: Deploy API to Railway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/deploy-api.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-api
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+      - name: Check the Railway token is set
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "::error::Add a Railway project token as the RAILWAY_TOKEN repo secret (Railway > luna > Settings > Tokens)."
+            exit 1
+          fi
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: npx --yes @railway/cli@latest up . --path-as-root --service api --ci -m "${GITHUB_SHA::7}"
+
+      - name: Wait for the new version to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS https://api-production-a32be.up.railway.app/health; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::API did not become healthy"; exit 1
