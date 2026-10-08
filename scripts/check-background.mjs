@@ -17,7 +17,7 @@ import { extname } from "node:path";
 
 const API = (process.env.API_URL ?? "https://api-production-a32be.up.railway.app").replace(/\/$/, "");
 const CODE = process.env.DEV_OTP ?? "123456";
-const DONOR = "9700000001", ADMIN = "9700000009";
+const DONOR = "9700000001", ADMIN = process.env.ADMIN_PHONE ?? "8611487776";
 const args = process.argv.slice(2), arg = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
 const j = (r) => r.json(), wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const t = (ms) => new Date(ms).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" });
@@ -32,7 +32,7 @@ async function signIn(role, phone, fields) {
 }
 
 async function show(id, since = 0) {
-  const admin = await signIn("admin", ADMIN, { name: "Luna admin" });
+  const admin = await signIn("admin", ADMIN);
   const readAt = Date.now();
   const l = await fetch(`${API}/listings/${id}`, { headers: H(admin) }).then(j);
   if (l.error) throw new Error(l.error);

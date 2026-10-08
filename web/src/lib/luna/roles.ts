@@ -136,7 +136,7 @@ export const ROLE_META: Record<Role, RoleMeta> = {
   admin: {
     id: "admin",
     label: "Admin",
-    who: "Luna team and city partners",
+    who: "Luna’s admin only",
     job: "Watch the whole city and step in when needed.",
     details: [
       nameField,

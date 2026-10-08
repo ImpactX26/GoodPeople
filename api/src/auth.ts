@@ -1,6 +1,8 @@
 /**
  * Dev phone-OTP sign-in. No SMS is sent: the code is fixed (DEV_OTP) and, when
  * SHOW_DEV_OTP=1, returned to the client so the demo can display it.
+ *
+ * Luna has one admin account; no other number can sign in as admin.
  */
 import { randomBytes } from "node:crypto";
 import { Hono } from "hono";
@@ -12,12 +14,17 @@ const SHOW_DEV_OTP = process.env.SHOW_DEV_OTP === "1";
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 
+/** The only admin. ADMIN_PHONE overrides the number on a test server. */
+export const ADMIN = { phone: process.env.ADMIN_PHONE ?? "8611487776", name: "Vrunda.C" };
+const NOT_ADMIN = "This number isn’t Luna’s admin. Sign in with the admin number, or choose another role.";
+
 const isRole = (r: unknown): r is Role => typeof r === "string" && (ROLES as string[]).includes(r);
 const isPhone = (p: unknown): p is string => typeof p === "string" && /^[6-9]\d{9}$/.test(p);
 
 export async function sessionFrom(header: string | undefined): Promise<Session | null> {
   const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
-  return token ? store.getSession(token) : null;
+  const s = token ? await store.getSession(token) : null;
+  return s && s.role === "admin" && s.phone !== ADMIN.phone ? null : s;
 }
 
 async function newSession(role: Role, phone: string) {
@@ -32,6 +39,7 @@ auth.post("/otp", async (c) => {
   const { role, phone } = await c.req.json().catch(() => ({}));
   if (!isRole(role)) return c.json({ error: "Unknown role." }, 400);
   if (!isPhone(phone)) return c.json({ error: "Enter a 10-digit Indian mobile number." }, 400);
+  if (role === "admin" && phone !== ADMIN.phone) return c.json({ error: NOT_ADMIN }, 403);
   const expiresAt = Date.now() + OTP_TTL_MS;
   await store.putOtp({ role, phone, code: DEV_OTP, expiresAt, attemptsLeft: MAX_ATTEMPTS });
   return c.json({ expiresAt, ...(SHOW_DEV_OTP ? { devCode: DEV_OTP } : {}) });
@@ -40,6 +48,7 @@ auth.post("/otp", async (c) => {
 auth.post("/verify", async (c) => {
   const { role, phone, code } = await c.req.json().catch(() => ({}));
   if (!isRole(role) || !isPhone(phone) || typeof code !== "string") return c.json({ error: "Bad request." }, 400);
+  if (role === "admin" && phone !== ADMIN.phone) return c.json({ error: NOT_ADMIN }, 403);
 
   const otp = await store.getOtp(role, phone);
   if (!otp) return c.json({ ok: false, reason: "no-code" });
@@ -52,7 +61,12 @@ auth.post("/verify", async (c) => {
   }
 
   await store.deleteOtp(role, phone);
-  const profile = await store.getProfile(role, phone);
+  let profile = await store.getProfile(role, phone);
+  if (!profile && role === "admin") {
+    // The admin is known: no sign-up form, straight in.
+    profile = { role, phone, fields: { name: ADMIN.name, org: "Luna" }, createdAt: Date.now() };
+    await store.putProfile(profile);
+  }
   const session = await newSession(role, phone);
   return c.json({ ok: true, isNew: !profile, token: session.token, signedInAt: session.signedInAt, profile });
 });
