@@ -218,14 +218,19 @@ function OpenTicket({ trip: t, now, onDone }: { trip: OpenPickup; now: number; o
     catch (e) { setProblem((e as Error).message); setBusy(false); onDone(); }
   };
   return (
-    <article className={n.offer} aria-label={`Open pickup: ${t.keepReady}`}>
+    <article className={n.offer} data-dim={t.reach.unsafe || undefined} aria-label={`Open pickup: ${t.keepReady}`}>
       {done && <span className={n.stampBig} aria-hidden>Yours</span>}
       {t.hasPhoto && <SharePhoto shareId={t.id} alt={`Photo of ${t.keepReady}`} />}
       <header className={n.offerHead}>
         <div><h3>{t.keepReady}</h3>{t.servings ? <p>{t.servings} servings to deliver</p> : null}</div>
         <span className={s.waited}><b>{waited} min</b><span>waiting</span></span>
       </header>
-      {t.missed && <p className={s.missed}><Clock size={16} aria-hidden /> You missed this request. It’s still open, so you can take it now.</p>}
+      {t.missed && <p className={s.missed}><Clock size={16} aria-hidden /> You missed this request. It’s still open{t.reach.unsafe ? "" : ", so you can take it now"}.</p>}
+      {t.reach.unsafe ? (
+        <p className={s.reachNote} data-tone="no">From where you are, the food would stop being safe before it reaches {t.drop?.name ?? "the NGO"}. A partner closer to {t.pickup.name} needs to take this one.</p>
+      ) : t.reach.late && (
+        <p className={s.reachNote}>You’d reach {t.pickup.name} about <b>{fmtTime(t.reach.pickupAt)}</b>, after their collect-by time ({fmtTime(t.reach.collectBy)}). Call them before you set off.</p>
+      )}
       {t.travel && (
         <p className={s.travel}>
           <span><b>{t.travel.toPickupMin} min</b> to the restaurant</span>
@@ -238,7 +243,9 @@ function OpenTicket({ trip: t, now, onDone }: { trip: OpenPickup; now: number; o
       </dl>
       {t.containers.length > 0 && <p className={s.bring}><b>Bring</b>{t.containers.join(" + ")}</p>}
       {problem && <p className={d.barError} role="alert">{problem}</p>}
-      <button type="button" className={n.accept} disabled={busy || done} onClick={() => void take()}><Truck size={20} aria-hidden /> {busy ? "Taking it…" : "Take this pickup"}</button>
+      {t.reach.unsafe
+        ? <button type="button" className={s.cantTake} disabled>Too far to deliver it safely</button>
+        : <button type="button" className={n.accept} disabled={busy || done} onClick={() => void take()}><Truck size={20} aria-hidden /> {busy ? "Taking it…" : "Take this pickup"}</button>}
     </article>
   );
 }

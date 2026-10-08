@@ -86,3 +86,18 @@ test("with no other NGO to move to, it stays on the open board", async () => {
   assert.equal((await share()).status, "finding_partner");
   assert.equal((await luna.openPickups(ME, at(12, 31))).length, 1);
 });
+
+test("a partner too far to make the collect-by time still sees the pickup, marked late, and can take it", async () => {
+  const { luna, share } = await setup(
+    [recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) })],
+    [partner({ id: "near", phone: OTHER, ...east(KORAMANGALA, 0.5) }), partner({ id: "far", phone: ME, ...east(KORAMANGALA, 9) })],
+  );
+  const s = await share();
+  await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+  await luna.partnerReply(s.id, false, { phone: OTHER }, at(13, 50));
+  const [mine] = await luna.openPickups(ME, at(13, 51));
+  assert.ok(mine, "shown, not hidden");
+  assert.equal(mine.reach.late, true);
+  assert.equal(mine.reach.unsafe, false);
+  assert.ok((await luna.claimPickup(s.id, { phone: ME }, at(13, 52))).ok);
+});

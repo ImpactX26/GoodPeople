@@ -398,8 +398,8 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     if (s instanceof Response) return s;
     const mine = new Set((await store.list("partner", { phone: s.phone })).map((p) => p.id));
     const out = [];
-    for (const { share, missed } of await luna.openPickups(s.phone, clock()))
-      out.push({ ...(await tripView(share, s.phone, mine)), missed, waitingSince: share.waitingForPartnerSince ?? share.askedAt ?? share.createdAt });
+    for (const { share, missed, reach } of await luna.openPickups(s.phone, clock()))
+      out.push({ ...(await tripView(share, s.phone, mine)), missed, reach, waitingSince: share.waitingForPartnerSince ?? share.askedAt ?? share.createdAt });
     return c.json(out);
   });
 

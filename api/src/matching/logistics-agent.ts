@@ -131,28 +131,39 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
   }
 
   /**
-   * Whether this partner could take this share now: rides for its NGO, is independent, or helps others; isn't
-   * busy elsewhere; and can collect it in the pickup window and get it there while it's safe. Unlike
-   * partnersFor, someone who missed or passed on the ask still counts (the open pickups board).
+   * How this partner would do on this share: whether they may take it at all (ride for its NGO, independent,
+   * or help others; not busy elsewhere), when they'd reach the restaurant, whether that's after its collect-by
+   * time (allowed, with a warning: they should call first), and whether the food would stop being safe before
+   * it reaches the NGO (never allowed). The NGO has already said yes, so the drop isn't held for its hours.
    */
-  function canTake(share: Share, l: Listing, ngo: Recipient, p: Partner, now: number) {
-    if (p.manual || (p.activeShareId && p.activeShareId !== share.id)) return false;
-    if (p.ngoId && p.ngoId !== ngo.id && !p.helpsOthers) return false;
+  function reachOf(share: Share, l: Listing, ngo: Recipient, p: Partner, now: number) {
+    if (p.manual || (p.activeShareId && p.activeShareId !== share.id)) return null;
+    if (p.ngoId && p.ngoId !== ngo.id && !p.helpsOthers) return null;
     const pickupAt = Math.max(now + etaMs(distanceKm(p, l), p.travel), l.readyFrom);
-    const leg = legFor(ngo, l, { pos: p, startAt: now, travel: p.travel, pickedUp: false });
-    return pickupAt <= l.collectBy && leg.serveTime <= safeUntilOf(l, share.lines);
+    const leg = legFor(ngo, l, { pos: p, startAt: now, travel: p.travel, pickedUp: false }, false);
+    return { pickupAt, late: pickupAt > l.collectBy, unsafe: leg.serveTime > safeUntilOf(l, share.lines) };
   }
 
-  /** Pickups an NGO accepted that no partner has taken, that this partner could take (missed ones included). */
+  /** Whether this partner can take this share (late for collect-by is fine; unsafe is not). Missed asks count too. */
+  function canTake(share: Share, l: Listing, ngo: Recipient, p: Partner, now: number) {
+    const r = reachOf(share, l, ngo, p, now);
+    return !!r && !r.unsafe;
+  }
+
+  /**
+   * Pickups an NGO accepted that no partner has taken, for this partner: everything they may take, including ones
+   * they missed, each with how they'd do on it, so nothing they missed just disappears.
+   */
   async function openFor(phone: string, now: number) {
     const [p] = await store.list("partner", { phone });
     if (!p) return [];
-    const out: { share: Share; missed: boolean }[] = [];
+    const out: { share: Share; missed: boolean; reach: { pickupAt: number; collectBy: number; late: boolean; unsafe: boolean } }[] = [];
     for (const share of await store.list("share", { status: "finding_partner" })) {
       if (!share.ngoId || share.askedPartnerId === p.id || share.held) continue;
       const l = await store.get("listing", share.listingId);
       const ngo = await store.get("recipient", share.ngoId);
-      if (l && ngo && canTake(share, l, ngo, p, now)) out.push({ share, missed: share.triedPartnerIds.includes(p.id) });
+      const r = l && ngo ? reachOf(share, l, ngo, p, now) : null;
+      if (l && r) out.push({ share, missed: share.triedPartnerIds.includes(p.id), reach: { ...r, collectBy: l.collectBy } });
     }
     return out;
   }
@@ -171,7 +182,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const l = await rt.mustGet("listing", share.listingId);
     const ngo = await rt.mustGet("recipient", share.ngoId);
     if (p.activeShareId && p.activeShareId !== share.id) return fail("Finish your current pickup first.");
-    if (!canTake(share, l, ngo, p, now)) return fail("You can't reach this pickup in time for the food to stay safe.");
+    if (!canTake(share, l, ngo, p, now)) return fail("From where you are, the food would stop being safe before it reaches the NGO.");
     const asked = share.askedPartnerId && share.askedPartnerId !== p.id ? await store.get("partner", share.askedPartnerId) : null;
     if (asked) {
       await store.put("partner", { ...asked, activeShareId: undefined });

@@ -317,3 +317,32 @@
   flex: none;
   margin-top: 2px;
 }
+
+.reachNote {
+  margin: 0;
+  font: 15px/1.45 var(--font-note);
+}
+
+.reachNote b {
+  font: 800 15px var(--font-print);
+  font-variant-numeric: tabular-nums;
+}
+
+.reachNote[data-tone="no"] {
+  color: var(--ink-red-deep, #8d1712);
+  font-weight: 600;
+}
+
+/* A locked action is a dashed outline that says what's missing, never a dimmed ink slab (DESIGN.md). */
+.cantTake {
+  min-height: 56px;
+  width: 100%;
+  border: 2px dashed var(--ink-faded);
+  background: transparent;
+  color: var(--ink-soft);
+  font: 700 14px/1 var(--font-print);
+  font-stretch: 112.5%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: not-allowed;
+}

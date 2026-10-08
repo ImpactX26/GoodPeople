@@ -152,7 +152,12 @@ export type Trip = Share & Track & {
 };
 export const myTrips = () => get<Trip[]>("/trips");
 /** Pickups an NGO accepted that no partner has taken and I could take; `missed`: I was asked and didn't answer. */
-export type OpenPickup = Trip & { missed: boolean; waitingSince: number };
+export type OpenPickup = Trip & {
+  missed: boolean;
+  waitingSince: number;
+  /** From where I am: when I'd reach the restaurant; after its collect-by time (take it, but call first); or too far for the food to stay safe. */
+  reach: { pickupAt: number; collectBy: number; late: boolean; unsafe: boolean };
+};
 export const openPickups = () => get<OpenPickup[]>("/partner/open");
 export const claimPickup = (id: string) => post(`/trips/${id}/claim`);
 export const setOnline = (online: boolean, pos?: { lat: number; lng: number }) => post("/partner/online", { online, ...pos });
