@@ -120,3 +120,17 @@ test("an NGO holds accepted food at most 30 minutes, even while partners are sti
   assert.equal(moved.ngoId, "r2");
   assert.ok((await texts(NGO1)).some((t) => /passed it to another NGO/.test(t)));
 });
+
+test("only one NGO and nobody takes the pickup: its hold still ends at 30 minutes, and the food goes back to the restaurant", async () => {
+  const { luna, share, texts, store, l } = await setup([recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) })], [partner({ id: "p1", phone: ME, ...east(KORAMANGALA, 0.5) })]);
+  const s = await share();
+  await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+  await luna.partnerReply(s.id, false, { phone: ME }, at(12, 2));
+  await luna.tick(at(12, 30));
+  assert.equal((await share()).status, "finding_partner", "still held at 29 minutes");
+  await luna.tick(at(12, 31) + 1);
+  assert.equal((await share()).status, "unplaced");
+  assert.ok((await texts(NGO1)).some((t) => /released it/.test(t)));
+  const { leftoverOf } = await import("../../src/matching/biogas.ts");
+  assert.ok((await leftoverOf(store, (await store.get("listing", l.id))!)).servings > 0, "it's the restaurant's to send elsewhere (biogas) now");
+});

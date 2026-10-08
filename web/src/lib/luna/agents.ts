@@ -139,7 +139,7 @@ export type NgoShare = Share & {
   donorName?: string;
   food: (Partial<Item> & { servings: number; safeUntil?: number })[];
   /** Accepted, nobody has taken the pickup: the clock until it moves on, and the NGO's own volunteers to call. */
-  partnerClock?: { from: number; to: number; then: "next_ngo" | "window_closes" } | null;
+  partnerClock?: { from: number; to: number; then: "next_ngo" | "window_closes" | "released" } | null;
   volunteers?: { name: string; phone: string; online: boolean; busy: boolean }[];
 };
 export const ngoShares = () => get<NgoShare[]>("/shares");

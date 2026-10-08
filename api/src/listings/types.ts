@@ -153,7 +153,7 @@ export interface AgentShareView {
   pickedUpAt: number | null;
   held: boolean;
   /** Nobody has taken the pickup yet: when the wait began, and when it moves to another NGO or the window closes. */
-  partnerClock: { from: number; to: number; then: "next_ngo" | "window_closes" } | null;
+  partnerClock: { from: number; to: number; then: "next_ngo" | "window_closes" | "released" } | null;
 }
 /** The agents' case for a listing: shares and every decision with its reason, oldest first. */
 export interface AgentCase {

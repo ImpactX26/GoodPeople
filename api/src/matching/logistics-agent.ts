@@ -350,22 +350,39 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const held = now - accepted >= config.ngoHoldAfterAcceptMaxMs;
     if (!waited && !held) return false;
     const tried = new Set([...share.triedNgoIds, ngo.id]);
-    let target: Recipient | null = null;
+    let target: Recipient | null = null, anyOther: Recipient | null = null;
     for (const c of share.candidates) {
       if (tried.has(c.ngoId)) continue;
       const r = await store.get("recipient", c.ngoId);
       if (!r?.active || (!config.simulateUnclaimed && !r.phone)) continue;
+      anyOther ??= r;
       if ((await partnersFor({ ...share, triedPartnerIds: [] }, l, r, now)).length) { target = r; break; }
     }
-    if (!target) return false;
+    // Past the 30-minute hold, another NGO on the list is offered it even with no partner free yet (its own staff
+    // may collect); only with no other NGO at all does the hold simply end.
+    if (!target && held) target = anyOther;
+    if (!target && !held) return false;
     // A partner being asked right now is told it's covered elsewhere.
     const asked = share.askedPartnerId ? await store.get("partner", share.askedPartnerId) : null;
     if (asked) {
       await store.put("partner", { ...asked, activeShareId: undefined });
-      await toPartner(now, asked, msg.text("Thanks! That pickup has moved to another NGO, so you're no longer needed for it."));
+      await toPartner(now, asked, msg.text(target ? "Thanks! That pickup has moved to another NGO, so you're no longer needed for it." : "Thanks! That pickup has closed, so you're no longer needed for it."));
+    }
+    if (!target) {
+      // 30 minutes is the most an NGO holds accepted food without a partner, even with no other NGO to pass it
+      // to: its hold ends (it's told why), and the food goes back to the Decision Agent, which offers the
+      // restaurant a biogas pickup or closes it with a sorry.
+      const food = foodOf(l, share.lines);
+      const done: Share = { ...share, status: "unplaced", ngoId: undefined, askedPartnerId: undefined, askDeadlineAt: undefined, triedNgoIds: [...share.triedNgoIds, ngo.id], waitingForPartnerSince: undefined, acceptedAt: undefined };
+      await store.put("share", done);
+      // Recorded as this NGO's turn running out, so it isn't asked again for this food.
+      await decide(now, "expired", ngo.id, `No delivery partner took the pickup for ${ngo.name} in the ${fmtMinutes(config.ngoHoldAfterAcceptMaxMs)} an NGO can hold accepted food, and no other NGO can take the ${food}. ${ngo.name}'s hold has ended.`, l.id, { shareId: share.id, held: true });
+      await toNgo(now, ngo, msg.text(`No delivery partner took the ${food} pickup from ${l.donorName} within ${fmtMinutes(config.ngoHoldAfterAcceptMaxMs)} of you accepting it, so Luna has released it. Nothing for you to do. Thank you for saying yes.`));
+      await deps.emit({ type: "unplaced", share: done }, now);
+      return true;
     }
     const took = now - (held ? accepted : since!);
-    const candidates = [...share.candidates.filter((c) => c.ngoId === target!.id), ...share.candidates.filter((c) => c.ngoId !== target!.id)];
+    const candidates = [...share.candidates.filter((c) => c.ngoId === target.id), ...share.candidates.filter((c) => c.ngoId !== target!.id)];
     const next: Share = { ...share, status: "offering", candidates, ngoId: undefined, askedPartnerId: undefined, askDeadlineAt: undefined, triedPartnerIds: [], triedNgoIds: [...share.triedNgoIds, ngo.id], waitingForPartnerSince: undefined, lastPartnerTryAt: undefined, acceptedAt: undefined, openNoticeAt: undefined };
     await store.put("share", next);
     const food = foodOf(l, share.lines);

@@ -99,7 +99,7 @@ export function Updates() {
  * Nobody has taken the pickup yet: the time left before it moves to another NGO (or the pickup window closes),
  * as a countdown and a bar that fills and turns from yellow to red as it runs out. Restaurant and NGO see it.
  */
-export function WaitClock({ clock, who }: { clock: { from: number; to: number; then: "next_ngo" | "window_closes" }; who: "donor" | "ngo" }) {
+export function WaitClock({ clock, who }: { clock: { from: number; to: number; then: "next_ngo" | "window_closes" | "released" }; who: "donor" | "ngo" }) {
   const now = useNow(1000);
   const span = Math.max(1, clock.to - clock.from);
   const t = Math.min(1, Math.max(0, (now - clock.from) / span));
@@ -109,7 +109,9 @@ export function WaitClock({ clock, who }: { clock: { from: number; to: number; t
   const shown = left >= 3600 ? `${Math.floor(left / 3600)} h ${Math.floor((left % 3600) / 60)} min` : `${mm}:${ss}`;
   const then = clock.then === "next_ngo"
     ? (who === "ngo" ? "Then Luna passes it to another NGO that has a partner free." : "Then Luna offers it to another NGO that has a partner free.")
-    : "Then the pickup window closes.";
+    : clock.then === "released"
+      ? (who === "ngo" ? "An NGO holds accepted food 30 minutes at most. Then your hold ends; no other NGO can take this one." : "An NGO holds food 30 minutes at most. No other NGO can take it, so then you can send it to biogas.")
+      : "Then the pickup window closes.";
   return (
     <section className={s.wait} style={{ "--t": t.toFixed(3) } as React.CSSProperties} data-urgent={t > 0.8 || undefined} aria-label="Waiting for a delivery partner">
       <div className={s.waitHead}>

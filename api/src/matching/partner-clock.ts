@@ -13,7 +13,7 @@ export interface PartnerClock {
   from: number;
   to: number;
   /** What happens at `to`: the food moves to another NGO, or the pickup window closes. */
-  then: "next_ngo" | "window_closes";
+  then: "next_ngo" | "window_closes" | "released";
 }
 
 export async function partnerClockOf(store: MatchingStore, share: Share, l: Listing, now: number): Promise<PartnerClock | null> {
@@ -32,5 +32,8 @@ export async function partnerClockOf(store: MatchingStore, share: Share, l: List
   // It moves on at the first of: the wait limit after asking ran out, or 30 minutes after the NGO accepted.
   const moveAt = Math.min(share.waitingForPartnerSince !== undefined ? share.waitingForPartnerSince + wait : Infinity, accepted + config.ngoHoldAfterAcceptMaxMs);
   if (another && moveAt > now && moveAt < closes) return { from, to: moveAt, then: "next_ngo" };
+  // With nowhere else to go, the hold still ends 30 minutes after accepting (or sooner, if the window closes first).
+  const holdEnds = accepted + config.ngoHoldAfterAcceptMaxMs;
+  if (holdEnds < closes) return { from, to: Math.max(holdEnds, now), then: "released" };
   return { from, to: Math.max(closes, now), then: "window_closes" };
 }

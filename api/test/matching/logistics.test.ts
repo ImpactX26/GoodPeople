@@ -207,7 +207,7 @@ describe("finding a partner", () => {
     // …until the pickup window closes.
     await luna.tick(l.collectBy + 1);
     assert.equal((await shareOf(store, l.id)).status, "unplaced");
-    assert.match(await last(store, NGO1), /no delivery partner could collect/);
+    assert.match(await last(store, NGO1), /no delivery partner could collect|released it/i);
   });
 
   test("if no partner can collect before the pickup window closes, the share goes to the next NGO", async () => {
