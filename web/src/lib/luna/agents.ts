@@ -127,7 +127,8 @@ export async function sharePhoto(shareId: string): Promise<string | null> {
 }
 
 /** NGO */
-export type NgoShare = Share & { donorName?: string; food: (Partial<Item> & { servings: number })[] };
+/** Each food carries its own grade and safe-until: foods in one listing are checked one by one. */
+export type NgoShare = Share & { donorName?: string; food: (Partial<Item> & { servings: number; safeUntil?: number })[] };
 export const ngoShares = () => get<NgoShare[]>("/shares");
 export const answerOffer = (id: string, accept: boolean) => post(`/shares/${id}/${accept ? "accept" : "decline"}`);
 export const answerRedirect = (id: string, accept: boolean) => post(`/shares/${id}/redirect/${accept ? "accept" : "decline"}`);

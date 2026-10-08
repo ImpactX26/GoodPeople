@@ -14,7 +14,8 @@
 import { config } from "./config.ts";
 import { distanceKm, etaMs, mapsLink, round1 } from "./engine/geo.ts";
 import { legFor, type Origin } from "./engine/match.ts";
-import { effectiveGrade, isUnsure } from "./engine/safety.ts";
+import { itemName } from "./engine/reasons.ts";
+import { effectiveGrade, isUnsure, safeUntil } from "./engine/safety.ts";
 import { keepReady, shareContainers } from "./food-agent.ts";
 import {
   code4,
@@ -68,6 +69,10 @@ export interface LogisticsDeps {
 }
 
 const GONE = "This has already gone to someone else — thanks!";
+
+/** Each food in a share with its own grade and safe-until: foods in one listing are checked one by one. */
+const foodsOf = (l: Listing, lines: Share["lines"]) =>
+  itemsOf(l, lines).map((i) => ({ name: itemName(i), servings: i.servings, grade: effectiveGrade(i), safeUntil: safeUntil(i, l.createdAt) }));
 
 export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
   const { store } = rt;
@@ -154,7 +159,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       await store.put("share", next);
       const minutes = Math.round(ms / 60_000);
       await decide(now, "offered", ngo.id, `Offered ${servingsOf(share.lines)} servings of ${foodOf(l, share.lines)} to ${ngo.name}${ngo.phone ? "" : " (sample NGO, answers automatically)"}, ${minutes} min to reply.${supply ? "" : " No delivery partner is online near it yet; if it accepts, its own volunteers are asked first as soon as one is."}`, l.id, { shareId: share.id });
-      await toNgo(now, ngo, msg.foodOffer({ shareId: share.id, servings: servingsOf(share.lines), food: foodOf(l, share.lines), grade: worstGrade(l, share.lines), safeUntil: safeUntilOf(l, share.lines), arriveBy: c.arriveBy, minutes }));
+      await toNgo(now, ngo, msg.foodOffer({ shareId: share.id, servings: servingsOf(share.lines), food: foodOf(l, share.lines), grade: worstGrade(l, share.lines), safeUntil: safeUntilOf(l, share.lines), arriveBy: c.arriveBy, minutes, foods: foodsOf(l, share.lines) }));
       await deps.emit({ type: "offered", share: next, ngo, minutes }, now);
       return;
     }
@@ -488,7 +493,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     await store.put("share", next);
     const minutes = Math.round(config.redirectCountdownMs / 60_000);
     await decide(now, "offered", ngo.id, `Offered the delayed ${foodOf(l, share.lines)} to ${ngo.name}, ${minutes} min to reply.`, l.id, { shareId: share.id, redirect: true });
-    await toNgo(now, ngo, msg.foodOffer({ shareId: share.id, servings: servingsOf(share.lines), food: foodOf(l, share.lines), grade: worstGrade(l, share.lines), safeUntil: safeUntilOf(l, share.lines), arriveBy, minutes, redirect: true }));
+    await toNgo(now, ngo, msg.foodOffer({ shareId: share.id, servings: servingsOf(share.lines), food: foodOf(l, share.lines), grade: worstGrade(l, share.lines), safeUntil: safeUntilOf(l, share.lines), arriveBy, minutes, redirect: true, foods: foodsOf(l, share.lines) }));
   }
 
   async function redirectReply(shareId: string, accept: boolean, by: Actor, now: number): Promise<Result> {

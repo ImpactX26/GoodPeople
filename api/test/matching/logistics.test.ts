@@ -55,7 +55,8 @@ describe("the whole flow", () => {
     let s = await shareOf(store, l.id);
     assert.equal(s.status, "offering");
     assert.equal(s.ngoId, "r1");
-    assert.match(await last(store, NGO1), /^Food offer: 50 servings of veg biryani \+ payasam/);
+    // two foods: the offer lists each with its own grade and safe-until
+    assert.match(await last(store, NGO1), /^Food offer: 50 servings, each food checked on its own:\n• 30 × veg biryani: Grade A, safe until .+\n• 20 × payasam: Grade A/);
 
     assert.equal((await luna.ngoReply(s.id, true, { phone: NGO2 }, at(12, 1))).ok, false);
     assert.equal((await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1))).ok, true);

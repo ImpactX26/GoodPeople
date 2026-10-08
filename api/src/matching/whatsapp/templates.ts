@@ -32,12 +32,19 @@ export function foodOffer(o: {
   minutes: number;
   /** A mid-trip redirect from the Decision Agent. */
   redirect?: boolean;
+  /** Each food in the share with its own grade and safe-until, when there's more than one. */
+  foods?: { name: string; servings: number; grade: string; safeUntil: number }[];
 }): Message {
   const p = [String(o.servings), o.food, o.grade, fmtTime(o.safeUntil), fmtTime(o.arriveBy), String(o.minutes)];
   const kind = o.redirect ? "redirect" : "share";
   const lead = o.redirect ? "Urgent food offer (a delivery nearby was delayed): " : "Food offer: ";
+  // Several foods are checked one by one, so the NGO sees each one's grade, not just the strictest.
+  const what =
+    o.foods && o.foods.length > 1
+      ? `${p[0]} servings, each food checked on its own:\n${o.foods.map((f) => `• ${f.servings} × ${f.name}: Grade ${f.grade}, safe until ${fmtTime(f.safeUntil)}`).join("\n")}\n`
+      : `${p[0]} servings of ${p[1]} (Grade ${p[2]}), safe until ${p[3]}. `;
   return {
-    text: `${lead}${p[0]} servings of ${p[1]} (Grade ${p[2]}), safe until ${p[3]}. Can arrive by ${p[4]}. Please reply within ${p[5]} min.`,
+    text: `${lead}${what}Can arrive by ${p[4]}. Please reply within ${p[5]} min.`,
     buttons: [btn(`${kind}:${o.shareId}:accept`, "Accept"), btn(`${kind}:${o.shareId}:decline`, "Decline")],
     template: { name: TEMPLATES.foodOffer, params: p },
   };

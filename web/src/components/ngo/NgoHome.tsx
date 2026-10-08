@@ -91,7 +91,16 @@ function FoodLines({ sh }: { sh: NgoShare }) {
   if (sh.food.length < 2) return null;
   return (
     <ul className={s.foodLines}>
-      {sh.food.map((f, i) => <li key={i}><b>{f.name ?? "Food"}</b><span>{f.servings} {f.tags?.includes("extra") ? "portions (sweet or extra)" : "servings"}</span></li>)}
+      {sh.food.map((f, i) => (
+        <li key={i}>
+          <b>{f.name ?? "Food"}</b>
+          <span>
+            {f.servings} {f.tags?.includes("extra") ? "portions (sweet or extra)" : "servings"}
+            {f.grade ? ` · Grade ${f.grade}` : ""}
+            {f.safeUntil ? ` · safe until ${fmtTime(f.safeUntil)}` : ""}
+          </span>
+        </li>
+      ))}
     </ul>
   );
 }
@@ -338,7 +347,8 @@ function ShareOffer({ sh, redirect = false, now, onDone }: { sh: NgoShare; redir
       <FoodLines sh={sh} />
       <dl className={d.leaders}>
         {arrive && <Pair k="Reaches you" v={`about ${fmtTime(arrive)}`} />}
-        {worst && <Pair k="Grade" v={`${worst} · ${GRADE_LABEL[worst]}`} />}
+        {worst && sh.food.length < 2 && <Pair k="Grade" v={`${worst} · ${GRADE_LABEL[worst]}`} />}
+        {sh.food.length > 1 && <Pair k="Grades" v="each food checked on its own (above)" />}
         {diets.length > 0 && <Pair k="Food" v={diets.join(", ")} />}
         {allergens.length > 0 && <Pair k="Contains" v={allergens.join(", ")} />}
       </dl>

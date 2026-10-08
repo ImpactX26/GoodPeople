@@ -8,6 +8,7 @@ import { AREAS } from "../map/model.ts";
 import { store as authStore, type Profile, type Role, type Session } from "../store.ts";
 import { config } from "./config.ts";
 import { straightKm } from "./engine/geo.ts";
+import { effectiveGrade, safeUntil } from "./engine/safety.ts";
 import type { Actor, Luna, NewListing, Result } from "./luna.ts";
 import { areaById, areaIdFromName } from "./seed.ts";
 import type { MatchingStore } from "./store.ts";
@@ -300,7 +301,10 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     const out = [];
     for (const sh of shares.sort((a, b) => b.createdAt - a.createdAt).slice(0, 50)) {
       const l = await store.get("listing", sh.listingId);
-      out.push({ ...view(sh, "ngo"), donorName: l?.donorName, food: sh.lines.map((ln) => ({ ...l?.items.find((i) => i.id === ln.itemId), servings: ln.servings })) });
+      out.push({ ...view(sh, "ngo"), donorName: l?.donorName, food: sh.lines.map((ln) => {
+        const item = l?.items.find((i) => i.id === ln.itemId);
+        return { ...item, servings: ln.servings, ...(item && l ? { grade: effectiveGrade(item), safeUntil: safeUntil(item, l.createdAt) } : {}) };
+      }) });
     }
     return c.json(out);
   });

@@ -271,6 +271,9 @@ function Verdict({ l }: { l: ListingView }) {
         </div>
       </div>
       <p className={s.verdictMeaning}>{GRADE_MEANING[c.grade]}</p>
+      {l.items && l.items.length > 1 && (
+        <p className={s.verdictNote}>This is the strictest of your {l.items.length} foods. Luna checked each food on its own (see below), and each goes to the NGOs that can safely take that food.</p>
+      )}
       {c.score !== null && (
         <div className={s.score}>
           <span>Safety score</span>
