@@ -11,8 +11,22 @@ import type { Reasoner } from "./reasoner.ts";
 import { trace } from "./trace.ts";
 import type { TraceEvent, WatchPulse } from "./types.ts";
 
-/** Recent events; after a restart the ring is empty, so rebuild from stored decisions and thoughts. */
+/**
+ * Recent events, from the kept feed: the same story on any screen, opened at any time, and after a restart.
+ * A check that was still thinking when the server stopped is shown as interrupted, not thinking forever.
+ */
 async function snapshot(store: MatchingStore, limit: number): Promise<TraceEvent[]> {
+  const kept = (await store.list("trace")).sort((a, b) => a.at - b.at || a.seq - b.seq).slice(-limit);
+  if (kept.length) {
+    const lastOf = new Map<string, number>();
+    kept.forEach((e, i) => e.type === "thought" && lastOf.set(e.thought.id, i));
+    const now = Date.now();
+    return kept.map(({ id: _id, ...e }, i) =>
+      e.type === "thought" && e.thought.status === "thinking" && lastOf.get(e.thought.id) === i && now - e.at > 3 * 60_000
+        ? ({ ...e, thought: { ...e.thought, status: "failed", error: "Interrupted: the server restarted while this check ran." } } as TraceEvent)
+        : (e as TraceEvent),
+    );
+  }
   const ring = trace.recent(limit);
   if (ring.length) return ring;
   const decisions = (await store.list("decision")).filter((d) => d.agent).sort((a, b) => a.at - b.at || (a.seq ?? 0) - (b.seq ?? 0)).slice(-limit);
@@ -67,12 +81,15 @@ export function reasoningRoutes(reasoner: Reasoner, store: MatchingStore) {
       };
       stream.onAbort(off);
       try {
-        await stream.writeSSE({ event: "snapshot", data: JSON.stringify({ events: await snapshot(store, limit), status: reasoner.status() }) });
+        const first = await snapshot(store, limit);
+        // Events that happened while the snapshot loaded can be in both: send them once.
+        const sent = new Set(first.map((e) => `${e.type}:${e.seq}:${e.at}`));
+        await stream.writeSSE({ event: "snapshot", data: JSON.stringify({ events: first, status: reasoner.status() }) });
         while (!stream.aborted) {
           if (!events.length && !pulse) await new Promise<void>((r) => ((wake = r), setTimeout(r, 20_000)));
           wake = null;
-          if (events.length) {
-            const batch = events.splice(0);
+          const batch = events.splice(0).filter((e) => !sent.has(`${e.type}:${e.seq}:${e.at}`));
+          if (batch.length) {
             await stream.writeSSE({ event: "events", data: JSON.stringify(batch) });
             if (batch.some((e) => e.type === "thought")) await stream.writeSSE({ event: "status", data: JSON.stringify(reasoner.status()) });
           }
@@ -80,7 +97,7 @@ export function reasoningRoutes(reasoner: Reasoner, store: MatchingStore) {
             await stream.writeSSE({ event: "pulse", data: JSON.stringify(pulse) });
             pulse = null;
           }
-          if (!events.length && !pulse) await stream.writeSSE({ event: "heartbeat", data: "{}" });
+          if (!batch.length && !pulse) await stream.writeSSE({ event: "heartbeat", data: "{}" });
         }
       } finally {
         off();

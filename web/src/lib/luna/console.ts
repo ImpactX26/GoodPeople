@@ -44,11 +44,13 @@ export interface Thought {
   error?: string;
 }
 
-export type TraceEvent =
+/** `order`: the restaurant listing (lst_…) an event belongs to, before and after its case opens. */
+export type TraceEvent = (
   | { type: "decision"; seq: number; at: number; agent: AgentName; kind: string; subject: string; reason: string; listingId?: string; shareId?: string; byReasoning?: boolean; ms?: number }
   | { type: "handoff"; seq: number; at: number; from: AgentName; to: AgentName; task: string; listingId?: string; shareId?: string; event?: string }
   | { type: "message"; seq: number; at: number; from?: AgentName; to: Person; text: string; listingId?: string }
-  | { type: "thought"; seq: number; at: number; thought: Thought };
+  | { type: "thought"; seq: number; at: number; thought: Thought }
+) & { order?: string };
 
 export interface WatchPulse {
   at: number;
@@ -69,6 +71,8 @@ export interface ReasoningStatus {
 
 export interface CaseListing {
   id: string;
+  /** The restaurant listing (lst_…) this case came from. */
+  sourceListingId?: string;
   donorName: string;
   items: { servings: number; name?: string }[];
   status: "review" | "matching" | "matched" | "partially_matched" | "unmatched" | "closed";

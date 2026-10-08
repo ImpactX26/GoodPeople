@@ -41,6 +41,7 @@ const PERSON: Record<Person, string> = { donor: "Restaurant", ngo: "NGO", partne
 const POINT: Record<Point, string> = { intake: "Passport check", meals: "Meal pairing", plan: "Plan check", partner: "Partner check", problem: "Problem check", watch: "Watch", debrief: "Debrief" };
 const VERDICT: Record<Verdict, string> = { agree: "Agreed", concern: "Concern", would_change: "Would change" };
 const KIND: Record<string, string> = {
+  listed: "listed",
   review: "case",
   graded: "graded",
   filtered: "filtered out",

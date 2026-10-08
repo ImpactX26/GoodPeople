@@ -26,6 +26,7 @@ export const WAITS: Record<AgentName, string> = {
 };
 
 export const KIND: Record<string, string> = {
+  listed: "Listed",
   review: "Held for review",
   graded: "Graded",
   filtered: "Filtered out",
@@ -115,7 +116,8 @@ const listingOf = (e: TraceEvent) => (e.type === "thought" ? e.thought.listingId
 export function buildOrders(events: TraceEvent[]): Order[] {
   const orders = new Map<string, Order>();
   for (const e of events) {
-    const id = listingOf(e);
+    // One row per restaurant listing, from the moment it's posted to the case closing.
+    const id = e.order ?? listingOf(e);
     if (!id) continue;
     let o = orders.get(id);
     if (!o) {
@@ -137,6 +139,7 @@ export function buildOrders(events: TraceEvent[]): Order[] {
     } else if (e.type === "decision") {
       // The reasoning's own actions print on its slip, not twice.
       if (e.byReasoning) continue;
+      if (e.kind === "listed" && !o.passport) o.passport = e.subject;
       const lane = o.lanes[e.agent];
       const last = lane.steps.at(-1);
       if (last?.kind === "rule" && last.decision === e.kind && (e.kind === "filtered" || e.kind === "rated")) last.more.push(e.reason);

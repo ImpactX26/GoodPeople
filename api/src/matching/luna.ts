@@ -74,7 +74,9 @@ export function createLuna(deps: LunaDeps) {
       serial(async () => {
         // The Food Agent's hand-off comes first in the trace, though the listing's id is only known after.
         const seq = trace.nextSeq();
-        const l = await decision.submitListing(input, now, opts);
+        trace.opening(input.sourceListingId);
+        const l = await decision.submitListing(input, now, opts).finally(() => trace.opening(undefined));
+        if (input.sourceListingId) trace.alias(l.id, input.sourceListingId);
         trace.handoff({ seq, at: now, from: "food", to: "decision", task: `Food Passport: ${l.items.reduce((n, i) => n + i.servings, 0)} servings from ${l.donorName}`, listingId: l.id });
         return l;
       }),

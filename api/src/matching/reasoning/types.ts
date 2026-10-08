@@ -46,11 +46,16 @@ export interface Thought {
 /** The people at either end of the chain, as the console draws them. */
 export type Person = "donor" | "ngo" | "partner" | "person";
 
-export type TraceEvent =
+/**
+ * `order` is the restaurant's listing id (lst_…), the same before and after the agents open a case for it,
+ * so a dashboard can follow one listing from the moment it's posted. Set by trace.ts.
+ */
+export type TraceEvent = (
   | { type: "decision"; seq: number; at: number; agent: AgentName; kind: DecisionKind; subject: string; reason: string; listingId?: string; shareId?: string; byReasoning?: boolean; /** Milliseconds from the start of the operation to this decision: how fast the rules answered. */ ms?: number }
   | { type: "handoff"; seq: number; at: number; from: AgentName; to: AgentName; task: string; listingId?: string; shareId?: string; event?: string }
   | { type: "message"; seq: number; at: number; from?: AgentName; to: Person; text: string; listingId?: string }
-  | { type: "thought"; seq: number; at: number; thought: Thought };
+  | { type: "thought"; seq: number; at: number; thought: Thought }
+) & { order?: string };
 
 /** Every 30 s: what the watcher looked at. Broadcast only, never kept. */
 export interface WatchPulse {

@@ -4,6 +4,7 @@
  * connects late, and a bus for the live stream. Decisions and thoughts are also in the store, so a restart
  * only loses hand-offs and messages from the ring.
  */
+import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import type { AgentName, Decision, OutboxMessage } from "../types.ts";
 import type { Person, Thought, TraceEvent, WatchPulse } from "./types.ts";
@@ -20,13 +21,28 @@ let seq = 0;
  */
 let op: { listingId?: string; agent?: AgentName; startedAt?: number } = {};
 
-type Draft = TraceEvent extends infer E ? (E extends TraceEvent ? Omit<E, "seq"> & { seq?: number } : never) : never;
+type Draft = TraceEvent extends infer E ? (E extends TraceEvent ? Omit<E, "seq" | "order"> & { seq?: number } : never) : never;
+
+/** An agent case (l-…) → the restaurant listing it came from (lst_…): one row per listing on the dashboards. */
+const aliases = new Map<string, string>();
+/** The restaurant listing whose case is being opened right now: the next new case id belongs to it. */
+let opening: string | undefined;
+let persist: ((e: TraceEvent & { id: string }) => Promise<unknown>) | null = null;
+
+function orderOf(listingId?: string) {
+  if (!listingId) return undefined;
+  if (opening && listingId.startsWith("l-") && !aliases.has(listingId)) aliases.set(listingId, opening);
+  return aliases.get(listingId) ?? listingId;
+}
 
 function emit(e: Draft) {
-  const ev = { ...e, seq: e.seq ?? ++seq } as TraceEvent;
+  const listingId = e.type === "thought" ? e.thought.listingId : e.listingId;
+  const ev = { ...e, seq: e.seq ?? ++seq, order: orderOf(listingId) } as TraceEvent;
   ring.push(ev);
   if (ring.length > KEEP) ring.splice(0, ring.length - KEEP);
   bus.emit("event", ev);
+  // Kept, so a dashboard opened later (or after a restart) still sees every step. Never blocks an agent.
+  persist?.({ ...ev, id: `tr-${randomUUID()}` }).catch((err) => console.error("trace save failed", (err as Error).message));
   return ev;
 }
 
@@ -36,6 +52,26 @@ const redact = (text: string) => text.replace(/(code\b[^0-9\n]{0,24})\d{4}\b/gi,
 const PERSON: Record<string, Person> = { donor: "donor", recipient: "ngo", partner: "partner" };
 
 export const trace = {
+  /** After a restart, number new events after the kept ones, so every event keeps a unique place in order. */
+  resumeAfter(lastSeq: number) {
+    seq = Math.max(seq, lastSeq);
+  },
+
+  /** Keep every event from now on (mountMatching passes the store). */
+  persistTo(fn: (e: TraceEvent & { id: string }) => Promise<unknown>) {
+    persist = fn;
+  },
+
+  /** This case came from that restaurant listing. */
+  alias(caseId: string, sourceListingId: string) {
+    aliases.set(caseId, sourceListingId);
+  },
+
+  /** While a case for this restaurant listing is being opened (undefined when done). */
+  opening(sourceListingId: string | undefined) {
+    opening = sourceListingId;
+  },
+
   /** Reserve a place in the order now, for an event only known after the operation (Food → Decision). */
   nextSeq: () => ++seq,
 

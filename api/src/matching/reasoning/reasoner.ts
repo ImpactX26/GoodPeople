@@ -338,7 +338,7 @@ export function createReasoner({ rt, llm, now = Date.now, debounceMs = 1500, wat
    * answer in time, the rules' pairing goes ahead. Its advice is checked like any action: pairs must name this
    * listing's staples and sides, and the rules do every count. `finish` records the thought once the case has an id.
    */
-  async function pairMeals(donorName: string, items: Item[], budgetMs = 3500) {
+  async function pairMeals(donorName: string, items: Item[], budgetMs = 3500, listingKey?: string) {
     if (!llm.enabled || !pairingIsAChoice(items)) return null;
     const byId = new Map(items.map((i) => [i.id, i]));
     const staples = items.filter((i) => roleOf(i) === "staple");
@@ -356,6 +356,7 @@ export function createReasoner({ rt, llm, now = Date.now, debounceMs = 1500, wat
       at: now(),
       agent: "food",
       point: "meals",
+      listingId: listingKey,
       about: `Pairing ${staples.map(label).join(", ")} with ${sides.map(label).join(", ")} for ${donorName}`,
       status: "thinking",
     };

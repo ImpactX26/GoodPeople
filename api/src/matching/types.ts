@@ -260,6 +260,7 @@ export type ReasonCode =
 export type AgentName = "food" | "ngo" | "logistics" | "decision";
 
 export type DecisionKind =
+  | "listed"
   | "review"
   | "graded"
   | "filtered"

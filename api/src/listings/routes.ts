@@ -22,6 +22,7 @@ import { trace } from "../matching/reasoning/trace.ts";
 import type { Decision } from "../matching/types.ts";
 import { packingLines, shareContainers } from "../matching/food-agent.ts";
 import type { AgentCase } from "./types.ts";
+import { foodChecked, foodChecking, foodListed } from "./foodTrace.ts";
 import { FOOD_CATEGORIES, type FoodListing, type ListingInput, type ListingView } from "./types.ts";
 
 type Env = { Variables: { session: Session } };
@@ -99,7 +100,12 @@ food.post("/listings", async c => {
       else applyFoodCheck(value, await requestFoodCheck(value));
     }
     if (value.state === "checking" && value.foodCheck && value.sample) assessScenario(value, now);
-    if (await listings.create(value) && background) void checkListing(id);
+    if (await listings.create(value)) {
+      // The Food Agent's work shows on the agent dashboards from the moment the food is posted (foodTrace.ts).
+      await foodListed(value).catch(e => console.error("food trace", (e as Error).message));
+      if (background) void checkListing(id);
+      else await foodChecked(value).catch(e => console.error("food trace", (e as Error).message));
+    }
   }
   const saved = existing ?? value;
   if (typeof replaces === "string") await markReplaced(replaces, s.phone, id);
@@ -278,14 +284,14 @@ async function handOffOnce(id: string, now: number): Promise<FoodListing | null>
   try {
     // Staples and sides become meals (spec §7.5): the rules pair them; the Food Agent's reasoning may reorder or
     // leave out pairs first, within a few seconds, or the rules' pairing goes ahead.
-    const pairing = await reasoner()?.pairMeals(first.donorName, passportItems(first, now)).catch(() => null);
+    const pairing = await reasoner()?.pairMeals(first.donorName, passportItems(first, now), undefined, first.id).catch(() => null);
     const passport = passportFrom(first, now, pairing?.advice);
     matchId = (await luna.submitListing(passport, now, { reviewed: true })).id;
     await pairing?.finish(matchId);
     // The Food Agent's verdict opens the case's log, like every other agent's decision.
     const c = first.foodCheck, model = c.models?.photo ? ` Photo judged by ${c.models.photo.replace(/^[^:]*:/, "")}.` : " Photo not judged by AI.";
     const verdict: Decision = { id: `d-food-${first.id}`, at: now - 1, agent: "food", kind: "graded", subject: matchId, listingId: matchId,
-      reason: `Checked ${first.dish}: Grade ${c.grade}, ${mealCount(passport.items)}, safe until ${new Date(first.assessment.safeUntil).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric", minute: "2-digit" })}${c.unsure ? ", unsure (the partner checks it at pickup)" : ""}.${model}` };
+      reason: `Checked ${first.dish}: Grade ${c.grade}, ${mealCount(passport.items)}, safe until ${new Date(first.assessment.safeUntil).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", ...(new Date(first.assessment.safeUntil).toDateString() === new Date(now).toDateString() ? {} : { day: "numeric", month: "short" }), hour: "numeric", minute: "2-digit" })}${c.unsure ? ", unsure (the partner checks it at pickup)" : ""}.${model}` };
     if (await matchingStore.insert("decision", verdict)) trace.decision(verdict);
   }
   catch (e) { console.error("case handoff failed", (e as Error).message); return first; }
@@ -307,6 +313,7 @@ export async function checkListing(id: string) {
 async function runCheck(id: string) {
   const first = await listings.get(id);
   if (!first || first.foodCheck) return;
+  foodChecking(first);
   // a session checks every food (in parallel); a single dish has one check
   const checks = first.items ? await checkItems(first) : [await requestFoodCheck(first)];
   for (let attempt = 0; attempt < C.casRetries; attempt++) {
@@ -317,6 +324,7 @@ async function runCheck(id: string) {
     const version = l.version; l.version++;
     if (await listings.save(l, version)) {
       ping(l.donorPhone, "food_check");
+      await foodChecked(l).catch(e => console.error("food trace", (e as Error).message));
       if (l.state === "offered") await ensureScenarioOffer(l).catch(e => console.error("walkthrough offer failed", (e as Error).message));
       if (l.state === "checking") await handOff(id);
       return;

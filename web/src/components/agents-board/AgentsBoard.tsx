@@ -99,10 +99,14 @@ export default function AgentsBoard() {
   }, [waiting, printed, pace, events.length]);
 
   const cases = usePoll(caseListings, 5000);
-  const caseById = useMemo(() => new Map((cases.data ?? []).map((l) => [l.id, l])), [cases.data]);
+  // A row is keyed by the restaurant's listing; its case (once opened) is found by either id.
+  const caseById = useMemo(() => new Map((cases.data ?? []).flatMap((l) => [[l.id, l] as const, ...(l.sourceListingId ? [[l.sourceListingId, l] as const] : [])])), [cases.data]);
   const caseNo = useMemo(() => {
     const m = new Map<string, number>();
-    [...(cases.data ?? [])].sort((a, b) => a.createdAt - b.createdAt).forEach((l, i) => m.set(l.id, i + 1));
+    [...(cases.data ?? [])].sort((a, b) => a.createdAt - b.createdAt).forEach((l, i) => {
+      m.set(l.id, i + 1);
+      if (l.sourceListingId) m.set(l.sourceListingId, i + 1);
+    });
     return m;
   }, [cases.data]);
 

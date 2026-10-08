@@ -10,6 +10,7 @@ import { createLuna } from "./luna.ts";
 import { startReasoning } from "./reasoning/index.ts";
 import type { Reasoner } from "./reasoning/reasoner.ts";
 import { reasoningRoutes } from "./reasoning/routes.ts";
+import { trace } from "./reasoning/trace.ts";
 import { matchingRoutes } from "./routes.ts";
 import { startScheduler } from "./scheduler.ts";
 import { areaIdFromName } from "./seed.ts";
@@ -48,6 +49,10 @@ export { matchingStore };
 
 export async function mountMatching(app: Hono) {
   await matchingStore.init();
+  // The dashboards' feed: every event is kept, and every case knows the restaurant listing it came from.
+  for (const l of await matchingStore.list("listing")) if (l.sourceListingId) trace.alias(l.id, l.sourceListingId);
+  trace.resumeAfter(Math.max(0, ...(await matchingStore.list("trace")).map((e) => e.seq)));
+  trace.persistTo((e) => matchingStore.insert("trace", e));
   const luna = createLuna({ store: matchingStore, listDonors });
   await luna.seed();
   running = luna;
