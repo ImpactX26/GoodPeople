@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, ChevronDown, Clock, LogOut, Map as MapIcon, Phone, Truck, X } from "lucide-react";
 import { formatPhone, getProfile, signOut, updateProfile, type Session } from "@/lib/luna/auth";
-import { answerTrip, enterCode, fmtTime, linked, myTrips, runningLate, sendLocation, setOnline, type LinkedPartner, type Trip } from "@/lib/luna/agents";
+import { answerTrip, claimPickup, enterCode, fmtTime, linked, myTrips, openPickups, runningLate, sendLocation, setOnline, type LinkedPartner, type OpenPickup, type Trip } from "@/lib/luna/agents";
 import { listNgos, type Ngo } from "@/lib/luna/ngoAgent";
 import { usePoll } from "@/lib/luna/usePoll";
 import { stamp } from "@/components/ticket/Ticket";
@@ -39,6 +39,7 @@ export default function PartnerHome({ session, fields: f }: { session: Session; 
   const router = useRouter();
   const link = usePoll(() => linked(), 10_000);
   const trips = usePoll(myTrips, 6_000);
+  const open = usePoll(openPickups, 8_000);
   const now = useClock(1000);
   const me = link.data?.partners ?? [];
   const ids = new Set(me.map((p) => p.id));
@@ -73,11 +74,11 @@ export default function PartnerHome({ session, fields: f }: { session: Session; 
           <Updates />
           {live.map((t) => <TripSlip key={t.id} trip={t} onDone={trips.reload} />)}
 
-          {live.length === 0 && (
+          {live.length === 0 && (asks.length > 0 || !open.data?.length) && (
             <section className={n.section} aria-labelledby="ask-title" aria-live="polite">
               <h2 id="ask-title" className={n.heading}>Pickup requests {asks.length > 0 && <span className={n.count}>{asks.length}</span>}</h2>
               {asks.map((t) => <Ask key={t.id} trip={t} now={now} onDone={trips.reload} />)}
-              {asks.length === 0 && (
+              {asks.length === 0 && (open.data?.length ?? 0) === 0 && (
                 notRegistered ? (
                   <div className={n.quiet} data-call><p className={n.print}>Setting up your partner account…</p><p>This takes a moment the first time. If it stays, sign out and in again.</p></div>
                 ) : online ? (
@@ -90,6 +91,14 @@ export default function PartnerHome({ session, fields: f }: { session: Session; 
                   </div>
                 )
               )}
+            </section>
+          )}
+
+          {live.length === 0 && (open.data?.length ?? 0) > 0 && (
+            <section className={n.section} aria-labelledby="open-title" aria-live="polite">
+              <h2 id="open-title" className={n.heading}>Open pickups <span className={n.count}>{open.data!.length}</span></h2>
+              <p className={d.note}>An NGO said yes, but no partner has taken these yet. First to tap gets it, even if you missed the request.</p>
+              {open.data!.map((t) => <OpenTicket key={t.id} trip={t} now={now} onDone={() => { void trips.reload(); void open.reload(); }} />)}
             </section>
           )}
           {trips.error && <p className={d.barError} role="alert">{trips.error}</p>}
@@ -192,6 +201,44 @@ function Ask({ trip: t, now, onDone }: { trip: Trip; now: number; onDone: () => 
         <button type="button" className={n.accept} disabled={busy || !!done} onClick={() => void answer(true)}><Check size={22} strokeWidth={3} aria-hidden /> {busy ? "Accepting…" : "Accept pickup"}</button>
         <button type="button" className={n.pass} disabled={busy || !!done} onClick={() => void answer(false)}><X size={18} aria-hidden /> Can’t</button>
       </div>
+    </article>
+  );
+}
+
+/**
+ * An open pickup: accepted by an NGO, taken by nobody. No countdown to beat, just how long it has been waiting,
+ * a mark if you missed the request, and one bar to take it.
+ */
+function OpenTicket({ trip: t, now, onDone }: { trip: OpenPickup; now: number; onDone: () => void }) {
+  const [busy, setBusy] = useState(false), [problem, setProblem] = useState(""), [done, setDone] = useState(false);
+  const waited = Math.max(1, Math.round((now - t.waitingSince) / 60_000));
+  const take = async () => {
+    setBusy(true); setProblem("");
+    try { const r = await claimPickup(t.id); if (!r.ok) throw new Error(r.error); setDone(true); setTimeout(onDone, 650); }
+    catch (e) { setProblem((e as Error).message); setBusy(false); onDone(); }
+  };
+  return (
+    <article className={n.offer} aria-label={`Open pickup: ${t.keepReady}`}>
+      {done && <span className={n.stampBig} aria-hidden>Yours</span>}
+      {t.hasPhoto && <SharePhoto shareId={t.id} alt={`Photo of ${t.keepReady}`} />}
+      <header className={n.offerHead}>
+        <div><h3>{t.keepReady}</h3>{t.servings ? <p>{t.servings} servings to deliver</p> : null}</div>
+        <span className={s.waited}><b>{waited} min</b><span>waiting</span></span>
+      </header>
+      {t.missed && <p className={s.missed}><Clock size={16} aria-hidden /> You missed this request. It’s still open, so you can take it now.</p>}
+      {t.travel && (
+        <p className={s.travel}>
+          <span><b>{t.travel.toPickupMin} min</b> to the restaurant</span>
+          {t.travel.toDropMin !== null && <span><b>{t.travel.toDropMin} min</b> on to the NGO</span>}
+        </p>
+      )}
+      <dl className={s.places}>
+        <div><dt>Collect from</dt><dd>{t.pickup.name}</dd></div>
+        <div><dt>Drop at</dt><dd>{t.drop?.name ?? "an NGO"}</dd></div>
+      </dl>
+      {t.containers.length > 0 && <p className={s.bring}><b>Bring</b>{t.containers.join(" + ")}</p>}
+      {problem && <p className={d.barError} role="alert">{problem}</p>}
+      <button type="button" className={n.accept} disabled={busy || done} onClick={() => void take()}><Truck size={20} aria-hidden /> {busy ? "Taking it…" : "Take this pickup"}</button>
     </article>
   );
 }

@@ -282,3 +282,38 @@
   height: 22px;
   accent-color: var(--ink);
 }
+
+/* Open pickups: how long it has waited (no countdown to beat), and a mark when you missed the request. */
+.waited {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: none;
+  font: 11px/1.2 var(--font-print);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.waited b {
+  font: 800 24px/1 var(--font-print);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.missed {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1.5px dashed var(--ink);
+  font: 600 15px/1.4 var(--font-note);
+}
+
+.missed svg {
+  flex: none;
+  margin-top: 2px;
+}

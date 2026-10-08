@@ -269,11 +269,12 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       // Nobody free yet: keep the NGO's acceptance and keep looking (its own riders first) until the pickup window
       // closes. Meanwhile the pickup sits on the open pickups board, where anyone who can reach it (including
       // partners who missed the ask) can take it.
-      const first = !share.waitingForPartnerSince;
       const since = share.waitingForPartnerSince ?? now;
-      if (!first && (await handOnToNextNgo(share, l, ngo, since, now))) return;
-      await store.put("share", { ...share, askedPartnerId: undefined, askDeadlineAt: undefined, waitingForPartnerSince: since, lastPartnerTryAt: now });
-      if (first) {
+      if (share.waitingForPartnerSince && (await handOnToNextNgo(share, l, ngo, since, now))) return;
+      // The board notice goes out once per share, including shares that were already waiting before it existed.
+      const notice = !share.openNoticeAt;
+      await store.put("share", { ...share, askedPartnerId: undefined, askDeadlineAt: undefined, waitingForPartnerSince: since, lastPartnerTryAt: now, openNoticeAt: share.openNoticeAt ?? now });
+      if (notice) {
         const wait = waitLimit(l, share);
         await decide(now, "delayed", ngo.id, `No delivery partner has taken the pickup near ${l.donorName}. It's on the open pickups board for every partner who can reach it; if nobody takes it in ${fmtMinutes(wait)}, it moves to the next NGO with a partner free.`, l.id, { shareId: share.id });
         await toNgo(now, ngo, msg.text(`Accepted. No delivery partner has taken the pickup yet, so it's open to every partner nearby. If nobody takes it in ${fmtMinutes(wait)}, Luna passes it to another NGO so it isn't wasted. If your staff can collect, tap "Our own staff will collect".`));

@@ -199,7 +199,9 @@ export function matchingRoutes(luna: Luna, store: MatchingStore, clock: () => nu
     if (s instanceof Response) return s;
     const share = await store.get("share", c.req.param("id")!);
     const askedMe = share && s.role === "volunteer" && (await store.list("partner", { phone: s.phone })).some((p) => p.id === share.askedPartnerId);
-    if (!share || !(askedMe || (await sideOf(s, share)))) return c.json({ error: "Not found." }, 404);
+    // A partner looking at the open pickups board sees the photos of what they could take.
+    const onMyBoard = share && s.role === "volunteer" && share.status === "finding_partner" && (await luna.openPickups(s.phone, clock())).some((o) => o.share.id === share.id);
+    if (!share || !(askedMe || onMyBoard || (await sideOf(s, share)))) return c.json({ error: "Not found." }, 404);
     const l = await store.get("listing", share.listingId);
     const src = l?.sourceListingId ? await foodListings.get(l.sourceListingId) : null;
     if (!src) return [];

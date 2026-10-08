@@ -151,6 +151,10 @@ export type Trip = Share & Track & {
   hasPhoto?: boolean;
 };
 export const myTrips = () => get<Trip[]>("/trips");
+/** Pickups an NGO accepted that no partner has taken and I could take; `missed`: I was asked and didn't answer. */
+export type OpenPickup = Trip & { missed: boolean; waitingSince: number };
+export const openPickups = () => get<OpenPickup[]>("/partner/open");
+export const claimPickup = (id: string) => post(`/trips/${id}/claim`);
 export const setOnline = (online: boolean, pos?: { lat: number; lng: number }) => post("/partner/online", { online, ...pos });
 export const answerTrip = (id: string, accept: boolean) => post(`/trips/${id}/${accept ? "accept" : "decline"}`);
 export const runningLate = (id: string) => post(`/trips/${id}/late`);

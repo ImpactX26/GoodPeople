@@ -266,6 +266,8 @@ export interface Share {
   /** Accepted, but no partner was free: since when it has been waiting, and when it last looked. */
   waitingForPartnerSince?: number;
   lastPartnerTryAt?: number;
+  /** When it went on the open pickups board with a heads-up to partners and the NGO (once per share, old ones too). */
+  openNoticeAt?: number;
   createdAt: number;
 }
 
