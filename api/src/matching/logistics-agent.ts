@@ -47,6 +47,14 @@ export type LogisticsEvent =
   | { type: "unplaced"; share: Share }
   /** Late, but the food is still safe when served. */
   | { type: "behind_schedule"; share: Share; ngo: Recipient; arrival: number }
+  /** Progress the Decision Agent passes on to everyone involved (spec §14.3). */
+  | { type: "offered"; share: Share; ngo: Recipient; minutes: number }
+  | { type: "ngo_passed"; share: Share; ngo: Recipient; how: "declined" | "expired" }
+  | { type: "partner_asked"; share: Share; ngo: Recipient; partner: Partner; own: boolean }
+  | { type: "partner_waiting"; share: Share; ngo: Recipient }
+  | { type: "partner_exhausted"; share: Share; ngo: Recipient }
+  /** A live trip's latest estimate: the Decision Agent judges lateness against what was promised. */
+  | { type: "eta"; share: Share; ngo: Recipient; partner: Partner; arrival: number; pickupAt: number | null }
   /** Late enough that the food would no longer be safe when served: redirect needed. */
   | { type: "unsafe_delay"; share: Share }
   | { type: "redirect_failed"; share: Share }
@@ -111,8 +119,11 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
         return { p, own: p.ngoId === ngo.id, toPickup, pickupAt: Math.max(now + toPickup, l.readyFrom), leg };
       })
       .filter((c) => c.pickupAt <= l.collectBy && c.leg.serveTime <= until)
-      .sort((a, b) => Number(b.own) - Number(a.own) || a.toPickup - b.toPickup);
+      // own riders first; within a tier, partners rated below the low mark are asked after the rest
+      .sort((a, b) => Number(b.own) - Number(a.own) || Number(lowRated(a.p)) - Number(lowRated(b.p)) || a.toPickup - b.toPickup);
   }
+
+  const lowRated = (p: Partner) => (p.reliability?.trips ?? 0) >= config.reliability.newUntilTrips && (p.reliability?.score ?? 5) < config.reliability.lowScore;
 
   async function partnerOf(share: Share): Promise<Partner | null> {
     const pid = share.partnerId ?? share.askedPartnerId;
@@ -139,6 +150,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       const minutes = Math.round(ms / 60_000);
       await decide(now, "offered", ngo.id, `Offered ${servingsOf(share.lines)} servings of ${foodOf(l, share.lines)} to ${ngo.name}${ngo.phone ? "" : " (sample NGO, answers automatically)"}, ${minutes} min to reply.${supply ? "" : " No delivery partner is online near it yet; if it accepts, its own volunteers are asked first as soon as one is."}`, l.id, { shareId: share.id });
       await toNgo(now, ngo, msg.foodOffer({ shareId: share.id, servings: servingsOf(share.lines), food: foodOf(l, share.lines), grade: worstGrade(l, share.lines), safeUntil: safeUntilOf(l, share.lines), arriveBy: c.arriveBy, minutes }));
+      await deps.emit({ type: "offered", share: next, ngo, minutes }, now);
       return;
     }
     const done: Share = { ...share, status: "unplaced", ngoId: undefined };
@@ -162,6 +174,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       const next: Share = { ...share, triedNgoIds: [...share.triedNgoIds, ngo.id], ngoId: undefined };
       if (!(await store.cas("share", next, "offering"))) return fail(GONE);
       await decide(now, "declined", ngo.id, `${ngo.name} declined ${servingsOf(share.lines)} servings of ${foodOf(l, share.lines)}.`, l.id, { shareId });
+      await deps.emit({ type: "ngo_passed", share: next, ngo, how: "declined" }, now);
       await offerNext(next, now);
       return ok("Thanks for letting us know.");
     }
@@ -179,6 +192,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     if (!(await store.cas("share", next, "offering"))) return;
     await decide(now, "expired", ngo.id, `${ngo.name} didn't reply in time; moving on.`, share.listingId, { shareId: share.id });
     await toNgo(now, ngo, msg.text("That food offer has closed because the time ran out. We'll send the next one your way."));
+    await deps.emit({ type: "ngo_passed", share: next, ngo, how: "expired" }, now);
     await offerNext(next, now);
   }
 
@@ -195,6 +209,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       if (first) {
         await decide(now, "delayed", ngo.id, `No delivery partner is free near ${l.donorName} right now. Waiting for ${ngo.name}'s own volunteers first, then anyone nearby, until ${fmtTime(l.collectBy)}.`, l.id, { shareId: share.id });
         await toNgo(now, ngo, msg.text(`Accepted. No delivery partner is free right now; we'll ask your own volunteers first the moment one is. If your staff can collect, tap "Our own staff will collect".`));
+        await deps.emit({ type: "partner_waiting", share, ngo }, now);
       }
       return;
     }
@@ -204,6 +219,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
       await store.put("share", next);
       await decide(now, "escalated", ngo.id, `No delivery partner could collect for ${ngo.name}, so the food is offered to the next NGO.`, l.id, { shareId: share.id });
       await toNgo(now, ngo, msg.text(`Sorry, no delivery partner could collect the food from ${l.donorName} for you in time, so we've offered it to another NGO.`));
+      await deps.emit({ type: "partner_exhausted", share: next, ngo }, now);
       await offerNext(next, now);
       return;
     }
@@ -211,6 +227,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const ms = serveNow ? config.partnerAcceptServeNowMs : config.partnerAcceptMs;
     await store.put("partner", { ...best.p, activeShareId: share.id });
     await store.put("share", { ...share, askedPartnerId: best.p.id, askedAt: now, askDeadlineAt: now + ms, lastPartnerTryAt: now });
+    await deps.emit({ type: "partner_asked", share, ngo, partner: best.p, own: best.own }, now);
     const who = best.own ? `${ngo.name}'s own partner` : "an independent partner";
     await decide(now, "offered", best.p.id, `Asked ${best.p.name}, ${who} (${fmtMinutes(best.toPickup)} from the pickup), ${fmtMinutes(ms)} to accept${serveNow ? " because it's serve-now food" : ""}.`, l.id, { shareId: share.id });
     await toPartner(
@@ -278,8 +295,14 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const toDrop = etaMs(distanceKm(l, ngo), p.travel);
     const pickupAt = Math.max(now + toPickup, l.readyFrom);
     const pickupBy = Math.max(now + toPickup * config.checkpointSlack, l.readyFrom);
+    const promised = legFor(ngo, l, { pos: p, startAt: now, travel: p.travel, pickedUp: false });
     const next: Share = {
       ...share,
+      promisedPickupAt: pickupAt,
+      promisedArrival: promised.arrival,
+      lateNoticeMin: 0,
+      lateReported: false,
+      lastEtaCheckAt: now,
       status: "assigned",
       partnerId: p.id,
       askedPartnerId: undefined,
@@ -378,7 +401,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     const g = await guardTrip(shareId, by);
     if (g.error) return g.error;
     const delayUntil = Math.max(now, g.share.delayUntil ?? now) + config.lateStepMs;
-    const next = { ...g.share, delayUntil };
+    const next = { ...g.share, delayUntil, lateReported: true };
     await store.put("share", next);
     await decide(now, "delayed", g.p.id, `${g.p.name} says they're running late (about ${fmtMinutes(delayUntil - now)} more).`, next.listingId, { shareId });
     await watch(next, now, true);
@@ -410,12 +433,37 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     if (leg.serveTime <= until) {
       const behind = reportLate || now > share.deliverBy || (share.status === "assigned" && now > share.pickupBy);
       const pickupBy = share.status === "assigned" ? origin.startAt + etaMs(distanceKm(origin.pos, l), p.travel) * config.checkpointSlack : share.pickupBy;
-      await store.put("share", { ...share, pickupBy, deliverBy: now + (leg.arrival - now) * config.checkpointSlack });
-      if (behind) await deps.emit({ type: "behind_schedule", share, ngo, arrival: leg.arrival }, now);
+      const next: Share = { ...share, pickupBy, deliverBy: now + (leg.arrival - now) * config.checkpointSlack, lastEtaCheckAt: now };
+      await store.put("share", next);
+      const pickupAt = share.status === "assigned" ? Math.max(origin.startAt + etaMs(distanceKm(origin.pos, l), p.travel), l.readyFrom) : null;
+      await deps.emit({ type: "eta", share: next, ngo, partner: p, arrival: leg.arrival, pickupAt }, now);
+      if (behind && !share.promisedArrival) await deps.emit({ type: "behind_schedule", share: next, ngo, arrival: leg.arrival }, now);
       return;
     }
     await decide(now, "delayed", share.id, `${p.name} is delayed: the food would reach ${ngo.name} around ${fmtTime(leg.arrival)} and be served at ${fmtTime(leg.serveTime)}, but it's only safe until ${fmtTime(until)}.`, l.id, { shareId: share.id });
     await deps.emit({ type: "unsafe_delay", share }, now);
+  }
+
+  /** For the Decision Agent: a free partner (not the current one) who'd reach the pickup sooner, if any. */
+  async function fasterPartner(share: Share, now: number): Promise<{ partner: Partner; pickupAt: number } | null> {
+    if (share.status !== "assigned" || !share.ngoId || !share.partnerId) return null;
+    const l = await rt.mustGet("listing", share.listingId);
+    const ngo = await rt.mustGet("recipient", share.ngoId);
+    const best = (await partnersFor({ ...share, triedPartnerIds: [...share.triedPartnerIds, share.partnerId] }, l, ngo, now))[0];
+    return best ? { partner: best.p, pickupAt: best.pickupAt } : null;
+  }
+
+  /** On the Decision Agent's behalf: take the pickup off a late partner and ask the next one (own riders first). */
+  async function replacePartner(share: Share, now: number, why: string): Promise<boolean> {
+    const p = share.partnerId ? await store.get("partner", share.partnerId) : null;
+    if (!p) return false;
+    const next: Share = { ...share, status: "finding_partner", partnerId: undefined, assignedAt: undefined, triedPartnerIds: [...share.triedPartnerIds, p.id],
+      promisedPickupAt: undefined, promisedArrival: undefined, lateNoticeMin: 0, lateReported: false, lastPartnerTryAt: now };
+    if (!(await store.cas("share", next, "assigned"))) return false;
+    await store.put("partner", { ...p, activeShareId: undefined });
+    if (!p.manual) await toPartner(now, p, msg.text(`${why} We've passed this pickup to another partner so the food stays safe. No need to go to the restaurant now.`));
+    await askNextPartner(next, now);
+    return true;
   }
 
   /** On the Decision Agent's behalf: offer the in-flight food to a closer NGO. */
@@ -553,7 +601,7 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
           continue;
         }
         const due = status === "assigned" ? s.pickupBy : s.deliverBy;
-        if (now > due) await rt.safely(`watch ${s.id}`, () => watch(s, now, false));
+        if (now > due || now - (s.lastEtaCheckAt ?? 0) >= config.lateness.etaCheckMs) await rt.safely(`watch ${s.id}`, () => watch(s, now, false));
       }
     }
     await simulate(now);
@@ -611,6 +659,8 @@ export function createLogisticsAgent(rt: Runtime, deps: LogisticsDeps) {
     track,
     tick,
     retryUnplaced,
+    fasterPartner,
+    replacePartner,
   };
 }
 

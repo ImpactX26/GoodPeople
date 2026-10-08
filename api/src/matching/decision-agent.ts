@@ -16,7 +16,8 @@ import type { NgoAgent } from "./ngo-agent.ts";
 import { fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
 import { areaById } from "./seed.ts";
 import { fmtTime } from "./time.ts";
-import type { DecisionKind, Item, Listing, Share } from "./types.ts";
+import type { DecisionKind, Item, Listing, Partner, Share, TripMark } from "./types.ts";
+import { markFor, reliabilityLine, withMark } from "./reliability.ts";
 import * as msg from "./whatsapp/templates.ts";
 
 export type NewListing = Omit<Listing, "id" | "status" | "createdAt" | "unplacedServings">;
@@ -106,6 +107,28 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
   }
 
   /**
+   * While the donor is waiting on an NGO or a partner, silence is filled: a short "still on it" every
+   * few minutes with where things stand (spec §14.1, heartbeat).
+   */
+  async function heartbeat(now: number) {
+    for (const l of await store.list("listing")) {
+      if (l.status === "closed" || l.status === "review") continue;
+      const waiting = (await store.list("share", { listingId: l.id })).filter((s) => s.status === "offering" || s.status === "finding_partner");
+      if (!waiting.length) continue;
+      const last = Math.max(l.lastHeartbeatAt ?? 0, ...(await store.list("decision", { listingId: l.id })).map((d) => d.at));
+      if (now - last < config.heartbeatMs) continue;
+      await store.put("listing", { ...l, lastHeartbeatAt: now });
+      const parts: string[] = [];
+      for (const s of waiting) {
+        const ngo = s.ngoId ? await store.get("recipient", s.ngoId) : null;
+        if (s.status === "offering" && ngo) parts.push(`waiting for ${ngo.name} to reply (${Math.max(0, Math.round(((s.offerDeadlineAt ?? now) - now) / 60_000))} min left)`);
+        else if (ngo) parts.push(`${ngo.name} accepted; finding a delivery partner`);
+      }
+      await rt.toDonor(now, l, `Still on it: ${parts.join("; ")}.`);
+    }
+  }
+
+  /**
    * Servings no NGO could take (all closed, full, or too far for the food's safe time) get another look while
    * the food is safe and collectable: an NGO may open, list itself, or free up room. Quiet unless it places food.
    */
@@ -151,9 +174,33 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
       }
       case "picked_up":
         await rt.toDonor(now, l, `Picked up by ${e.partner.name}. On the way to ${e.ngo.name}.`);
+        await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.text(`${e.partner.name} picked up the ${foodOf(l, e.share.lines)}${e.share.promisedArrival ? `, arriving about ${fmtTime(Math.max(now, e.share.promisedArrival))}` : ""}. Keep your drop code ready.`));
+        break;
+      /* Keeping everyone in the loop (spec §14.3). The NGO and partner already get their own offer/request. */
+      case "offered":
+        await rt.toDonor(now, l, `Asked ${e.ngo.name} to take ${servingsOf(e.share.lines)} servings of ${foodOf(l, e.share.lines)}. They have ${e.minutes} min to reply.`);
+        break;
+      case "ngo_passed":
+        await rt.toDonor(now, l, `${e.ngo.name} couldn't take it${e.how === "expired" ? " in time" : " right now"}. Luna is asking the next NGO.`);
+        break;
+      case "partner_asked":
+        await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.text(`Asking ${e.partner.name}${e.own ? " (one of your volunteers)" : " (a delivery partner nearby)"} to collect the ${foodOf(l, e.share.lines)}.`));
+        break;
+      case "partner_waiting":
+        await rt.toDonor(now, l, `${e.ngo.name} will take it. No delivery partner is free just now; one is asked the moment they are. Please keep the food ready.`);
+        break;
+      case "partner_exhausted":
+        await rt.toDonor(now, l, `${e.ngo.name} couldn't get a delivery partner in time, so Luna is asking another NGO.`);
+        break;
+      case "eta":
+        await onEta(e.share, e.partner, e.ngo.name, e.ngo.phone, e.ngo.id, l, e.arrival, e.pickupAt, now);
         break;
       case "delivered": {
         const n = servingsOf(e.share.lines);
+        if (e.share.promisedArrival && !e.partner.manual) {
+          const lateMin = Math.max(0, Math.round((now - e.share.promisedArrival) / 60_000));
+          await rate(e.partner, { shareId: e.share.id, at: now, lateMin, reported: !!e.share.lateReported, final: true, kind: lateMin > config.lateness.graceMin ? "late" : "on_time" }, l.id, now);
+        }
         await rt.toDonor(now, l, `Delivered to ${e.ngo.name} at ${fmtTime(now)}, fed ${n}. Thank you!`);
         await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.feedbackAsk({ shareId: e.share.id, servings: n, donor: l.donorName }));
         if (!e.partner.manual) await rt.send(now, e.partner.phone, `partner:${e.partner.id}`, msg.text(`Delivered! Thank you, ${e.partner.name}. You just helped feed ${n} people.`));
@@ -170,7 +217,13 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
         await decide(now, "delayed", e.share.id, `The partner is behind schedule but the food still reaches ${e.ngo.name} safely (about ${fmtTime(e.arrival)}).`, l.id, { shareId: e.share.id });
         await rt.send(now, e.ngo.phone, `recipient:${e.ngo.id}`, msg.text(`The delivery partner is running a little late. New arrival time: about ${fmtTime(e.arrival)}.`));
         break;
-      case "unsafe_delay":
+      case "unsafe_delay": {
+        const s = (await store.get("share", e.share.id))!;
+        const p = s.partnerId ? await store.get("partner", s.partnerId) : null;
+        if (p && !p.manual) await rate(p, { shareId: s.id, at: now, lateMin: s.promisedArrival ? Math.max(0, Math.round((now - s.promisedArrival) / 60_000)) : 0, reported: !!s.lateReported, final: true, kind: "unsafe_delay" }, l.id, now);
+        await redirect(s, now);
+        break;
+      }
       case "redirect_failed":
         await redirect((await store.get("share", e.share.id))!, now);
         break;
@@ -187,6 +240,58 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
         break;
     }
     await refreshListing(l.id, now);
+  }
+
+  /** Updates a partner's reliability with this trip's mark (live while late, final at the drop) and logs why. */
+  async function rate(p: Partner, m: Omit<TripMark, "score">, listingId: string, now: number) {
+    const fresh = (await store.get("partner", p.id)) ?? p;
+    const before = fresh.reliability?.score;
+    const reliability = withMark(fresh.reliability, { ...m, score: markFor(m.kind, m.lateMin, m.reported) });
+    await store.put("partner", { ...fresh, reliability });
+    if (before === undefined || Math.abs(reliability.score - before) >= 0.05)
+      await decide(now, "rated", p.id, `${p.name}'s reliability is now ${reliability.score.toFixed(1)} / 5 (${m.kind === "on_time" ? "on time" : m.kind === "late" ? `${m.lateMin} min late${m.reported ? ", warned us" : ""}` : m.kind === "reassigned" ? "pickup reassigned for lateness" : "delay made the food unsafe for its NGO"}).`, listingId, { partnerId: p.id, score: reliability.score });
+    return reliability;
+  }
+
+  /**
+   * A live trip's estimate against what was promised. Late past the grace: the partner's rating moves now,
+   * the NGO, the restaurant and the partner hear the new times (again each time it slips another few
+   * minutes), and before pickup a much faster free partner takes over.
+   */
+  async function onEta(share: Share, partner: Partner, ngoName: string, ngoPhone: string | undefined, ngoId: string, l: Listing, arrival: number, pickupAt: number | null, now: number) {
+    if (!share.promisedArrival || partner.manual) return;
+    const L = config.lateness;
+    const lateMin = Math.max(0, Math.round((arrival - share.promisedArrival) / 60_000));
+    if (lateMin <= L.graceMin) return;
+    const reported = !!share.lateReported;
+    const rel = await rate(partner, { shareId: share.id, at: now, lateMin, reported, final: false, kind: "late" }, l.id, now);
+    if (lateMin - (share.lateNoticeMin ?? 0) < L.noticeStepMin) return;
+    if (!(await store.cas("share", { ...share, lateNoticeMin: lateMin }, share.status))) return;
+    const food = foodOf(l, share.lines), until = fmtTime(Math.min(...itemsOf(l, share.lines).map((i) => l.createdAt + i.safeTime * 60_000)));
+
+    // Before pickup and badly late: hand the pickup to someone who'd get there clearly sooner.
+    if (share.status === "assigned" && pickupAt && lateMin >= L.reassignAfterMin) {
+      const alt = await logistics.fasterPartner(share, now);
+      if (alt && alt.pickupAt <= pickupAt - L.reassignGainMin * 60_000) {
+        await rate(partner, { shareId: share.id, at: now, lateMin, reported, final: true, kind: "reassigned" }, l.id, now);
+        await decide(now, "reassigned", share.id, `${partner.name} is ${lateMin} min behind and hasn't collected the food; ${alt.partner.name} can reach ${l.donorName} by ${fmtTime(alt.pickupAt)} instead of ${fmtTime(pickupAt)}, so the pickup moves to them.`, l.id, { shareId: share.id, from: partner.id, to: alt.partner.id });
+        if (await logistics.replacePartner(share, now, `You're about ${lateMin} min behind.`)) {
+          await rt.toDonor(now, l, `${partner.name} is running late, so another delivery partner is coming for the ${food} instead. Please keep it ready.`);
+          await rt.send(now, ngoPhone, `recipient:${ngoId}`, msg.text(`${partner.name} was running late, so Luna is sending another delivery partner for the ${food}. We'll send the new arrival time.`));
+          return;
+        }
+      }
+    }
+
+    const was = fmtTime(share.promisedArrival);
+    await decide(now, "delayed", share.id, `${partner.name} is about ${lateMin} min behind${reported ? " (they warned us)" : ""}: ${share.status === "assigned" ? `pickup now about ${fmtTime(pickupAt ?? now)}, ` : ""}arrival at ${ngoName} about ${fmtTime(arrival)} instead of ${was}. The food stays safe until ${until}. Told ${ngoName}, ${l.donorName} and ${partner.name}.`, l.id, { shareId: share.id, lateMin });
+    await rt.send(now, ngoPhone, `recipient:${ngoId}`, msg.text(`${partner.name} is running about ${lateMin} min late. The ${food} now reaches you about ${fmtTime(arrival)} (was ${was}). It's still safe to serve.`));
+    await rt.toDonor(now, l, share.status === "assigned"
+      ? `${partner.name} is running about ${lateMin} min late and now reaches you about ${fmtTime(pickupAt ?? now)}. Please keep the ${food} hot and ready.`
+      : `Your ${food} is running about ${lateMin} min late to ${ngoName}, arriving about ${fmtTime(arrival)}. It's still safe.`);
+    await rt.send(now, partner.phone, `partner:${partner.id}`, msg.text(reported
+      ? `Thanks for the heads-up. ${ngoName} and ${l.donorName} know you're about ${lateMin} min behind. Your reliability: ${reliabilityLine(rel)}.`
+      : `You're about ${lateMin} min behind. We've told ${ngoName} and ${l.donorName}. Next time tap "Running late" to warn them early. Your reliability: ${reliabilityLine(rel)}.`));
   }
 
   const partnerLabel = (p: { name: string; phone?: string }) => (p.phone ? `${p.name} (${p.phone})` : p.name);
@@ -258,6 +363,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
 
   async function tick(now: number) {
     await logistics.tick(now);
+    await heartbeat(now);
     await replanUnplaced(now);
     // Food stranded only for want of a partner goes out again once someone can collect it.
     for (const s of await logistics.retryUnplaced(now)) {

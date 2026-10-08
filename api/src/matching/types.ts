@@ -76,6 +76,8 @@ export interface Listing extends LatLng {
   sourceListingId?: string;
   /** Last time the Decision Agent asked the NGO Agent again for servings nobody could take. */
   lastReplanAt?: number;
+  /** Last "still on it" sent to the donor while waiting. */
+  lastHeartbeatAt?: number;
 }
 
 export interface Recipient extends LatLng {
@@ -123,6 +125,30 @@ export interface Partner extends LatLng {
   activeShareId?: string;
   /** "sample" for seeded demo partners; "volunteer" for signed-up volunteer accounts. */
   source?: "sample" | "volunteer";
+  /** Reliability the Decision Agent keeps from how trips went; updated live while a trip runs late. */
+  reliability?: Reliability;
+}
+
+/** One trip's mark in a partner's reliability: rewritten while the trip runs, final at the drop. */
+export interface TripMark {
+  shareId: string;
+  at: number;
+  /** 0–5 */
+  score: number;
+  kind: "on_time" | "late" | "reassigned" | "unsafe_delay";
+  lateMin: number;
+  /** The partner warned us with "Running late" before we noticed. */
+  reported: boolean;
+  final: boolean;
+}
+
+export interface Reliability {
+  /** 0–5, recency-weighted, starting from a neutral prior. */
+  score: number;
+  trips: number;
+  onTime: number;
+  late: number;
+  marks: TripMark[];
 }
 
 export interface OfferLine {
@@ -190,6 +216,13 @@ export interface Share {
   feedback?: "fewer" | "right" | "more";
   /** Last time the Logistics Agent looked again at this share after it went unplaced. */
   retriedAt?: number;
+  /** What the Logistics Agent promised when the partner was assigned. */
+  promisedPickupAt?: number;
+  promisedArrival?: number;
+  /** Minutes behind the promised arrival at the last notice, and whether the partner warned first. */
+  lateNoticeMin?: number;
+  lateReported?: boolean;
+  lastEtaCheckAt?: number;
   /** Accepted, but no partner was free: since when it has been waiting, and when it last looked. */
   waitingForPartnerSince?: number;
   lastPartnerTryAt?: number;
@@ -231,7 +264,9 @@ export type DecisionKind =
   | "feedback"
   | "closed"
   | "message_failed"
-  | "replanned";
+  | "replanned"
+  | "rated"
+  | "reassigned";
 
 export interface Decision {
   id: string;

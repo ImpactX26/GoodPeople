@@ -396,3 +396,70 @@ test("servings no NGO could take get another look while still safe, once an NGO 
   assert.equal(s?.ngoId, "r1"); assert.equal(s?.status, "offering");
   assert.equal((await store.get("listing", l.id))!.unplacedServings, 0);
 });
+
+describe("lateness (Decision Agent)", () => {
+  test("a late partner's rating drops live and the NGO, the restaurant and the partner are all told", async () => {
+    const { store, luna } = await setup([recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 2) })], [partner({ id: "p1", phone: RIDER, ...east(KORAMANGALA, 1) })]);
+    const l = await luna.submitListing(newListing(), at(12));
+    const s = await shareOf(store, l.id);
+    await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+    await luna.partnerReply(s.id, true, { phone: RIDER }, at(12, 2));
+    const promised = (await shareOf(store, l.id)).promisedArrival!;
+    // the partner stays put; well after the promised arrival the tick sees them ~20 min late
+    await luna.tick(promised + 20 * MIN);
+    const p = (await store.get("partner", "p1"))!;
+    assert.ok(p.reliability && p.reliability.score < 4.5, "rating dropped while the trip is still running");
+    assert.match(await last(store, NGO1), /running about \d+ min late/);
+    assert.match(await last(store, "9800000001"), /running about \d+ min late/);
+    assert.match(await last(store, RIDER), /Your reliability: /);
+    // delivering on time afterwards would recover; delivering now fixes the late mark
+    const sh = await shareOf(store, l.id);
+    await luna.enterCode(sh.id, "pickup", sh.pickupCode, { phone: RIDER }, promised + 21 * MIN);
+    await luna.enterCode(sh.id, "drop", sh.dropCode, { phone: RIDER }, promised + 30 * MIN);
+    const after = (await store.get("partner", "p1"))!.reliability!;
+    assert.equal(after.trips, 1); assert.equal(after.onTime, 0);
+  });
+
+  test("badly late before pickup with a much faster partner free: the Decision Agent reassigns", async () => {
+    const { store, luna } = await setup([recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 2) })],
+      [partner({ id: "slow", phone: RIDER, ...east(KORAMANGALA, 1) }), partner({ id: "fast", phone: RIDER2, ...east(KORAMANGALA, 0.3), online: false })]);
+    const l = await luna.submitListing(newListing(), at(12));
+    const s = await shareOf(store, l.id);
+    await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+    await luna.partnerReply(s.id, true, { phone: RIDER }, at(12, 2));
+    await store.put("partner", { ...(await store.get("partner", "fast"))!, online: true });
+    const promised = (await shareOf(store, l.id)).promisedArrival!;
+    // the slow partner hasn't moved and keeps saying they're late
+    await luna.late(s.id, { phone: RIDER }, promised + 20 * MIN);
+    await luna.late(s.id, { phone: RIDER }, promised + 21 * MIN);
+    const now = await shareOf(store, l.id);
+    assert.equal(now.askedPartnerId, "fast");
+    assert.equal(now.status, "finding_partner");
+    assert.match(await last(store, RIDER), /passed this pickup to another partner/);
+    assert.equal((await store.get("partner", "slow"))!.reliability!.marks[0].kind, "reassigned");
+  });
+});
+
+test("the Decision Agent keeps the restaurant, the NGO and the partner told at every meaningful step", async () => {
+  const DONOR = "9800000001";
+  const { store, luna } = await setup(
+    [recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) }), recipient({ id: "r2", phone: NGO2, ...east(KORAMANGALA, 3) })],
+    [partner({ id: "own", phone: RIDER, ngoId: "r2", ...east(KORAMANGALA, 1) })],
+  );
+  const l = await luna.submitListing(newListing(), at(12));
+  assert.match(await last(store, DONOR), /^.*Asked r1 to take/);
+  const s = await shareOf(store, l.id);
+  await luna.ngoReply(s.id, false, { phone: NGO1 }, at(12, 1));
+  const said = await to(store, DONOR);
+  assert.ok(said.some((m) => /r1 couldn't take it right now/.test(m)));
+  assert.match(said.at(-1)!, /Asked r2 to take/);
+  // waiting on r2: after 5 quiet minutes the donor hears "still on it"
+  await luna.tick(at(12, 7));
+  assert.match(await last(store, DONOR), /Still on it: waiting for r2 to reply/);
+  await luna.ngoReply(s.id, true, { phone: NGO2 }, at(12, 8));
+  assert.ok((await to(store, NGO2)).some((m) => /Asking .* \(one of your volunteers\)/.test(m)));
+  await luna.partnerReply(s.id, true, { phone: RIDER }, at(12, 9));
+  const sh = await shareOf(store, l.id);
+  await luna.enterCode(sh.id, "pickup", sh.pickupCode, { phone: RIDER }, at(12, 15));
+  assert.match(await last(store, NGO2), /picked up the .*Keep your drop code ready/);
+});

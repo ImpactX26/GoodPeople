@@ -69,6 +69,31 @@ export const config = {
    * the food is still safe and inside the pickup window; it's re-offered once someone who can reach it is online.
    */
   replanEveryMs: 90_000,
+  /** While the donor waits on an NGO or a partner, a short "still on it" goes out this often (spec §14.1). */
+  heartbeatMs: 5 * 60_000,
+  /** Lateness, judged against the arrival promised at assignment (Decision Agent). */
+  lateness: {
+    /** Up to this many minutes behind still counts as on time. */
+    graceMin: 5,
+    /** A new notice goes out only when the delay grows by at least this much (spec §14.1: ETA moves ≥ 5 min). */
+    noticeStepMin: 5,
+    /** Before pickup, this late and someone else could get there sooner by `reassignGainMin`: reassign. */
+    reassignAfterMin: 15,
+    reassignGainMin: 10,
+    /** How often a live trip's estimated arrival is re-checked. */
+    etaCheckMs: 60_000,
+  },
+  /** Reliability (0–5): recency-weighted trip marks over a neutral prior. */
+  reliability: {
+    prior: 4.5,
+    priorWeight: 2,
+    decay: 0.85,
+    window: 12,
+    /** Below this, a partner is asked after everyone else in the same tier. */
+    lowScore: 3,
+    /** Trips before a partner's score is shown as settled (until then: "new"). */
+    newUntilTrips: 3,
+  },
   /** While an accepted share waits for a partner, the Logistics Agent looks for one this often. */
   partnerRetryMs: 20_000,
   /**
