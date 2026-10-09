@@ -18,6 +18,8 @@ export const config = {
     vulnerableBonus: 0.15,
     /** Added for recipients in an area a donor pledged food to (gap closing). */
     pledgeBonus: 0.1,
+    /** Added when an NGO's listing says it needs food urgently today (HIGH, CRITICAL). */
+    needBonus: 0.15,
   },
   /** Distance at which proximity scores 0. */
   proximityZeroKm: 15,

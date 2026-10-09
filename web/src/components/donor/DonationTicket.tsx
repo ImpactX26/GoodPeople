@@ -431,8 +431,9 @@ function CollectSlip({ l, session, onChange }: { l: ListingView; session: Sessio
     <section className={s.tagSlip} aria-labelledby="collect-title">
       <h2 id="collect-title"><Clock size={20} aria-hidden /> Food Agent: {later ? "it can wait longer" : "collect it sooner"}</h2>
       <p>{later
-        ? <>Your food stays safe until <strong>{tripTime(sg.safeUntil)}</strong>, so it can wait for collection until <strong>{tripTime(sg.suggested)}</strong> instead of {tripTime(sg.was)}. That gives NGOs and partners more time to take it.</>
+        ? <>Can it wait for collection until <strong>{tripTime(sg.suggested)}</strong> instead of {tripTime(sg.was)}? It stays safe until <strong>{tripTime(sg.safeUntil)}</strong>.</>
         : <>Your food is only safe until <strong>{tripTime(sg.safeUntil)}</strong>, so it should be collected by <strong>{tripTime(sg.suggested)}</strong>, not {tripTime(sg.was)}.</>}</p>
+      {sg.why && <p className={s.note}>Why: {sg.why}.</p>}
       <p className={s.note}>Luna leaves 45 minutes after collection for the ride to an NGO and serving it.</p>
       {error && <p className={s.barError} role="alert">{error}</p>}
       <div className={s.tagActions}>

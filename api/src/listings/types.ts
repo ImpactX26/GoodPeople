@@ -175,7 +175,7 @@ export interface AgentCase {
   /** When the agents are working to for collection (the restaurant's time, or the Food Agent's once accepted). */
   collectBy: number;
   /** The Food Agent's collect-by suggestion from the food's safe time, and the restaurant's answer once given. */
-  collectSuggestion: { suggested: number; was: number; safeUntil: number; answer: "yes" | "no" | null } | null;
+  collectSuggestion: { suggested: number; was: number; safeUntil: number; why: string | null; answer: "yes" | "no" | null } | null;
   /** Food the restaurant sent to biogas. */
   biogas: { id: string; plantName: string; what: string; servings: number; status: "booked" | "collected"; comeBy: number; collectedAt: number | null }[];
 }

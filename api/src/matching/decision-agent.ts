@@ -16,7 +16,7 @@ import type { NgoAgent } from "./ngo-agent.ts";
 import { code4, fail, foodOf, itemsOf, ok, owns, servingsOf, usable, type Actor, type Result, type Runtime } from "./runtime.ts";
 import { areaById } from "./seed.ts";
 import { comeByFor, leftoverOf, linesText, nearestCollector } from "./biogas.ts";
-import { suggestCollectBy } from "./collect-by.ts";
+import { adviseCollectBy } from "./collect-by.ts";
 import { safeUntil } from "./engine/safety.ts";
 import { fmtTime } from "./time.ts";
 import type { DecisionKind, Item, Listing, Partner, Share, TripMark } from "./types.ts";
@@ -77,15 +77,17 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
   async function suggestCollect(listingId: string, now: number) {
     const l = await store.get("listing", listingId);
     if (!l || l.collectSuggestion || l.status === "closed") return;
-    const s = suggestCollectBy(l, now);
+    // Only while it's still being placed: once a partner is booked, the pickup time is theirs to keep.
+    if ((await store.list("share", { listingId })).some((sh) => sh.partnerId || sh.status === "delivered")) return;
+    const s = await adviseCollectBy(store, l, now);
     if (!s) return;
-    await store.put("listing", { ...l, collectSuggestion: { suggested: s.suggested, was: l.collectBy, safeUntil: s.safeUntil, at: now } });
+    await store.put("listing", { ...l, collectSuggestion: { suggested: s.suggested, was: l.collectBy, safeUntil: s.safeUntil, at: now, why: s.why } });
     const later = s.suggested > l.collectBy;
     await rt.decide("food", now, "suggested", l.id, later
-      ? `The food stays safe until ${fmtTime(s.safeUntil)}, so it can wait for collection until ${fmtTime(s.suggested)}, not just ${fmtTime(l.collectBy)} as set. Suggested the later time to ${l.donorName}: more time for an NGO and a partner.`
+      ? `Checked every NGO with the NGO Agent: ${s.why}. Suggested ${l.donorName} keep the food for collection until ${fmtTime(s.suggested)} instead of ${fmtTime(l.collectBy)} (safe until ${fmtTime(s.safeUntil)}).`
       : `The food is only safe until ${fmtTime(s.safeUntil)}, so collection should finish by ${fmtTime(s.suggested)}, earlier than the ${fmtTime(l.collectBy)} set. Suggested it to ${l.donorName}.`, l.id, s);
     await rt.toDonor(now, l, later
-      ? `Luna's Food Agent: your food stays safe until ${fmtTime(s.safeUntil)}, so it can wait for collection until ${fmtTime(s.suggested)} instead of ${fmtTime(l.collectBy)}. That gives NGOs and partners more time. Open your donation in Luna to say yes or keep your time.`
+      ? `Luna's Food Agent: ${s.why.charAt(0).toUpperCase()}${s.why.slice(1)}. Can it wait for collection until ${fmtTime(s.suggested)} instead of ${fmtTime(l.collectBy)}? It stays safe until ${fmtTime(s.safeUntil)}. Open your donation in Luna to say yes or keep your time.`
       : `Luna's Food Agent: your food is only safe until ${fmtTime(s.safeUntil)}, so it should be collected by ${fmtTime(s.suggested)}, earlier than ${fmtTime(l.collectBy)}. Open your donation in Luna to confirm.`);
   }
 
@@ -565,7 +567,12 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     await heartbeat(now);
     await closeLapsed(now);
     // Cases opened before the Food Agent made suggestions get one too.
-    for (const l of await store.list("listing")) if (!l.collectSuggestion && l.status !== "closed" && l.status !== "review") await suggestCollect(l.id, now);
+    // and NGOs' listings change (one opens, one marks itself urgent), so it looks again every 10 minutes.
+    for (const l of await store.list("listing"))
+      if (!l.collectSuggestion && l.status !== "closed" && l.status !== "review" && now - (l.collectLookedAt ?? 0) >= 10 * 60_000) {
+        await store.put("listing", { ...l, collectLookedAt: now });
+        await suggestCollect(l.id, now);
+      }
     await replanUnplaced(now);
     // Food stranded only for want of a partner goes out again once someone can collect it.
     for (const s of await logistics.retryUnplaced(now)) {

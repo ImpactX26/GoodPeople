@@ -30,6 +30,9 @@ export interface RankContext {
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
+/** How much an NGO's own "we need food" counts. */
+const NEED = { LOW: 0, MEDIUM: 0, HIGH: 0.7, CRITICAL: 1 } as const;
+
 export function rank(item: Item, listing: Listing, feasible: { recipient: Recipient; leg: Leg }[], ctx: RankContext): Scored[] {
   const w = config.weights;
   const until = safeUntil(item, listing.createdAt);
@@ -47,6 +50,7 @@ export function rank(item: Item, listing: Listing, feasible: { recipient: Recipi
       priority: ctx.credits.has(r.id) ? 1 : 0,
       vulnerableBonus: gradeA && r.vulnerable ? 1 : 0,
       pledgeBonus: ctx.pledgedAreas.has(r.areaId) ? 1 : 0,
+      needBonus: NEED[r.urgency ?? "MEDIUM"],
     };
     const factors = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, v * w[k as Factor]])) as Record<Factor, number>;
     const score = Object.values(factors).reduce((a, b) => a + b, 0);

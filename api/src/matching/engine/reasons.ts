@@ -65,6 +65,7 @@ const WHY: Record<Factor, (s: Scored) => string> = {
   priority: () => "is owed priority after an earlier redirect",
   vulnerableBonus: () => "serves vulnerable people and this is Grade A food",
   pledgeBonus: () => "is in the area this donor pledged food to",
+  needBonus: (s) => `says it needs food ${s.recipient.urgency === "CRITICAL" ? "very urgently" : "urgently"} today`,
 };
 
 export function rankReason(item: Item, ranked: Scored[]): string {

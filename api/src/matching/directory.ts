@@ -63,6 +63,7 @@ export function recipientFrom(n: ListedNgo, kindLabel?: string): Recipient | nul
     capacityPerDelivery: capacity, acceptRadiusKm: n.service_area_km,
     active: n.status === "ACTIVE" && capacity > 0,
     source: "listed", receivingHours: n.receiving_hours, acceptsCategories: n.accepted_categories,
+    urgency: (["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const).find((u) => u === n.current_demand.urgency),
   };
 }
 

@@ -97,7 +97,9 @@ export interface Listing extends LatLng {
    * The Food Agent's collect-by suggestion, once the food was checked (collect-by.ts): the time it suggests, from
    * the food's safe time, what the restaurant had set, and their answer.
    */
-  collectSuggestion?: { suggested: number; was: number; safeUntil: number; at: number; answer?: "yes" | "no"; answeredAt?: number };
+  collectSuggestion?: { suggested: number; was: number; safeUntil: number; at: number; why?: string; answer?: "yes" | "no"; answeredAt?: number };
+  /** Last time the Food Agent looked at the collect-by time with the NGOs (it looks again as NGOs' listings change). */
+  collectLookedAt?: number;
   /** Why no NGO can take the servings left over, in plain words (the NGO Agent's finding). */
   stuckWhy?: string;
   /**
@@ -149,6 +151,8 @@ export interface Recipient extends LatLng {
   receivingHours?: { start: string; end: string };
   /** Kinds of food it accepts; empty or unset = any. */
   acceptsCategories?: string[];
+  /** How urgently it says it needs food today (its listing): the NGO Agent ranks urgent NGOs higher. */
+  urgency?: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 }
 
 /** A delivery partner: one of an NGO's own riders, or an independent. */
