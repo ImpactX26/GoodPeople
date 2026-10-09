@@ -227,3 +227,18 @@ export function containersFor(items: { servings: number; litres: number | null; 
   }
   return [...count].map(([label, n]) => `${n} × ${label}${n > 1 && label.endsWith("bag") ? "s" : ""}`);
 }
+
+/**
+ * A food name has to name a food: not empty, not a placeholder ("{null}", "undefined", "test"), not code or
+ * symbols. Shared by the form (which says why at once) and the API (which refuses it). Null when it's fine.
+ */
+export function dishNameProblem(name: string): string | null {
+  const n = name.trim();
+  if (!n) return "Say what this food is.";
+  if (/[{}<>[\]\\|`$]/.test(n)) return "Give the food's name in words, like Veg biryani.";
+  if (!/\p{L}{2,}/u.test(n)) return "Give the food's name in words, like Veg biryani.";
+  const bare = n.toLowerCase().replace(/[^\p{L}\s]/gu, " ").replace(/\s+/g, " ").trim();
+  if (/^(null|nil|none|undefined|nan|n a|na|test|testing|asdf|qwerty|abc|xyz|food|dish|item|something|anything|x+|a+)$/.test(bare))
+    return "Give the food's real name, like Veg biryani, so NGOs know what's coming.";
+  return null;
+}

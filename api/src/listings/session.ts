@@ -6,7 +6,7 @@
  */
 import { TRIP_CONFIG as C } from "../trips/config.ts";
 import { requestFoodCheck } from "./foodCheck.ts";
-import { farFrom, servingsFor, type BulkUnit, type EntryMode } from "./portions.ts";
+import { dishNameProblem, farFrom, servingsFor, type BulkUnit, type EntryMode } from "./portions.ts";
 import { FOOD_CATEGORIES, type FoodCheck, type FoodListing, type ListingInput, type ListingItem } from "./types.ts";
 
 const ALLERGENS = ["dairy", "nuts", "peanuts", "gluten", "egg", "soy", "sesame", "seafood", "onion_garlic"];
@@ -35,6 +35,8 @@ function parseItem(raw: unknown, i: number, now: number): ListingItem | string {
   const b = (raw ?? {}) as Record<string, unknown>;
   const at = `Food ${i + 1}`;
   if (typeof b.dish !== "string" || !b.dish.trim() || b.dish.length > 120) return `${at}: say what the food is.`;
+  const named = dishNameProblem(b.dish);
+  if (named) return `${at}: ${named.charAt(0).toLowerCase()}${named.slice(1)}`;
   if (!["veg", "egg", "nonveg"].includes(b.diet as string) || typeof b.jain !== "boolean" || !["yes", "no", "unsure"].includes(b.halal as string) || !["mild", "medium", "hot"].includes(b.spice as string)) return `${at}: choose its diet and spice.`;
   if (!Array.isArray(b.contains) || b.contains.length > ALLERGENS.length || !b.contains.every((a) => ALLERGENS.includes(a as string))) return `${at}: allergens aren't valid.`;
   if (b.jain && (b.diet !== "veg" || (b.contains as string[]).some((a) => ["egg", "seafood", "onion_garlic"].includes(a)))) return `${at}: Jain food can't contain egg, seafood, onion or garlic.`;

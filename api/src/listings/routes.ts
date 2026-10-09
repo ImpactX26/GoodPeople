@@ -14,6 +14,7 @@ import { assertOfferOpen, startNgoOffer, tickNgoOffers } from "./offers.ts";
 import { currentScenario, localScenarioEnabled, provisionScenario, scenarioFor } from "./scenario.ts";
 import { applyFoodCheck, foodAgentUrl, requestFoodCheck, servingsOf } from "./foodCheck.ts";
 import { applySessionCheck, checkItems, donorEstimate, MAX_SAFE_HOURS, MIN_SAFE_HOURS, parseSession } from "./session.ts";
+import { dishNameProblem } from "./portions.ts";
 import { agents, matchingStore, reasoner } from "../matching/index.ts";
 import { syncDirectory } from "../matching/directory.ts";
 import { ping } from "../matching/live.ts";
@@ -460,7 +461,7 @@ function actionKey(key: string | undefined) { if (!key || key.length > 200) thro
 const allergens = ["dairy", "nuts", "peanuts", "gluten", "egg", "soy", "sesame", "seafood", "onion_garlic"];
 export function validListing(v: unknown, now: number): v is ListingInput {
   if (!v || typeof v !== "object") return false; const b = v as ListingInput;
-  return typeof b.dish === "string" && !!b.dish.trim() && b.dish.length <= 120 && ["veg", "egg", "nonveg"].includes(b.diet) && typeof b.jain === "boolean"
+  return typeof b.dish === "string" && !!b.dish.trim() && b.dish.length <= 120 && !dishNameProblem(b.dish) && ["veg", "egg", "nonveg"].includes(b.diet) && typeof b.jain === "boolean"
     && ["yes", "no", "unsure"].includes(b.halal) && ["mild", "medium", "hot"].includes(b.spice) && Array.isArray(b.contains) && b.contains.length <= allergens.length && b.contains.every(a => allergens.includes(a))
     && !(b.jain && (b.diet !== "veg" || b.contains.some(a => ["egg", "seafood", "onion_garlic"].includes(a))))
     && ["per_person_pack", "shared_pack"].includes(b.entryMode) && Number.isInteger(b.count) && b.count > 0 && b.count <= 200 && Number.isInteger(b.feedsEach) && b.feedsEach > 0 && b.feedsEach <= 50 && (b.entryMode !== "per_person_pack" || b.feedsEach === 1)

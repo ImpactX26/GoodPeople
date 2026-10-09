@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, Check, MapPin, Pencil, Plus, Trash2 } from "luci
 import { api } from "@/lib/luna/api";
 import { getProfile, type Session } from "@/lib/luna/auth";
 import { ALLERGENS, inputTime, type ListingInput } from "@/lib/luna/listing";
-import { farFrom, findDish, unitsFor, type BulkUnit } from "@/lib/luna/portions";
+import { dishNameProblem, farFrom, findDish, unitsFor, type BulkUnit } from "@/lib/luna/portions";
 import { tripTime } from "@/lib/luna/trip";
 import PhotoCanvas, { clearDraftPhoto, peekDraftPhoto } from "./PhotoCanvas";
 import { clearRelist, peekRelist } from "./relist";
@@ -72,7 +72,8 @@ export default function SnapListing({ session }: { session: Session }) {
   const finishCurrent = (): DraftItem | null => {
     setError("");
     if (!cur.photo) { setError("Add a photo of this food first."); return null; }
-    if (!cur.dish.trim()) { setError("Say what this food is."); return null; }
+    const named = dishNameProblem(cur.dish);
+    if (named) { setError(named); return null; }
     if (cur.jain && cur.contains.some(a => ["egg", "seafood", "onion_garlic"].includes(a))) { setError("Jain food can't contain egg, seafood, onion or garlic. Untick Jain or the ingredient."); return null; }
     if (servings < 1) { setError("That amount serves no one. Check the quantity."); return null; }
     if (cookedPreset === "exact" && !cooked) { setError("Say when it was cooked."); return null; }

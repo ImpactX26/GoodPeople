@@ -41,3 +41,9 @@ test("clearly not the dish: the listing is held. Sure: relist; less sure: the re
   assert.equal(maybe.tagChecks![0].verdict, "maybe");
   assert.equal(fromAgent(agent("partly"), listing, NOW).tagsVerdict, "ok", "partly is a warning, not a hold");
 });
+
+test("a food name has to name a food", async () => {
+  const { dishNameProblem } = await import("../../src/listings/portions.ts");
+  for (const bad of ["{null}", "null", "undefined", " ", "123", "test", "<b>x</b>", "N/A", "xxx"]) assert.ok(dishNameProblem(bad), `rejects ${JSON.stringify(bad)}`);
+  for (const good of ["Veg biryani", "Paneer manchurian", "Dal", "Idli", "गाजर हलवा", "Chicken 65"]) assert.equal(dishNameProblem(good), null, `accepts ${good}`);
+});
