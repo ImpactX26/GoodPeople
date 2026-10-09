@@ -389,14 +389,53 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     const l = await rt.mustGet("listing", share.listingId);
     const origin = await logistics.originFor(share, now);
     const best = await ngoAgent.findRedirect(l, share.lines, origin, new Set([share.ngoId!, ...share.redirectTried]), now);
-    if (!best) {
-      await store.put("share", { ...share, held: true });
-      await decide(now, "escalated", share.id, `The partner is delayed and no other NGO can take the food before it becomes unsafe.`, l.id, { shareId: share.id });
-      const p = share.partnerId ? await store.get("partner", share.partnerId) : null;
-      if (p && !p.manual) await rt.send(now, p.phone, `partner:${p.id}`, msg.text("Please hold on. The food may not stay safe long enough to deliver, so the Luna team will call you shortly."));
-      return;
-    }
+    // No NGO can serve it while it's safe: "safe until served" is never relaxed, so the delivery stops here.
+    if (!best) return stopUnsafe(share, now, "projected");
     await logistics.offerRedirect(share, best.ngoId, best.arriveBy, now);
+  }
+
+  /**
+   * The food can't be served safely any more (the partner was delayed and no NGO can take it in time, or it's
+   * simply past its safe time): stop the delivery, tell the partner, the NGO and the restaurant, and close the case
+   * when nothing else from it is still on its way. Unsafe food is never handed over.
+   */
+  async function stopUnsafe(share: Share, now: number, why: "projected" | "expired") {
+    const fresh = await store.get("share", share.id);
+    if (!fresh || fresh.status === "delivered" || fresh.status === "failed" || fresh.status === "unplaced") return;
+    const l = await rt.mustGet("listing", fresh.listingId);
+    const until = fmtTime(Math.min(...itemsOf(l, fresh.lines).map((i) => l.createdAt + i.safeTime * 60_000)));
+    const food = foodOf(l, fresh.lines);
+    const ngo = fresh.ngoId ? await store.get("recipient", fresh.ngoId) : null;
+    const p = fresh.partnerId ? await store.get("partner", fresh.partnerId) : null;
+    const carrying = fresh.status === "picked_up";
+    await store.put("share", { ...fresh, status: "failed", held: true, redirect: undefined });
+    if (p) await store.put("partner", { ...p, activeShareId: undefined });
+    const cause = why === "projected" ? `${p?.name ?? "The partner"} was delayed and no NGO can serve it before ${until}` : `it passed its safe time (${until}) before it was delivered`;
+    await decide(now, "escalated", fresh.id, `Stopped the ${food} for ${ngo?.name ?? "the NGO"}: ${cause}. Unsafe food is never handed over.`, l.id, { shareId: fresh.id, unsafe: true });
+    if (p && !p.manual) await rt.send(now, p.phone, `partner:${p.id}`, msg.text(carrying
+      ? `Please stop: the ${food} can't be served safely now (it was safe until ${until}). Don't give it to anyone. Take it back to ${l.donorName} or throw it away safely. Thank you for your help.`
+      : `Pickup cancelled: the ${food} can't reach an NGO while it's still safe (safe until ${until}). Please don't collect it.`));
+    if (ngo) await rt.send(now, ngo.phone, `recipient:${ngo.id}`, msg.text(`The ${food} from ${l.donorName} won't come: it can't reach you while it's still safe to serve. Nothing for you to do.`));
+    const plant = await nearestCollector(store, l);
+    await rt.toDonor(now, l, `${carrying ? "The delivery" : "The pickup"} of your ${food} was stopped: ${cause}. Please don't give it to anyone.${carrying ? "" : plant ? ' A biogas plant can still collect it: tap "Send to biogas" in Luna.' : ""}`);
+    // Nothing else from this donation on its way and nothing delivered: the case closes as unsafe in transit.
+    const shares = await store.list("share", { listingId: l.id });
+    if (shares.some((s) => LIVE.has(s.status))) return refreshListing(l.id, now);
+    if (shares.some((s) => s.status === "delivered")) return refreshListing(l.id, now);
+    const current = (await store.get("listing", l.id))!;
+    if (current.status === "closed") return;
+    const asked = new Set((await store.list("decision", { listingId: l.id })).filter((d) => d.kind === "offered").map((d) => d.subject)).size;
+    await store.put("listing", { ...current, status: "closed", lapsed: { at: now, asked, ended: "unsafe", cause: "in_transit" } });
+    await decide(now, "closed", l.id, `Unsafe in transit: the ${food} could not reach ${ngo?.name ?? "an NGO"} while safe (${cause}). Stopped the delivery and closed the case; nothing unsafe was handed over.`, l.id, { unsafe: true });
+  }
+
+  /** The safety net: any food still on its way (or waiting to be) past its safe time is stopped, held or not. */
+  async function stopExpired(now: number) {
+    for (const status of ["offering", "finding_partner", "assigned", "picked_up"] as const)
+      for (const s of await store.list("share", { status })) {
+        const l = await store.get("listing", s.listingId);
+        if (l && Math.min(...itemsOf(l, s.lines).map((i) => l.createdAt + i.safeTime * 60_000)) <= now) await rt.safely(`stop ${s.id}`, () => stopUnsafe(s, now, "expired"));
+      }
   }
 
   /* ---------- closing: NGO feedback ---------- */
@@ -522,6 +561,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
 
   async function tick(now: number) {
     await logistics.tick(now);
+    await stopExpired(now);
     await heartbeat(now);
     await closeLapsed(now);
     // Cases opened before the Food Agent made suggestions get one too.

@@ -391,7 +391,8 @@
 }
 
 /* Nobody took it in time: the stamp is in red ribbon, it's a failure, not a finish. */
-.bigStamp[data-ended="no_one"] {
+.bigStamp[data-ended="no_one"],
+.bigStamp[data-ended="unsafe"] {
   border-color: var(--ink-red);
   color: var(--ink-red);
   font-size: 22px;

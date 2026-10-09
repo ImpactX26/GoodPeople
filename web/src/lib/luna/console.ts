@@ -79,7 +79,7 @@ export interface CaseListing {
   unplacedServings: number;
   createdAt: number;
   /** Nobody took it before its window closed (the case closed with a sorry). */
-  lapsed?: { at: number; asked: number; ended: "unsafe" | "collect_by" };
+  lapsed?: { at: number; asked: number; ended: "unsafe" | "collect_by"; cause?: "in_transit" };
 }
 
 export type Connection = "connecting" | "live" | "retrying" | "denied";

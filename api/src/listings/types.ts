@@ -169,7 +169,7 @@ export interface AgentCase {
   /** Servings no NGO can take with none left to ask, why, and the biogas plant that would collect them. */
   leftover: { servings: number; what: string; why: string; waitingOnPartner: number; plant: { name: string; km: number; comeBy: number } | null };
   /** Nobody took it before its window closed: when, how many NGOs were offered it, and which limit ended it. */
-  lapsed: { at: number; asked: number; ended: "unsafe" | "collect_by" } | null;
+  lapsed: { at: number; asked: number; ended: "unsafe" | "collect_by"; cause?: "in_transit" } | null;
   /** When the agents are working to for collection (the restaurant's time, or the Food Agent's once accepted). */
   collectBy: number;
   /** The Food Agent's collect-by suggestion from the food's safe time, and the restaurant's answer once given. */

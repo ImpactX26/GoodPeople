@@ -103,7 +103,7 @@ export interface Order {
   deliveredAt?: number;
   stopped: boolean;
   /** How the case ended: food delivered, nobody took it in time, or sent to a biogas plant instead. */
-  outcome?: "delivered" | "no_one" | "biogas" | "relisted";
+  outcome?: "delivered" | "no_one" | "biogas" | "relisted" | "unsafe";
   /** Held by the Food Agent until the restaurant fixes or keeps its food tags. */
   held?: boolean;
   /** "40 servings from Meghana Foods", from the Food Agent's hand-off, until the case list loads. */
@@ -168,7 +168,10 @@ export function buildOrders(events: TraceEvent[]): Order[] {
         o.closedAt = e.at;
         o.closedSeq = e.seq;
         // A case closes four ways; only a delivery ticks the stages through to Delivered.
-        if (/^Relisted with corrected tags/.test(e.reason)) {
+        if (/^Unsafe in transit/.test(e.reason)) {
+          o.outcome = "unsafe";
+          o.stopped = true;
+        } else if (/^Relisted with corrected tags/.test(e.reason)) {
           o.outcome = "relisted";
           o.stopped = true;
         } else if (/^No one took/.test(e.reason)) {
@@ -201,10 +204,11 @@ export function withCase(o: Order, l?: CaseListing): Order {
   if (!l) return o;
   const stages = { ...o.stages };
   // Closed because nobody took it in time: stopped where it got to, never ticked through to Delivered.
-  const noOne = !!l.lapsed && o.outcome !== "biogas";
-  if (l.status === "closed" && !noOne && o.outcome !== "biogas") for (const s of ["checked", "matched", "picked", "delivered"] as StageKey[]) stages[s] ??= o.firstSeq;
+  const unsafe = l.lapsed?.cause === "in_transit" && o.outcome !== "biogas";
+  const noOne = !!l.lapsed && !unsafe && o.outcome !== "biogas";
+  if (l.status === "closed" && !noOne && !unsafe && o.outcome !== "biogas") for (const s of ["checked", "matched", "picked", "delivered"] as StageKey[]) stages[s] ??= o.firstSeq;
   if (l.status === "matched") for (const s of ["checked", "matched"] as StageKey[]) stages[s] ??= o.firstSeq;
-  return { ...o, stages, stopped: o.stopped || noOne || l.status === "unmatched", outcome: noOne ? "no_one" : o.outcome, closedAt: o.closedAt ?? (noOne ? l.lapsed!.at : undefined) };
+  return { ...o, stages, stopped: o.stopped || noOne || unsafe || l.status === "unmatched", outcome: unsafe ? "unsafe" : noOne ? "no_one" : o.outcome, closedAt: o.closedAt ?? (noOne || unsafe ? l.lapsed!.at : undefined) };
 }
 
 export type Status = "waiting" | "on" | "thinking" | "watching" | "wrapping" | "done" | "flagged";
@@ -240,7 +244,7 @@ export function laneStatus(o: Order, agent: AgentName): Status {
 /** The stage the food is at now: the first one not yet done. */
 export function currentStage(o: Order): StageKey | null {
   // Nobody took it: the stage it stopped at stays marked (with an X), rather than the row reading as finished.
-  if (o.closedAt !== undefined && o.outcome !== "no_one" && o.outcome !== "relisted") return null;
+  if (o.closedAt !== undefined && o.outcome !== "no_one" && o.outcome !== "relisted" && o.outcome !== "unsafe") return null;
   return STAGES.find((s) => o.stages[s.key] === undefined)?.key ?? null;
 }
 

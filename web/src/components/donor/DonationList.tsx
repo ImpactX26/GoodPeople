@@ -37,7 +37,7 @@ export function DonationRow({ l }: { l: ListingView }) {
         <span className={s.now} data-tone={cold ? "cold" : l.state === "not_for_people" || l.state === "tags_held" ? "bad" : l.deliveredAt ? "done" : "live"}>{nowLine(l, null)}</span>
       </span>
       {cold
-        ? <span className={s.rowStamp} data-fresh={justWentCold(l) || undefined}>No one<br />responded</span>
+        ? <span className={s.rowStamp} data-fresh={justWentCold(l) || undefined}>{l.agentCase?.lapsed?.cause === "in_transit" ? <>Stopped<br />unsafe</> : <>No one<br />responded</>}</span>
         : <span className={s.ticks} aria-hidden>{stages.map(st => <i key={st.key} data-state={st.state} />)}</span>}
     </Link>
   );

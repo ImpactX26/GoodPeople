@@ -154,6 +154,7 @@ function StageDetail({ stage, l, t }: { stage: Stage; l: ListingView; t: TripVie
           </>
         );
         const left = l.agentCase.leftover;
+        if (stage.state === "failed" && l.agentCase.lapsed?.cause === "in_transit") return <p>The delivery was stopped: the food couldn’t reach the NGO while still safe.</p>;
         if (stage.state === "failed" && l.agentCase.lapsed && !l.agentCase.biogas?.length) return <p>No NGO said yes before {l.agentCase.lapsed.ended === "unsafe" ? "the food stopped being safe" : "your collect-by time"}. Luna has closed it.</p>;
         if (stage.state === "failed") return <p>No NGO can take it before it stops being safe: {left?.why || "every NGO that could take it passed"}.{l.agentCase.biogas?.length ? " It’s going to biogas instead." : ""}</p>;
         if (left?.waitingOnPartner) return <p>An NGO will take it, but no delivery partner can collect it yet. Luna asks again as soon as one can, while it’s still safe.</p>;
@@ -420,7 +421,7 @@ function CollectSlip({ l, session, onChange }: { l: ListingView; session: Sessio
  */
 function ColdSlip({ l, session, onChange }: { l: ListingView; session: Session; onChange: (l: ListingView) => void }) {
   const [busy, setBusy] = useState(false), [error, setError] = useState("");
-  const c = l.agentCase!, lapsed = c.lapsed!, plant = c.leftover?.servings ? c.leftover.plant : null;
+  const c = l.agentCase!, lapsed = c.lapsed!, plant = c.leftover?.servings ? c.leftover.plant : null, transit = lapsed.cause === "in_transit";
   const send = async () => {
     setBusy(true); setError("");
     try { onChange(await api<ListingView>(`/listings/${l.id}/biogas`, { method: "POST", token: session.token, body: "{}" })); }
@@ -429,8 +430,8 @@ function ColdSlip({ l, session, onChange }: { l: ListingView; session: Session; 
   return (
     <section className={s.cold} data-fresh={justWentCold(l) || undefined} aria-labelledby="cold-title">
       <header className={s.coldHead}>
-        <h2 id="cold-title">Sorry. No one could take it in time.</h2>
-        <span className={s.coldStamp} aria-hidden>No one<br />responded</span>
+        <h2 id="cold-title">{transit ? "Sorry. It couldn’t reach an NGO while still safe." : "Sorry. No one could take it in time."}</h2>
+        <span className={s.coldStamp} aria-hidden>{transit ? <>Stopped<br />unsafe</> : <>No one<br />responded</>}</span>
       </header>
       <dl className={s.coldLines}>
         <div><dt>NGOs offered it</dt><dd>{lapsed.asked}</dd></div>

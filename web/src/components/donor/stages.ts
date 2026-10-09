@@ -72,7 +72,7 @@ export const justWentCold = (l: ListingView) => !!l.agentCase?.lapsed && l.serve
 
 /** One short line for lists: what is happening now. */
 export function nowLine(l: ListingView, t: TripView | null) {
-  if (wentCold(l)) return "Sorry. No NGO could take it in time.";
+  if (wentCold(l)) return l.agentCase?.lapsed?.cause === "in_transit" ? "Stopped: it couldn’t reach an NGO while safe." : "Sorry. No NGO could take it in time.";
   if (l.state === "not_for_people") return "Not safe for people";
   if (l.state === "tags_held") return l.replacedBy ? "Relisted with corrected tags" : l.foodCheck?.tagsVerdict === "wrong" ? "Tags don’t match the photo · relist" : "Check your tags";
   if (l.agentCase && !l.deliveredAt) return l.progress;

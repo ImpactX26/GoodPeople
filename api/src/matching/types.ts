@@ -102,7 +102,7 @@ export interface Listing extends LatLng {
    * Nobody took it before its window closed (the restaurant's collect-by time, or the last food stops being
    * safe): the case closes with an apology. `asked`: NGOs that were offered it; `ended`: which limit was hit.
    */
-  lapsed?: { at: number; asked: number; ended: "unsafe" | "collect_by" };
+  lapsed?: { at: number; asked: number; ended: "unsafe" | "collect_by"; cause?: "in_transit" };
 }
 
 /**

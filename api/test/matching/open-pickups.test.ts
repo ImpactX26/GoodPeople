@@ -150,3 +150,22 @@ test("the partner taps Running late: the Decision Agent tells the NGO, the resta
   await luna.tick(at(12, 4));
   assert.equal((await texts(NGO1)).filter((t) => /running about \d+ min late/.test(t)).length, 1, "not told twice");
 });
+
+test("food still on its way past its safe time: the Decision Agent stops it, tells everyone, and closes the case as unsafe", async () => {
+  const { luna, share, texts, store, l } = await setup([recipient({ id: "r1", phone: NGO1, ...east(KORAMANGALA, 1) })], [partner({ id: "p1", phone: ME, ...east(KORAMANGALA, 0.5) })]);
+  const s = await share();
+  await luna.ngoReply(s.id, true, { phone: NGO1 }, at(12, 1));
+  await luna.partnerReply(s.id, true, { phone: ME }, at(12, 2));
+  await store.put("share", { ...(await share()), held: true });   // e.g. put on hold earlier
+  const safe = Math.min(...l.items.map((i) => l.createdAt + i.safeTime * MIN));
+  await luna.tick(safe + MIN);
+  assert.equal((await share()).status, "failed");
+  const closed = (await store.get("listing", l.id))!;
+  assert.equal(closed.status, "closed");
+  assert.equal(closed.lapsed?.cause, "in_transit");
+  assert.ok((await texts(ME)).some((t) => /Pickup cancelled/.test(t)));
+  assert.ok((await texts(NGO1)).some((t) => /won't come/.test(t)));
+  assert.ok((await texts(l.donorPhone)).some((t) => /was stopped/.test(t) && /don't give it to anyone/.test(t)));
+  assert.ok((await store.list("decision", { listingId: l.id })).some((d) => d.kind === "closed" && /^Unsafe in transit/.test(d.reason)));
+  assert.equal((await store.get("partner", "p1"))!.activeShareId, undefined, "the partner is free again");
+});
