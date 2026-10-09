@@ -3130,3 +3130,17 @@
   height: 6px;
   background: var(--ink);
 }
+
+/* A food whose photo may not be the dish named (the warning slip above says more). */
+.photoOff {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 2px 8px;
+  border: 1.5px solid var(--warn, #f2b705);
+  background: var(--warn-soft, #fff3c2);
+  color: var(--ink);
+  font: 700 12px/1.4 var(--font-print);
+  letter-spacing: 0.04em;
+}

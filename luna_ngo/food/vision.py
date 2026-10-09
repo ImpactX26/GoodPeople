@@ -50,6 +50,7 @@ Inspect the photo and answer with this JSON schema exactly:
   "notes": "one short sentence"
 }}
 tag_checks: list ONLY the declared tags the photo contradicts or casts doubt on; [] when everything fits. "wrong" when you can clearly see it (e.g. chicken in vegetarian food), "maybe" when it's likely but not visible for sure (e.g. a curry that usually has garlic, marked Jain). suggest: for diet "veg" | "egg" | "nonveg"; for jain "no"; for spice "mild" | "medium" | "hot"; for contains "add"; for category "cooked_meal" | "bakery" | "dairy" | "packaged" | "beverages" | "raw_produce". Never judge halal.
+matches_description: does the photo show the named dish? "yes" if it plainly is that dish; "partly" if it shares the main ingredient but looks like a different preparation (e.g. paneer in a dark sauce named "paneer biryani"); "no" if it is clearly a different food; "unknown" if the photo is too unclear to tell.
 diet_seen: "nonveg" if any meat, chicken, mutton, fish or seafood is visible; "egg" if egg is visible and no meat; "veg" if the dish is clearly vegetarian; "unclear" when you can't tell."""
 
 

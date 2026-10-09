@@ -66,6 +66,7 @@ export default function DonationTicket({ session, id }: { session: Session; id: 
               <p className={s.working}>Luna’s food check is looking at your photo, cooking time and storage. This takes about 15 seconds.</p>
             </section>
           )}
+          <PhotoMatch l={l} />
           {l.items && l.items.length > 1 && <SessionFoods l={l} />}
           <ol className={s.coupons} aria-label="Donation progress">
             {stages.map((st, i) => (
@@ -229,6 +230,31 @@ function AgentLog({ c }: { c: NonNullable<ListingView["agentCase"]> }) {
   );
 }
 
+/**
+ * The photo doesn't look like the dish named (the photo check compares them): a warning, never silent. NGOs see
+ * it too, and when the photo clearly isn't the dish the food is marked Unsure, so the partner checks it at pickup.
+ */
+function PhotoMatch({ l }: { l: ListingView }) {
+  const foods = (l.items?.length ? l.items.map(it => ({ name: it.dish, c: it.foodCheck })) : [{ name: l.dish, c: l.foodCheck }])
+    .filter(f => f.c?.dishMatch === "no" || f.c?.dishMatch === "partly");
+  if (!foods.length) return null;
+  return (
+    <section className={s.tagSlip} data-tone="maybe" aria-labelledby="photo-match-title">
+      <h2 id="photo-match-title"><TriangleAlert size={20} aria-hidden /> Does the photo match the name?</h2>
+      <ul>
+        {foods.map(f => (
+          <li key={f.name} data-sure={f.c!.dishMatch === "no"}>
+            <b>{f.name}</b>
+            <span>{f.c!.seen ? `The photo shows: ${f.c!.seen.replace(/\.$/, "")}.` : "The photo looks like a different dish."}</span>
+            <em>{f.c!.dishMatch === "no" ? "It doesn’t look like this dish, so it’s marked Unsure and the delivery partner checks it at pickup." : "It may not be this dish."}</em>
+          </li>
+        ))}
+      </ul>
+      <p>NGOs see this note. If you used the wrong photo or name, tell the delivery partner at pickup, and use the right one next time.</p>
+    </section>
+  );
+}
+
 /** Every food in a session with its own servings, grade, safe-until and reasoning. */
 function SessionFoods({ l }: { l: ListingView }) {
   return (
@@ -245,6 +271,7 @@ function SessionFoods({ l }: { l: ListingView }) {
                 <b>{it.dish}</b>
                 <span>{it.servings} {it.role === "extra" ? "portions (sweet or extra)" : "servings"}{it.estimate ? " · about" : ""}</span>
                 <span>{!c ? "Checking…" : c.grade === "D" ? "Not for people: kept off the delivery" : `Grade ${c.grade} · ${GRADE_LABEL[c.grade]}${c.safeUntil ? ` · safe until ${tripTime(c.safeUntil)}` : ""}`}</span>
+                {(c?.dishMatch === "no" || c?.dishMatch === "partly") && <span className={s.photoOff}><TriangleAlert size={14} aria-hidden /> Photo may not match the name</span>}
                 {c?.reasoning && <Reasoning reasoning={c.reasoning} grade={c.grade} model={modelName(c.models?.photo)} />}
               </div>
               {c && <em className={s.foodGrade} data-grade={c.grade}>{c.grade}</em>}

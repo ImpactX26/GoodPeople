@@ -43,6 +43,8 @@ export interface NewListing {
 export interface Item extends Omit<NewItem, "name"> {
   id: string;
   name?: string;
+  /** The photo didn't look like this dish: what it showed instead. */
+  photoMismatch?: string;
   halal?: boolean;
   allergens?: string[];
   category?: string;

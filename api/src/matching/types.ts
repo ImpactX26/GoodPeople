@@ -54,6 +54,8 @@ export interface Item {
   diet: Diet; // donor
   halal?: boolean; // donor
   allergens?: string[]; // donor
+  /** The photo didn't look like this dish (what it showed instead): a warning for the NGO and the partner. */
+  photoMismatch?: string;
   /** A meal made of a staple and a side (spec §7.5): one serving of each per serving of this. See engine/bundles.ts. */
   bundle?: { staple: string; side: string };
 }

@@ -100,8 +100,12 @@ const servingsIn = (sh: NgoShare) => sh.lines.reduce((n, l) => n + l.servings, 0
 const foodIn = (sh: NgoShare) => [...new Set(sh.food.map(f => f.name ?? "food"))].join(" + ");
 /** Each food in the share and how many it serves (sweets and extras counted separately from meals). */
 function FoodLines({ sh }: { sh: NgoShare }) {
-  if (sh.food.length < 2) return null;
+  const odd = sh.food.filter((f) => f.photoMismatch);
+  // One food: the grade leads the ticket already; only a photo that doesn't match its name needs saying.
+  if (sh.food.length < 2) return odd.length ? <PhotoWarning foods={odd} /> : null;
   return (
+    <>
+    {odd.length > 0 && <PhotoWarning foods={odd} />}
     <ul className={s.foodLines}>
       {sh.food.map((f, i) => (
         <li key={i}>
@@ -114,6 +118,17 @@ function FoodLines({ sh }: { sh: NgoShare }) {
         </li>
       ))}
     </ul>
+    </>
+  );
+}
+
+/** The photo check thought a food's photo doesn't look like its name: the NGO knows before saying yes. */
+function PhotoWarning({ foods }: { foods: NgoShare["food"] }) {
+  return (
+    <p className={d.tagSlip} data-tone="maybe" role="note">
+      <b>Check this food</b>
+      {foods.map((f) => <span key={f.name}>The photo of {f.name ?? "this food"} looks like {f.photoMismatch!.replace(/\.$/, "").replace(/^./, (c) => c.toLowerCase())}. The delivery partner checks it at pickup.</span>)}
+    </p>
   );
 }
 

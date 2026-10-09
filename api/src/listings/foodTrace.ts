@@ -42,7 +42,7 @@ export function foodChecking(l: FoodListing) {
 }
 
 function thoughtOf(l: FoodListing, f: { id: string; name: string }, c: FoodCheck): Thought {
-  const verdict: Verdict = c.grade === "D" || (c.tagsVerdict && c.tagsVerdict !== "ok") ? "would_change" : c.grade === "C" || c.unsure ? "concern" : "agree";
+  const verdict: Verdict = c.grade === "D" || (c.tagsVerdict && c.tagsVerdict !== "ok") || c.dishMatch === "no" ? "would_change" : c.grade === "C" || c.unsure || c.dishMatch === "partly" ? "concern" : "agree";
   const steps = (c.reasoning?.steps ?? []).filter((s) => s.title !== "Final grade").map((s) => `${s.title}: ${s.detail}${s.effect ? ` ${s.effect}` : ""}`);
   return {
     id: thoughtId(l, f.id),
@@ -54,7 +54,7 @@ function thoughtOf(l: FoodListing, f: { id: string; name: string }, c: FoodCheck
     about: `Photo check: ${f.name}`,
     status: "done",
     verdict,
-    headline: `Grade ${c.grade}${c.safeUntil ? `, safe until ${clock(c.safeUntil)}` : ", not for people"}${c.unsure ? " · unsure, the rider checks it" : ""}`,
+    headline: `Grade ${c.grade}${c.safeUntil ? `, safe until ${clock(c.safeUntil)}` : ", not for people"}${c.dishMatch === "no" || c.dishMatch === "partly" ? ` · photo ${c.dishMatch === "no" ? "doesn't look like" : "may not be"} ${f.name}` : ""}${c.unsure ? " · unsure, the rider checks it" : ""}`,
     reasoning: [c.reasoning?.summary ?? c.message, ...steps].filter(Boolean).slice(0, 4),
     model: c.models.photo ?? "rules: cooking time and storage only",
   };
@@ -68,7 +68,7 @@ export async function foodChecked(l: FoodListing) {
     await matchingStore.put("thought", t);
     trace.thought(t);
   }
-  const graded = foods(l).filter((f) => f.check).map((f) => `${f.name}: Grade ${f.check!.grade}${f.check!.safeUntil ? `, safe until ${clock(f.check!.safeUntil)}` : " (not for people)"}`).join("; ");
+  const graded = foods(l).filter((f) => f.check).map((f) => `${f.name}: Grade ${f.check!.grade}${f.check!.safeUntil ? `, safe until ${clock(f.check!.safeUntil)}` : " (not for people)"}${f.check!.dishMatch === "no" || f.check!.dishMatch === "partly" ? ` (warning: the photo shows ${f.check!.seen || "something else"})` : ""}`).join("; ");
   if (l.state === "not_for_people") await say(l, "escalated", `Not for people: ${graded}. ${l.foodCheck?.message ?? ""}`.trim());
   else if (l.state === "tags_held") {
     const asks = (l.foodCheck?.tagChecks ?? []).map((t) => `${t.itemName ? `${t.itemName}'s ` : ""}${t.tag.replace("contains:", "contains ")} tag (${t.seen})`).join(", ");

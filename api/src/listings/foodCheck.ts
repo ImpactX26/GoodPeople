@@ -104,7 +104,7 @@ interface AgentResponse {
   freshness: { score: number; grade: FoodCheck["grade"]; unsure: boolean; photo_checked: boolean; condition: string | null; safe_until: string | null } | null;
   restaurant_message: string | null;
   reasons: string[];
-  photo: { checked: boolean; seen: string; diet_seen?: "veg" | "egg" | "nonveg" | "unclear"; tag_checks?: TagCheck[]; tags_verdict?: "ok" | "unsure" | "wrong" };
+  photo: { checked: boolean; seen: string; matches?: "yes" | "partly" | "no" | "unknown"; diet_seen?: "veg" | "egg" | "nonveg" | "unclear"; tag_checks?: TagCheck[]; tags_verdict?: "ok" | "unsure" | "wrong" };
   models?: { photo: string | null; reasoning: string };
   explanation?: FoodCheck["reasoning"];
 }
@@ -114,8 +114,11 @@ export function fromAgent(r: AgentResponse, l: FoodListing, now: number): FoodCh
   if (!f || r.decision === "ERROR") return rulesOnlyCheck(l, now, "The Food Agent couldn't finish the check.");
   const grade = r.decision === "INELIGIBLE" ? "D" : f.grade;
   const dietSeen = r.photo?.checked ? r.photo.diet_seen ?? "unclear" : "unclear";
+  // The photo doesn't look like the dish named: always a warning; clearly not it makes the food Unsure, so the
+  // partner checks it at pickup (a wrong photo means the grade was judged on something else).
+  const dishMatch = r.photo?.checked ? r.photo.matches ?? "unknown" : undefined;
   return {
-    status: "done", at: now, source: "food_agent", grade, unsure: f.unsure || r.decision === "NEEDS_REVIEW",
+    status: "done", at: now, source: "food_agent", grade, unsure: f.unsure || r.decision === "NEEDS_REVIEW" || dishMatch === "no", dishMatch,
     photoChecked: f.photo_checked, score: f.score, condition: f.condition,
     safeUntil: grade === "D" || !f.safe_until ? null : Date.parse(f.safe_until),
     message: (r.restaurant_message ?? "").trim(), reasons: r.reasons ?? [], seen: r.photo?.seen ?? "",

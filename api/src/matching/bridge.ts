@@ -33,6 +33,7 @@ function itemFrom(it: ListingItem, idx: number, now: number): Item | null {
     halal: it.halal === "yes" || undefined,
     allergens: it.contains.length ? it.contains.flatMap((a) => (a === "onion_garlic" ? ["onion", "garlic"] : [a])) : undefined,
     tags: [it.role, ...(it.jain ? ["jain"] : [])],
+    ...(c?.dishMatch === "no" || c?.dishMatch === "partly" ? { photoMismatch: c.seen || "a different dish" } : {}),
     quantity, container: it.container, litresPerServing: it.litres !== null && it.servings ? it.litres / it.servings : null,
   };
 }
@@ -77,5 +78,6 @@ function singleItem(l: FoodListing, now: number): Item {
     halal: l.halal === "yes" || undefined,
     allergens: l.contains.length ? l.contains.flatMap((a) => (a === "onion_garlic" ? ["onion", "garlic"] : [a])) : undefined,
     tags: l.jain ? ["jain"] : undefined, container: "box", litresPerServing: null,
+    ...(check?.dishMatch === "no" || check?.dishMatch === "partly" ? { photoMismatch: check.seen || "a different dish" } : {}),
   };
 }

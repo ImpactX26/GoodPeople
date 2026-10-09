@@ -103,6 +103,8 @@ export interface FoodCheck {
   /** Tags the photo disagrees with. "sure" holds the listing until relisted; "unsure" asks the donor to double-check. */
   tagChecks?: TagCheck[];
   tagsVerdict?: "ok" | "unsure" | "wrong";
+  /** Whether the photo looks like the dish named: "partly" or "no" are shown as a warning (and "no" makes it Unsure). */
+  dishMatch?: "yes" | "partly" | "no" | "unknown";
   reasoning?: { summary: string; steps: { title: string; detail: string; effect: string; status: "pass" | "warn" | "fail" | "info" }[] } | null;
   /** The restaurant's own "good until", when it gave one: this check was capped at it (foodCheck.ts capByDonor). */
   donorSafeUntil?: number;
