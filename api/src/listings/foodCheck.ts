@@ -104,7 +104,7 @@ interface AgentResponse {
   freshness: { score: number; grade: FoodCheck["grade"]; unsure: boolean; photo_checked: boolean; condition: string | null; safe_until: string | null } | null;
   restaurant_message: string | null;
   reasons: string[];
-  photo: { checked: boolean; seen: string; matches?: "yes" | "partly" | "no" | "unknown"; diet_seen?: "veg" | "egg" | "nonveg" | "unclear"; tag_checks?: TagCheck[]; tags_verdict?: "ok" | "unsure" | "wrong" };
+  photo: { checked: boolean; seen: string; matches?: "yes" | "partly" | "no" | "unknown"; confidence?: number; diet_seen?: "veg" | "egg" | "nonveg" | "unclear"; tag_checks?: TagCheck[]; tags_verdict?: "ok" | "unsure" | "wrong" };
   models?: { photo: string | null; reasoning: string };
   explanation?: FoodCheck["reasoning"];
 }
@@ -117,6 +117,16 @@ export function fromAgent(r: AgentResponse, l: FoodListing, now: number): FoodCh
   // The photo doesn't look like the dish named: always a warning; clearly not it makes the food Unsure, so the
   // partner checks it at pickup (a wrong photo means the grade was judged on something else).
   const dishMatch = r.photo?.checked ? r.photo.matches ?? "unknown" : undefined;
+  // Clearly not the dish named: the listing is held like a wrong tag until the restaurant relists with the right
+  // photo or name. Sure (the model is confident) means it must; less sure, it may say the food is right.
+  const tagChecks: TagCheck[] = r.photo?.checked ? [...(r.photo.tag_checks ?? [])] : [];
+  let tagsVerdict = r.photo?.checked ? r.photo.tags_verdict ?? "ok" : "ok";
+  if (dishMatch === "no") {
+    const confidence = Math.max(0, Math.min(1, Number(r.photo?.confidence ?? 0.5)));
+    const sure = confidence >= 0.75;
+    tagChecks.push({ tag: "name", verdict: sure ? "wrong" : "maybe", certainty: sure ? "sure" : "unsure", seen: r.photo?.seen ?? "", suggest: "", confidence });
+    tagsVerdict = sure || tagsVerdict === "wrong" ? "wrong" : "unsure";
+  }
   return {
     status: "done", at: now, source: "food_agent", grade, unsure: f.unsure || r.decision === "NEEDS_REVIEW" || dishMatch === "no", dishMatch,
     photoChecked: f.photo_checked, score: f.score, condition: f.condition,
@@ -124,8 +134,7 @@ export function fromAgent(r: AgentResponse, l: FoodListing, now: number): FoodCh
     message: (r.restaurant_message ?? "").trim(), reasons: r.reasons ?? [], seen: r.photo?.seen ?? "",
     models: { photo: r.models?.photo ?? null, reasoning: r.models?.reasoning ?? "rules" },
     reasoning: r.explanation ?? null,
-    dietSeen, tagChecks: r.photo?.checked ? r.photo.tag_checks ?? [] : [],
-    tagsVerdict: r.photo?.checked ? r.photo.tags_verdict ?? "ok" : "ok",
+    dietSeen, tagChecks, tagsVerdict,
   };
 }
 

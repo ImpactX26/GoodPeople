@@ -71,7 +71,7 @@ export async function foodChecked(l: FoodListing) {
   const graded = foods(l).filter((f) => f.check).map((f) => `${f.name}: Grade ${f.check!.grade}${f.check!.safeUntil ? `, safe until ${clock(f.check!.safeUntil)}` : " (not for people)"}${f.check!.dishMatch === "no" || f.check!.dishMatch === "partly" ? ` (warning: the photo shows ${f.check!.seen || "something else"})` : ""}`).join("; ");
   if (l.state === "not_for_people") await say(l, "escalated", `Not for people: ${graded}. ${l.foodCheck?.message ?? ""}`.trim());
   else if (l.state === "tags_held") {
-    const asks = (l.foodCheck?.tagChecks ?? []).map((t) => `${t.itemName ? `${t.itemName}'s ` : ""}${t.tag.replace("contains:", "contains ")} tag (${t.seen})`).join(", ");
+    const asks = (l.foodCheck?.tagChecks ?? []).map((t) => `${t.itemName ? `${t.itemName}'s ` : ""}${t.tag === "name" ? "dish name (the photo shows something else)" : `${t.tag.replace("contains:", "contains ")} tag`} (${t.seen})`).join(", ");
     await say(l, "review", `Held for the restaurant: the photo questions ${asks || "a tag"}. ${graded}.`);
   } else await say(l, "graded", `${graded}. Handing the Food Passport to the Decision Agent.`);
 }

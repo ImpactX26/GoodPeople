@@ -28,6 +28,7 @@ export function tagLine(c: TagCheck, l: Pick<ListingView, "diet" | "spice" | "ja
     case "diet": return { title: `${on}${sure ? "Not" : "Might not be"} ${c.itemName ? "the diet you tagged" : DIET_WORD[l.diet].toLowerCase()}`, seen, fix: `Change diet to ${DIET_WORD[c.suggest as ListingInput["diet"]] ?? c.suggest}` };
     case "jain": return { title: `${on}${sure ? "Not" : "Might not be"} Jain friendly`, seen, fix: "Untick Jain friendly" };
     case "spice": return { title: `${on}Might be ${c.suggest}`, seen, fix: `Set spice to ${c.suggest}` };
+    case "name": return { title: `${on}${sure ? "The photo isn’t" : "The photo may not be"} the dish named`, seen, fix: "Use the right photo, or change the name to what’s in it" };
     case "category": return { title: `${on}Might be ${CATEGORY_WORD[c.suggest]?.toLowerCase() ?? c.suggest}`, seen, fix: `Change kind to ${CATEGORY_WORD[c.suggest] ?? c.suggest}` };
     default: return { title: `${on}${c.tag}`, seen, fix: "" };
   }

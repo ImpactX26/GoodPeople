@@ -236,7 +236,8 @@ function AgentLog({ c }: { c: NonNullable<ListingView["agentCase"]> }) {
  */
 function PhotoMatch({ l }: { l: ListingView }) {
   const foods = (l.items?.length ? l.items.map(it => ({ name: it.dish, c: it.foodCheck })) : [{ name: l.dish, c: l.foodCheck }])
-    .filter(f => f.c?.dishMatch === "no" || f.c?.dishMatch === "partly");
+    // A clear mismatch holds the listing and shows in the tag slip; here, the softer warnings.
+    .filter(f => f.c?.dishMatch === "partly" || (f.c?.dishMatch === "no" && !(l.foodCheck?.tagChecks ?? []).some(t => t.tag === "name")));
   if (!foods.length) return null;
   return (
     <section className={s.tagSlip} data-tone="maybe" aria-labelledby="photo-match-title">
