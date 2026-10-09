@@ -426,7 +426,7 @@ export function createDecisionAgent(rt: Runtime, deps: { ngo: NgoAgent; logistic
     if (current.status === "closed") return;
     const asked = new Set((await store.list("decision", { listingId: l.id })).filter((d) => d.kind === "offered").map((d) => d.subject)).size;
     await store.put("listing", { ...current, status: "closed", lapsed: { at: now, asked, ended: "unsafe", cause: "in_transit" } });
-    await decide(now, "closed", l.id, `Unsafe in transit: the ${food} could not reach ${ngo?.name ?? "an NGO"} while safe (${cause}). Stopped the delivery and closed the case; nothing unsafe was handed over.`, l.id, { unsafe: true });
+    await decide(now, "closed", l.id, `Unsafe in transit: the ${food} could not reach ${ngo?.name ?? "an NGO"} while safe, because ${cause}. Stopped the delivery and closed the case; nothing unsafe was handed over.`, l.id, { unsafe: true });
   }
 
   /** The safety net: any food still on its way (or waiting to be) past its safe time is stopped, held or not. */
